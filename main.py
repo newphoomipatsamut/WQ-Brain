@@ -5,7 +5,7 @@ import json
 import time
 from parameters import DATA
 from concurrent.futures import ThreadPoolExecutor
-from threading import current_thread
+from threading import current_thread, Lock
 
 class WQSession(requests.Session):
     def __init__(self, json_fn='credentials.json'):
@@ -43,11 +43,18 @@ class WQSession(requests.Session):
 
     def simulate(self, data):
         self.rows_processed = []
+        self._timed_out = []
+        self._lock = Lock()
+        total = len(data)
+        done_count = [0]  # mutable for closure
+
+        def short_code(alpha):
+            # Show last meaningful part of code for clean log
+            return alpha.strip()[-60:] if len(alpha.strip()) > 60 else alpha.strip()
 
         def process_simulation(writer, f, simulation):
-            if self.login_expired: return # expired crendentials
+            if self.login_expired: return
 
-            thread = current_thread().name
             alpha = simulation['code'].strip()
             delay = simulation.get('delay', 1)
             universe = simulation.get('universe', 'TOP3000')
@@ -57,26 +64,28 @@ class WQSession(requests.Session):
             neutralization = simulation.get('neutralization', 'SUBINDUSTRY').upper()
             pasteurization = simulation.get('pasteurization', 'ON')
             nan = simulation.get('nanHandling', 'OFF')
-            logging.info(f"{thread} -- Simulating alpha: {alpha}")
+
+            label = f"[{universe} d{delay}] {short_code(alpha)}"
+            logging.info(f"▶ Simulating: {label}")
+
             while True:
-                # keep sending a post request until the simulation link is found
                 try:
                     r = self.post('https://api.worldquantbrain.com/simulations', json={
                         'regular': alpha,
                         'type': 'REGULAR',
                         'settings': {
-                            "nanHandling":nan,
-                            "instrumentType":"EQUITY",
-                            "delay":delay,
-                            "universe":universe,
-                            "truncation":truncation,
-                            "unitHandling":"VERIFY",
-                            "pasteurization":pasteurization,
-                            "region":region,
-                            "language":"FASTEXPR",
-                            "decay":decay,
-                            "neutralization":neutralization,
-                            "visualization":False
+                            "nanHandling": nan,
+                            "instrumentType": "EQUITY",
+                            "delay": delay,
+                            "universe": universe,
+                            "truncation": truncation,
+                            "unitHandling": "VERIFY",
+                            "pasteurization": pasteurization,
+                            "region": region,
+                            "language": "FASTEXPR",
+                            "decay": decay,
+                            "neutralization": neutralization,
+                            "visualization": False
                         }
                     })
                     nxt = r.headers['Location']
@@ -87,76 +96,110 @@ class WQSession(requests.Session):
                             self.login_expired = True
                             return
                     except:
-                        logging.info(f'{thread} -- {r.content}') # usually gateway timeout
+                        logging.info(f'  ⚠ Gateway error, skipping: {label}')
                         return
-            logging.info(f'{thread} -- Obtained simulation link: {nxt}')
+
             ok = True
+            MAX_WAIT = 10 * 60
+            elapsed = 0
+            last_pct = -1
             while True:
                 r = self.get(nxt).json()
                 if 'alpha' in r:
                     alpha_link = r['alpha']
                     break
                 try:
-                    logging.info(f"{thread} -- Waiting for simulation to end ({int(100*r['progress'])}%)")
+                    pct = int(100 * r['progress'])
+                    if pct != last_pct:
+                        logging.info(f"  ⏳ {pct}% — {label}")
+                        last_pct = pct
                 except Exception as e:
-                    ok = (False, r['message']); break
+                    ok = (False, r.get('message', str(e))); break
                 time.sleep(10)
+                elapsed += 10
+                if elapsed >= MAX_WAIT:
+                    ok = (False, f'Timeout at {int(100*r.get("progress",0))}%')
+                    break
+
             if ok != True:
-                logging.info(f'{thread} -- Issue when sending simulation request: {ok[1]}')
-                row = [
-                    0, delay, region,
-                    neutralization, decay, truncation,
-                    0, 0, 0, 'FAIL', 0, -1, universe, nxt, alpha
-                ]
+                logging.info(f"  ↩ {ok[1]} — will retry: {label}")
+                with self._lock:
+                    self._timed_out.append(simulation)
+                return  # NOT added to rows_processed → will be retried
             else:
                 r = self.get(f'https://api.worldquantbrain.com/alphas/{alpha_link}').json()
-                logging.info(f'{thread} -- Obtained alpha link: https://platform.worldquantbrain.com/alpha/{alpha_link}')
                 passed = 0
+                weight_check = 'N/A'
+                subsharpe = -1
                 for check in r['is']['checks']:
                     passed += check['result'] == 'PASS'
                     if check['name'] == 'CONCENTRATED_WEIGHT':
                         weight_check = check['result']
                     if check['name'] == 'LOW_SUB_UNIVERSE_SHARPE':
                         subsharpe = check['value']
-                try:    subsharpe
-                except: subsharpe = -1
+                sharpe = r['is']['sharpe']
+                fitness = r['is']['fitness']
+                status = '✅ PASS' if passed >= 6 and sharpe >= 1.25 and fitness >= 1.0 else f'passed={passed}'
+                link = f'https://platform.worldquantbrain.com/alpha/{alpha_link}'
+                logging.info(f"  ✔ {status} | sharpe={sharpe} fit={fitness} sub={subsharpe} | {link}")
                 row = [
-                    passed, delay, region,
-                    neutralization, decay, truncation,
-                    r['is']['sharpe'],
-                    r['is']['fitness'],
-                    round(100*r['is']['turnover'], 2),
-                    weight_check, subsharpe, -1,
-                    universe, f'https://platform.worldquantbrain.com/alpha/{alpha_link}', alpha
+                    passed, sharpe, fitness,
+                    round(100 * r['is']['turnover'], 2),
+                    weight_check, subsharpe,
+                    universe, delay, link, alpha
                 ]
-            writer.writerow(row)
-            f.flush()
-            self.rows_processed.append(simulation)
-            logging.info(f'{thread} -- Result added to CSV!')
+                with self._lock:
+                    writer.writerow(row)
+                    f.flush()
+                    self.rows_processed.append(simulation)
+                    done_count[0] += 1
+                    logging.info(f"  [{done_count[0]}/{total}] done")
 
         try:
             for handler in logging.root.handlers:
                 logging.root.removeHandler(handler)
-            csv_file = f"data/api_{str(time.time()).replace('.', '_')}.csv"
-            logging.basicConfig(encoding='utf-8', level=logging.INFO, format='%(asctime)s: %(message)s', filename=csv_file.replace('csv', 'log'))
-            logging.info(f'Creating CSV file: {csv_file}')
+            from datetime import datetime
+            try:
+                from parameters import BATCH_NAME as _bn
+            except ImportError:
+                _bn = 'agent'
+            ts = datetime.now().strftime('%Y%m%d_%H%M%S')
+            csv_file = f"data/{_bn}_{ts}.csv"
+            log_file = f"data/{_bn}_{ts}.log"
+            logger = logging.getLogger()
+            logger.setLevel(logging.INFO)
+            fmt = logging.Formatter('%(asctime)s  %(message)s', datefmt='%H:%M:%S')
+            fh = logging.FileHandler(log_file, encoding='utf-8')
+            fh.setFormatter(fmt)
+            sh = logging.StreamHandler()
+            sh.setFormatter(fmt)
+            logger.addHandler(fh)
+            logger.addHandler(sh)
+            logging.info(f'Batch: {_bn} | {total} alphas | CSV → {csv_file}')
             with open(csv_file, 'w', newline='') as f:
                 writer = csv.writer(f)
-                header = [
-                    'passed', 'delay', 'region', 'neutralization', 'decay', 'truncation',
-                    'sharpe', 'fitness', 'turnover', 'weight',
-                    'subsharpe', 'correlation', 'universe', 'link', 'code'
-                ]
-                writer.writerow(header)
-                with ThreadPoolExecutor(max_workers=10) as executor: # 10 threads, only 3 can go in concurrently so this is no harm
-                    _ = executor.map(lambda sim: process_simulation(writer, f, sim), data)
+                writer.writerow(['passed', 'sharpe', 'fitness', 'turnover',
+                                 'weight', 'subsharpe', 'universe', 'delay', 'link', 'code'])
+                with ThreadPoolExecutor(max_workers=10) as executor:
+                    executor.map(lambda sim: process_simulation(writer, f, sim), data)
         except Exception as e:
             print(f'Issue occurred! {type(e).__name__}: {e}')
-        return [sim for sim in data if sim not in self.rows_processed]
+        # Return anything not processed (errors/expired) + timed-out for retry
+        failed = [sim for sim in data if sim not in self.rows_processed and sim not in self._timed_out]
+        return self._timed_out + failed
 
 if __name__ == '__main__':
-    TOTAL_ROWS = len(DATA)
+    TOTAL = len(DATA)
+    attempt = 0
     while DATA:
-        wq = WQSession()
-        print(f'{TOTAL_ROWS-len(DATA)}/{TOTAL_ROWS} alpha simulations...')
-        DATA = wq.simulate(DATA)
+        attempt += 1
+        remaining = len(DATA)
+        done = TOTAL - remaining
+        print(f'\n{"="*50}')
+        print(f'  Attempt #{attempt} | {done}/{TOTAL} done | {remaining} queued')
+        print(f'{"="*50}')
+        DATA = WQSession().simulate(DATA)
+        if DATA:
+            print(f'\n  ↩ {len(DATA)} timed-out — retrying in 30s...')
+            time.sleep(30)
+    print(f'\n✅ All {TOTAL} simulations complete!')

@@ -1,6 +1,15 @@
 __pycache__/
 credentials.json
 *chromedriver*
-*.csv
 *.log
 draft/
+
+# Raw batch result CSVs — too large/noisy for version control
+data/*.csv
+
+# Allow the curated database exports
+!fields_tracker.csv
+!results.csv
+
+# Lock files
+~$*.xlsx
