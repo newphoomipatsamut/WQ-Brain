@@ -11,5 +11,21 @@ data/*.csv
 !fields_tracker.csv
 !results.csv
 
-# Lock files
+# OS/editor junk
+.DS_Store
+data/.DS_Store
+.~lock.*
 ~$*.xlsx
+*.xlsx#
+
+# Agent runtime files — not needed in repo
+agent_log.txt
+agent_state.json
+
+# Corrupted/stale DB files
+wq_brain.db
+wq_brain.db-journal
+
+# Misc
+Model.csv
+WQ_Brain_Tracker_Session20.csv
