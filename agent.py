@@ -252,10 +252,13 @@ def filter_promising(df):
 
 def is_tune_worthy(row):
     """Extra filter before adding to tune candidates — must have real signal."""
+    # Allow TOP200 to bypass the subsharpe check since the API returns -1.00
+    subsharpe_ok = (float(row.get('subsharpe', 0) or 0) >= SUBSHARPE_TUNE_MIN) or (str(row.get('universe', '')) == 'TOP200')
+    
     return (
         float(row.get('sharpe',    0) or 0) >= SHARPE_TUNE_MIN    and
         float(row.get('fitness',   0) or 0) >= FITNESS_TUNE_MIN   and
-        float(row.get('subsharpe', 0) or 0) >= SUBSHARPE_TUNE_MIN
+        subsharpe_ok
     )
 
 def is_submittable(row, score=None):
@@ -285,7 +288,7 @@ def diagnose(candidate):
 
     if sharpe    < SHARPE_MIN:    issues.add('sharpe')
     if fitness   < FITNESS_MIN:   issues.add('fitness')
-    if subsharpe < 0.72:          issues.add('subsharpe')
+    if subsharpe < 0.72 and candidate.get('universe') != 'TOP200': issues.add('subsharpe')
     if passed    < PASSED_MIN:    issues.add('passed')
 
     # Already passing all thresholds — tune to maximize score
