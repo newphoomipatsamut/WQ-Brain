@@ -180,7 +180,7 @@ class WQSession(requests.Session):
                 writer = csv.writer(f)
                 writer.writerow(['passed', 'sharpe', 'fitness', 'turnover',
                                  'weight', 'subsharpe', 'universe', 'delay', 'link', 'code'])
-                with ThreadPoolExecutor(max_workers=10) as executor:
+                with ThreadPoolExecutor(max_workers=3) as executor:  # WQ Brain platform limit
                     executor.map(lambda sim: process_simulation(writer, f, sim), data)
         except Exception as e:
             print(f'Issue occurred! {type(e).__name__}: {e}')
