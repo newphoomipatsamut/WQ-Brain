@@ -110,12 +110,20 @@
 
 | Batch | Status | Fields | Est. Runtime |
 |-------|--------|--------|-------------|
-| d1v16 | ⏳ Ready to run | ~90 expressions (high-priority families) | ~135 min |
+| d1v16 | ✅ Complete | 85 results — no full passes. Best: garpanalystmodel_qgp_valuation sharpe=1.30, fitness=0.90 | ~135 min |
+| tune_garp_val | ⏳ Ready | 8 expressions — tuning garpanalystmodel_qgp_valuation (TOP200, ts_rank, decay variants) | ~12 min |
 | d1v17a | ⏳ Ready to run | 208 fields (full Model sweep part A) | ~312 min |
 | d1v17b | ⏳ Ready to run | 209 fields (full Model sweep part B) | ~314 min |
 
-> Run order: v16 first (highest-priority families), then v17a, then v17b.
-> Note: deadline is May 18 — v16/v17 results are for post-deadline analysis or future IQC rounds.
+> Run order: tune_garp_val (12 min, might find a passer), then v17a → v17b for post-deadline sweep.
+> Note: deadline is May 18 — v17a/v17b results are for post-deadline analysis or future IQC rounds.
+
+### v16 Key Findings
+- **No full passes** in 85 tested expressions
+- **Best candidate:** `mdl177_garpanalystmodel_qgp_valuation` TOP3000 ts_zscore — Sharpe 1.30, Fitness **0.90** (⚠️ below 1.0), passed 6/7
+- **Near-misses:** `qva_earnval` TOP200 (1.11/0.98), `qva_epmodule` TOP200 (1.03/0.91), `fangma_mam16` TOP200 (1.02/1.01 but LOW_SUB_UNIVERSE_SHARPE fail)
+- **4 invalid fields found** — marked DEAD: `rau`, `si_ratio` (wrong prefix), `qma_earnxp`, `qga_eps_capex`
+- **Families tested:** fangma_mam/emf/dvm, garpanalystmodel, valueanalystmodel siblings, valanalystmodel, earningsquality, liquidityrisk, growth — mostly weak IS metrics
 
 ---
 
@@ -233,5 +241,12 @@ python3 agent.py --reset
 56. **NEVER guess variable names** — always verify from fields_tracker.csv or wq_alpha.db. Wrong names = silent failures.
 57. **v17a/v17b built** — full 417-field Model sweep split into two ~5hr batches. Built from wq_alpha.db untested fields query.
 58. **Biometric auth** — log in via browser first, then start main.py immediately. Session persists for full batch run without re-auth.
+
+59. **scrape_fields.py** — scrapes all fields from WQ Brain API, 7,750 total (1,612 mdl177). PAGE_SIZE=20, SLEEP_BETWEEN=3.0. Resume from offset: `python3 scrape_fields.py model77 400`.
+60. **Full DB built** — wq_alpha.db now has 7,750 fields. Views: submittable (16), v_untested_fields (7,631), v_dead_fields (96+), v_in_use (20).
+61. **agent.py flip threshold** — SHARPE_FLIP_MAX = -1.00. Only flip AFTER both ts_rank AND ts_zscore tried and both ≤ -1.0.
+62. **v16 — no full passes** — 85 expressions tested. Best: garpanalystmodel_qgp_valuation (sharpe=1.30, fitness=0.90, passed=6). 4 invalid fields found (bad field IDs in scraper output).
+63. **Invalid field IDs** — some fields in fields_tracker have IDs not recognized by the platform. These return "unknown variable" errors. Mark DEAD after first failure; don't retry.
+64. **tune_garp_valuation** — built 8-expression tune file for best v16 candidate. Try TOP200 and ts_rank to push fitness over 1.0 threshold.
 
 *Update this file at the end of every session.*
