@@ -557,6 +557,26 @@ def process_csv(csv_path, session, state):
         if s['alpha_id'] not in existing_ids:
             state['submittable'].append(s)
 
+    # ── Export process log to CSV ──────────────────────────────────────────────
+    if tune_candidates or new_submittable:
+        output_data = []
+        for c in tune_candidates:
+            c_copy = dict(c)
+            c_copy['status'] = 'TUNE'
+            output_data.append(c_copy)
+        for s in new_submittable:
+            s_copy = dict(s)
+            s_copy['status'] = 'SUBMITTABLE'
+            output_data.append(s_copy)
+            
+        if output_data:
+            out_df = pd.DataFrame(output_data)
+            ts = datetime.now().strftime('%Y%m%d_%H%M%S')
+            label = os.path.splitext(os.path.basename(csv_path))[0]
+            out_csv_path = os.path.join(DATA_DIR, f'evaluated_{label}_{ts}.csv')
+            out_df.to_csv(out_csv_path, index=False)
+            log(f'\n  [💾] Saved evaluation results to {out_csv_path}')
+
     # Write flip file if we have flip candidates
     if flip_suggestions:
         ts = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -581,126 +601,67 @@ def process_csv(csv_path, session, state):
         for f in flip_suggestions:
             flipped = f['flipped']
             uni = f['universe']
-            if flipped not in seen_flip:
-                seen_flip.add(flipped)
-                base_key = 'BASE' if uni == 'TOP3000' else 'B500'
-                lines.append(f"    {{**{base_key}, 'code': '{flipped}'}},")
-                # Also add TOP500 if original was TOP3000
-                if uni == 'TOP3000':
-                    lines.append(f"    {{**B500, 'code': '{flipped}'}},")
+            if (uni, flipped) not in seen_flip:
+                seen_flip.add((uni, flipped))
+                code = flipped.replace("'", "\\'")
+                base_dict = "B500" if uni == "TOP500" else "BASE"
+                lines.append(f"    {{**{base_dict}, 'code': '{code}'}},")
         lines += [
             ']',
-            'print(f"Total expressions queued: {len(DATA)}")',
-            f'print("  Flip batch: {len(flip_suggestions)} inverted signal(s)")',
-            'print(f"Estimated runtime: ~{len(DATA)*1.5:.0f} min")',
+            'print(f"Total flipped expressions: {len(DATA)}")',
         ]
-        with open(flip_file, 'w') as ff:
-            ff.write('\n'.join(lines) + '\n')
-        log(f'\n  🔄 Flip file written: {flip_file}')
-        log(f'     Run: cp {os.path.basename(flip_file)} parameters.py && python3 main.py')
+        with open(flip_file, 'w') as f:
+            f.write('\n'.join(lines) + '\n')
+        log(f'\n  🔄 Created {flip_file} for {len(seen_flip)} inverted signals.')
 
-    # Write tuning file if we have candidates
     if tune_candidates:
-        # Use CSV basename as label (strip path and extension)
-        label = os.path.splitext(os.path.basename(csv_path))[0]
-        tune_file, n_exprs = write_tune_file(tune_candidates, label)
-        log(f'\n  📄 Tuning file written: {tune_file}')
-        log(f'     {n_exprs} expressions across {len(tune_candidates)} candidate(s)')
-        log(f'     Run: cp {os.path.basename(tune_file)} parameters.py && python3 main.py')
-        existing_tune_ids = set(state['tune_candidates'])
-        for c in tune_candidates:
-            if c['alpha_id'] not in existing_tune_ids:
-                state['tune_candidates'].append(c['alpha_id'])
-                existing_tune_ids.add(c['alpha_id'])
-    else:
-        log('  No tune candidates after corr filter.')
+        batch_label = os.path.splitext(os.path.basename(csv_path))[0]
+        tune_file, n_expr = write_tune_file(tune_candidates, batch_label)
+        log(f'\n  🔧 Created {tune_file} with {n_expr} variants for {len(tune_candidates)} candidates.')
 
-    # Summary
-    if new_submittable:
-        banner(f'✅ NEW SUBMITTABLE ALPHAS ({len(new_submittable)})')
-        for s in sorted(new_submittable, key=lambda x: x['sharpe'], reverse=True):
-            log(f"  sharpe={s['sharpe']:.2f}  fitness={s['fitness']:.2f}  "
-                f"corr={s['corr']:.3f}  {s['universe']}")
-            log(f"  field : {s['field']}")
-            log(f"  link  : {s['link']}")
+    state['processed_csvs'].append(csv_path)
+    save_state(state)
+    log(f'\n  Finished {csv_path}. Added {len(new_submittable)} submittable, {len(tune_candidates)} tuning.')
 
-# ── WATCH MODE ────────────────────────────────────────────────────────────────
-def watch(session, state):
-    banner(f'Watch mode — scanning {DATA_DIR}/ every {WATCH_INTERVAL}s')
-    log('Drop new CSVs into data/ and agent.py will process them automatically.')
-    log('Ctrl+C to stop.\n')
-
-    processed = set(state['processed_csvs'])
+# ── MAIN LOOP ─────────────────────────────────────────────────────────────────
+def main():
+    banner('WQ Brain AutoAgent v2')
+    log(f'Targeting: Sharpe≥{SHARPE_MIN}, Fitness≥{FITNESS_MIN}, Corr<{CORR_MAX}')
 
     try:
+        session = WQSession()
+    except Exception as e:
+        log(f'Auth Failed: {e}')
+        sys.exit(1)
+
+    state = load_state()
+
+    # If a specific CSV was passed as an argument, run just that
+    if len(sys.argv) > 1 and sys.argv[1].endswith('.csv'):
+        target_csv = sys.argv[1]
+        if not os.path.exists(target_csv):
+            log(f'File not found: {target_csv}')
+            sys.exit(1)
+        process_csv(target_csv, session, state)
+        sys.exit(0)
+
+    # Watch mode
+    log(f'Watching {DATA_DIR}/ for new CSVs (checking every {WATCH_INTERVAL}s)...')
+    try:
         while True:
-            csvs = sorted(glob.glob(os.path.join(DATA_DIR, '*.csv')))
-            new  = [c for c in csvs if c not in processed
-                    and not os.path.basename(c).startswith('_')]
-
-            if new:
-                for csv_path in new:
-                    try:
-                        process_csv(csv_path, session, state)
-                    except Exception as e:
-                        log(f'ERROR processing {csv_path}: {e}')
-                    processed.add(csv_path)
-                    state['processed_csvs'] = list(processed)
-                    save_state(state)
-            else:
-                log(f'No new CSVs found. Waiting {WATCH_INTERVAL}s...', also_print=False)
-
+            csv_files = sorted(glob.glob(os.path.join(DATA_DIR, '*.csv')))
+            # filter out agent's own eval files
+            csv_files = [f for f in csv_files if not os.path.basename(f).startswith('evaluated_')]
+            
+            for csv_path in csv_files:
+                if csv_path not in state['processed_csvs']:
+                    process_csv(csv_path, session, state)
             time.sleep(WATCH_INTERVAL)
-
     except KeyboardInterrupt:
-        log('\n⚠️  Stopped. State saved.')
-        state['processed_csvs'] = list(processed)
-        save_state(state)
-
-# ── FULL SUMMARY ──────────────────────────────────────────────────────────────
-def print_summary(state):
-    banner('FULL SESSION SUMMARY')
-    subs = state.get('submittable', [])
-    log(f'Total submittable alphas found: {len(subs)}')
-    for s in sorted(subs, key=lambda x: x.get('score') or 0, reverse=True):
-        sc = s.get('score')
-        sc_str = f'+{sc}' if (sc is not None and sc >= 0) else str(sc) if sc is not None else 'N/A'
-        log(f"  ✅ score={sc_str}  sharpe={s['sharpe']:.2f}  fitness={s['fitness']:.2f}  "
-            f"corr={s.get('corr','N/A')}  {s['universe']}")
-        log(f"     {s['field']}")
-        log(f"     {s['link']}")
-    log(f'\nCorr checked: {len(state.get("corr_checked", {}))} alphas')
-    log(f'Log: {LOG_FILE}  |  State: {STATE_FILE}')
-
-# ── MAIN ──────────────────────────────────────────────────────────────────────
-def main():
-    banner(f'WQ Brain AutoAgent v2 — {datetime.now().strftime("%Y-%m-%d %H:%M")}')
-    log('Role: corr-checker + tuning file generator')
-    log(f'Promising: sharpe≥{SHARPE_PROMISING} OR fitness≥{FITNESS_PROMISING} OR passed≥{PASSED_PROMISING}')
-    log(f'Submit:    sharpe≥{SHARPE_MIN} AND fitness≥{FITNESS_MIN} AND passed≥{PASSED_MIN} AND corr<{CORR_MAX}')
-
-    state   = load_state()
-    session = WQSession()
-
-    if len(sys.argv) > 1:
-        # One-shot mode: process specific CSV(s) passed as arguments
-        # Always reprocesses — corr values are cached so no duplicate API calls
-        for csv_path in sys.argv[1:]:
-            if not os.path.exists(csv_path):
-                log(f'File not found: {csv_path}')
-                continue
-            process_csv(csv_path, session, state)
-            if csv_path not in state['processed_csvs']:
-                state['processed_csvs'].append(csv_path)
-            save_state(state)
-        print_summary(state)
-    else:
-        # Watch mode: scan data/ continuously
-        watch(session, state)
-        print_summary(state)
+        log('\nAgent stopped by user.')
 
 if __name__ == '__main__':
-    # Quick reset: python3 agent.py --reset
+    # Reset state: python3 agent.py --reset
     if '--reset' in sys.argv:
         save_state({
             'processed_csvs': [],
