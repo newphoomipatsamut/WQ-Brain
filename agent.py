@@ -55,7 +55,8 @@ SUBSHARPE_TUNE_MIN= 0.30   # subsharpe must show some signal
 
 # Flip threshold — if sharpe ≤ this with a valid alpha, signal is inverted
 # Suggest rank() instead of -rank() to reverse direction
-SHARPE_FLIP_MAX   = -0.80  # strong negative signal worth flipping
+# RULE: Only flip after BOTH ts_rank AND ts_zscore have been tried and both are ≤ -1.0
+SHARPE_FLIP_MAX   = -1.00  # strong negative signal worth flipping
 
 # Submission thresholds — must meet ALL
 SHARPE_MIN    = 1.25

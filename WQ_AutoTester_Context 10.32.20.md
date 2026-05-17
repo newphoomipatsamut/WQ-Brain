@@ -25,18 +25,20 @@ WQ-Brain/
 ├── parameters_d1_v*.py     ← Batch history — named by version
 ├── main.py                 ← Simulation engine (modified — auto-resume fix)
 ├── agent.py                ← Corr checker + score fetcher + tune file generator
+├── scrape_fields.py        ← Scrapes all fields from WQ Brain API → fields_tracker.csv
 ├── check_alphas.py         ← Standalone alpha checker (corr + score)
-├── commands.py             ← WQ Brain helper (from fork — do not modify)
-├── database.py             ← WQ Brain helper (from fork — do not modify)
-├── scrape_alphas.py        ← Scraper (from fork — optional)
-├── submit_alphas.py        ← Submission helper (from fork — optional)
-├── fields_tracker.csv      ← Master variable database (1,731 fields)
+├── commands.py             ← Expression generators from fork (reference only)
+├── database.py             ← Dependency of commands.py (reference only)
+├── scrape_alphas.py        ← Scrapes unsubmitted passing alphas with links (optional)
+├── submit_alphas.py        ← Auto-submits from scrape CSV (use with caution)
+├── fields_tracker.csv      ← Master variable database (7,750 fields — scraped May 17)
 ├── results.csv             ← All tested alphas with sharpe/fitness/corr/score
 ├── wq_alpha.db             ← SQLite version of above — queryable
 ├── DATABASE.md             ← How to query the DB
 ├── WQ_Master_Context_*.md  ← Session context files
 └── data/
-    └── d1vXX_YYYYMMDD_HHMMSS.csv  ← Batch results (gitignored)
+    ├── d1vXX_YYYYMMDD_HHMMSS.csv       ← Batch results (gitignored)
+    └── fields_raw_model77_*.csv         ← Raw field scrape output
 ```
 
 > **Not used:** `filter_results.py` — replaced by `agent.py`. Kept in repo for reference only.
@@ -113,13 +115,26 @@ print(f"Estimated runtime: ~{len(DATA)*1.5:.0f} min")
 
 | Strategy | Expression | When to Use |
 |----------|-----------|-------------|
-| Standard | `-rank(ts_rank(field,252))` | Default baseline — test first |
-| Z-score | `-rank(ts_zscore(field,252))` | Often +5–10% sharpe vs ts_rank |
-| Flipped | `rank(ts_rank(field,252))` | When field has strong but wrong-direction signal (Sharpe < -0.5) |
+| Standard | `-rank(ts_zscore(field,252))` | Default baseline — test first |
+| ts_rank | `-rank(ts_rank(field,252))` | Also test alongside ts_zscore |
 | TOP200 | Same expr + `'universe':'TOP200'` | After any TOP3000 pass — often cleaner corr + better score |
 | TOP500 | Same expr + `'universe':'TOP500'` | Mid-tier universe — corr usually 0.28–0.65 vs TOP3000 |
+| Flipped | `rank(ts_zscore(field,252))` | **ONLY** when IS Sharpe ≤ -1.0 after BOTH ts_rank AND ts_zscore have been tried |
 
-> ⚠️ **Never mark a field dead from standard baseline alone.** Always retry with flip + TOP200 before abandoning.
+> ⚠️ **Never mark a field dead from standard baseline alone.** Retry order: ts_zscore → TOP200 → flip (only if Sharpe ≤ -1.0 on both) → then mark dead.
+
+---
+
+## 🚫 HARD RULE — Never Guess Variable Names
+
+**Never construct or guess variable names from memory or pattern-matching.**
+
+Always verify field names from one of:
+1. `fields_tracker.csv` — master list of 1,731+ confirmed field names
+2. `wq_alpha.db` — `SELECT field FROM fields WHERE field LIKE 'mdl177%' AND status = ''`
+3. WQ Brain Fields page on the platform UI
+
+Wrong variable names cause silent API failures or test the wrong field entirely. This rule has no exceptions — even if a name "looks right" based on family patterns.
 
 ---
 
@@ -238,6 +253,31 @@ GET /teams/{team_id}/alphas/{alpha_id}/before-and-after-performance
 
 ---
 
+## scrape_fields.py — Field Database Scraper
+
+Scrapes all fields from a WQ Brain dataset via API and merges into `fields_tracker.csv`.
+
+```bash
+# Scrape Model 77 (default)
+python3 scrape_fields.py
+
+# Resume from a specific offset (if interrupted)
+python3 scrape_fields.py model77 400
+
+# Scrape a different dataset
+python3 scrape_fields.py fundamental26
+```
+
+- Paginates 20 fields per request with 3s sleep (rate limit safe)
+- Saves raw output to `data/fields_raw_DATASET_TIMESTAMP.csv`
+- Merges new fields into `fields_tracker.csv` — **never overwrites existing status/notes**
+- Also run after any WQ Brain dataset update to catch newly added fields
+- Full model77 scrape: ~19 min, 7,642 fields
+
+**Last run:** May 17, 2026 — 7,750 total fields (1,612 mdl177, 2,738 Model, 1,658 Fundamental, 1,324 Analyst, 996 News)
+
+---
+
 ## Batch History
 
 | Batch | Status | Key Finds |
@@ -249,6 +289,9 @@ GET /teams/{team_id}/alphas/{alpha_id}/before-and-after-performance
 | d1v11 | ✅ Complete | ~120 expressions, fangma siblings + 5 families |
 | d1v12/13 | ✅ Complete | See tune/flip results |
 | d1v14/15 | ✅ Complete | chgacc Golden Alpha +643, rvm6 TOP200 strong |
+| d1v16 | ⏳ Ready | ~90 expressions — high priority untested Model families |
+| d1v17a | ⏳ Ready | 208 fields — full Model sweep part A |
+| d1v17b | ⏳ Ready | 209 fields — full Model sweep part B |
 
 ---
 
