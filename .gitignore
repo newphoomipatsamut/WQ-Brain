@@ -1,47 +1,44 @@
+# ─── Python ──────────────────────────────────────────────────
 __pycache__/
+*.pyc
+
+# ─── Credentials (NEVER commit) ─────────────────────────────
 credentials.json
 *chromedriver*
-*.log
-draft/
 
-# Raw batch result CSVs — too large/noisy for version control
-data/*.csv
+# ─── Active batch (user-specific, changes constantly) ───────
+parameters.py
 
-# Allow the curated database exports
-!fields_tracker.csv
-!results.csv
-
-# OS/editor junk
-.DS_Store
-data/.DS_Store
-.~lock.*
-~$*.xlsx
-*.xlsx#
-
-# Agent runtime files — not needed in repo
-agent_log.txt
-agent_state.json
-
-# Corrupted/stale DB files
-wq_brain.db
-wq_brain.db-journal
-
-# Misc
-Model.csv
-WQ_Brain_Tracker_Session20.csv
-
-# Database files
-wq_alpha.db
-wq_alpha.db-journal
-
-# Orchestrator runtime logs
-orchestrator_log.txt
-passes_to_review.txt
-
-# Stale CSV artifacts in root
-llm_fundamental_*.csv
-
-# Auto-generated parameter files (batch-specific, not reusable)
+# ─── Auto-generated parameter files ─────────────────────────
 parameters_llm_*.py
 parameters_gen_*.py
 parameters_auto_tune_*.py
+
+# ─── Simulation data ────────────────────────────────────────
+data/*.csv
+data/*.log
+*.log
+
+# ─── Database files ─────────────────────────────────────────
+wq_alpha.db
+wq_alpha.db-journal
+wq_brain.db
+wq_brain.db-journal
+
+# ─── Runtime artifacts ──────────────────────────────────────
+agent_log.txt
+agent_state.json
+orchestrator_log.txt
+passes_to_review.txt
+
+# ─── OS / editor junk ───────────────────────────────────────
+.DS_Store
+.~lock.*
+~$*.xlsx
+*.xlsx#
+draft/
+
+# ─── Stale one-off files ────────────────────────────────────
+llm_fundamental_*.csv
+Model.csv
+WQ_Brain_Tracker_Session20.csv
