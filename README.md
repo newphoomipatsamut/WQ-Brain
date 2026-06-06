@@ -1,6 +1,6 @@
-# WQ-Brain Alpha AutoTester
+# WQ-Brain Alpha Research Pipeline
 
-An automated simulation and research pipeline for [WorldQuant BRAIN](https://platform.worldquantbrain.com), built for IQC 2026 competition research.
+An automated alpha discovery and simulation pipeline for [WorldQuant BRAIN](https://platform.worldquantbrain.com), built for IQC 2026 competition research.
 
 > Forked from [RussellDash332/WQ-Brain](https://github.com/RussellDash332/WQ-Brain), which credits [AbnerTeng/WorldQuant-Brain](https://github.com/AbnerTeng/WorldQuant-Brain).
 
@@ -8,11 +8,13 @@ An automated simulation and research pipeline for [WorldQuant BRAIN](https://pla
 
 ## What This Does
 
-- Submits alpha expressions to the WQ Brain API and records IS metrics
-- Runs **3 concurrent simulations** (platform limit)
-- Auto-resumes timed-out simulations automatically
-- Checks self-correlation and performance score for passing alphas via `agent.py`
-- Maintains a variable database (`fields_tracker.csv`, `wq_alpha.db`) tracking 1,700+ fields
+- **LLM-powered alpha generation** — Gemini 3.5 Flash generates diverse alpha expressions from untested fields
+- **Reinforcement learning** — multi-armed bandit tracks which templates work per data frequency and steers Gemini toward them
+- **Fully automated orchestrator** — cycles through categories, generates batches, runs simulations, tunes near-misses, updates tracker
+- **Concurrent simulation** — 3 parallel simulations with auto-resume on timeout
+- **Auto biometric auth** — polls for auth link, sends LINE notifications, detects expired links
+- **Near-miss tuning** — automatically builds parameter sweeps for expressions close to passing thresholds
+- **Field tracking** — 6,500+ fields across 19 categories with emoji-coded status tracking
 
 ---
 
@@ -21,27 +23,44 @@ An automated simulation and research pipeline for [WorldQuant BRAIN](https://pla
 ```bash
 git clone https://github.com/newphoomipatsamut/WQ-Brain.git
 cd WQ-Brain
-pip install requests pandas openpyxl
+pip install requests pandas openpyxl google-genai
 cp credentials.json.example credentials.json
 # Edit credentials.json with your WQ Brain email and password
 ```
 
 ---
 
-## Running a Batch
+## Quick Start
 
+### Fully automated (recommended)
 ```bash
-# 1. Copy a parameters file as the active batch
-cp parameters_d1_v11.py parameters.py
+# Run the orchestrator — generates, simulates, tunes, repeats
+python3 orchestrator.py --api-key YOUR_GEMINI_KEY
+
+# Start from a specific category
+python3 orchestrator.py --api-key YOUR_GEMINI_KEY --start-category "Analyst"
+
+# Plan only — see what would run
+python3 orchestrator.py --api-key YOUR_GEMINI_KEY --dry-run
+
+# Retune historical near-misses (no API key needed)
+python3 orchestrator.py --retune
+```
+
+### Manual workflow
+```bash
+# 1. Generate expressions with Gemini
+python3 llm_alpha_generator.py --api-key YOUR_GEMINI_KEY --category "Fundamental" --count 30
 
 # 2. Run simulations
+cp parameters_llm_fundamental_*.py parameters.py
 python3 main.py
 
-# 3. When done, run agent to check corr + score
-python3 agent.py data/d1v11_YYYYMMDD_HHMMSS.csv
+# 3. Check results — corr + score
+python3 agent.py data/<output>.csv
 
-# 4. Enter corr manually if API returns None
-python3 agent.py --corr
+# 4. Baseline sweep (no LLM needed)
+python3 generate_batch.py --category "Model" --smart
 ```
 
 ---
@@ -50,80 +69,81 @@ python3 agent.py --corr
 
 | File | Purpose |
 |------|---------|
-| `main.py` | Simulation engine — modified with auto-resume + clean logging |
-| `agent.py` | Corr checker, score fetcher, tune file generator |
-| `parameters_d1_v*.py` | Batch history — each version is a different set of expressions |
-| `fields_tracker.csv` | 1,700+ WQ Brain fields with test status and notes |
-| `results.csv` | All tested alphas with IS metrics, corr, and score |
-| `wq_alpha.db` | SQLite database — queryable version of the above two files |
-| `DATABASE.md` | How to query the database |
-| `commands.py` | WQ Brain API helpers (from original fork) |
-| `credentials.json` | Your login — **gitignored, never commit** |
+| `orchestrator.py` | Fully automated research loop — generate, simulate, tune, repeat |
+| `llm_alpha_generator.py` | Gemini-powered expression generator with RL recommendations |
+| `template_rl.py` | Multi-armed bandit tracking template performance by frequency |
+| `main.py` | Simulation engine — 3 concurrent workers, auto-resume, biometric auth |
+| `agent.py` | Post-simulation analysis — corr check, score fetch, tuning |
+| `generate_batch.py` | Baseline sweep generator (no LLM, cross-product of templates) |
+| `alpha_miner.py` | Enumerate all template variants for a specific field |
+| `alpha_utils.py` | Shared utilities — field extraction, expression validation |
+| `scrape_alphas.py` | Scrape passing alphas from your WQ account |
+| `submit_alphas.py` | Submit passing alphas to competition |
+| `scrape_fields.py` | Scrape all available fields from WQ API |
+| `update_tracker.py` | Sync fields_tracker.csv with latest results |
+| `notify.py` | LINE + macOS notification system |
+| `database.py` | SQLite database management |
+| `fields_tracker.csv` | 6,500+ fields with status, category, signal strength |
+| `wq_alpha.db` | SQLite database — queryable version of results |
+| `credentials.json` | Login credentials — **gitignored, never commit** |
 
 ---
 
-## Alpha Submission Thresholds (D1, delay=1)
+## Alpha Submission Thresholds (D1)
 
-| Metric | Pass | Reject |
-|--------|------|--------|
-| IS Sharpe | ≥ 1.25 | < 1.10 |
-| IS Fitness | ≥ 1.00 | < 0.85 |
-| Turnover | 1–70% | > 70% or < 1% |
-| Checks passed | ≥ 6/7 | < 6 |
-| Self-correlation | < 0.70 | ≥ 0.70 |
-| **Score change** | **> 0** | **≤ 0** |
-
-> Score change = Performance Comparison panel on the BRAIN platform. A positive IS Sharpe is not enough — the alpha must improve your overall competition score.
+| Metric | Pass | Near-Miss | Reject |
+|--------|------|-----------|--------|
+| IS Sharpe | >= 1.25 | >= 0.90 | < 0.90 |
+| IS Fitness | >= 1.00 | >= 0.70 | < 0.70 |
+| Checks | >= 6/7 | >= 5/7 | < 5 |
+| Self-correlation | < 0.70 | — | >= 0.70 |
+| Score change | > 0 | — | <= 0 |
 
 ---
 
-## Expression Strategies
+## Status Labels
 
-```python
-# Standard baseline
-'-rank(ts_rank(FIELD, 252))'
-
-# Z-score variant — often better Sharpe
-'-rank(ts_zscore(FIELD, 252))'
-
-# Flipped sign — try when field has strong but wrong-direction signal
-'rank(ts_rank(FIELD, 252))'
-
-# TOP200 universe — often cleaner correlation and higher score
-{**BASE, 'universe': 'TOP200', 'code': '-rank(ts_zscore(FIELD, 252))'}
-```
+| Emoji | Status | Meaning |
+|-------|--------|---------|
+| (empty) | Untested | Not yet simulated |
+| ⚪ | Backlog | Untested, queued for testing |
+| 🟡 | Tested: Baseline Failed | Tested, didn't pass |
+| 🟠 | Test Soon | Near-miss, worth tuning |
+| ✅ | In Use | Passed IS, in competition book |
+| ❌ | Dead | Confirmed no signal |
+| ❌ | Abandoned | Manually marked, skip |
 
 ---
 
-## Variable Database
+## Template RL System
+
+The reinforcement learning system (`template_rl.py`) tracks pass rates by template type and data frequency:
 
 ```bash
-# Open the SQLite DB
-sqlite3 wq_alpha.db
-
-# Find untested model fields
-SELECT field, category FROM v_untested_fields WHERE field LIKE 'mdl177%';
-
-# See all active (submitted/submittable) alphas
-SELECT alpha_id, name, sharpe, fitness, max_corr FROM submittable;
-
-# Find dead fields
-SELECT field, notes FROM v_dead_fields;
+# View current recommendations
+python3 -c "from template_rl import print_summary; print_summary()"
 ```
+
+Templates are ranked by composite score: (pass_rate, near_miss_rate, avg_sharpe). The top template for each frequency gets "STRONGLY PREFER" status and is injected into Gemini's system prompt.
 
 ---
 
-## Fitness Formula
+## Near-Miss Tuning
 
-```
-Fitness = sqrt( |Returns%| / max(Turnover%, 12.5%) ) × Sharpe
-```
+When the orchestrator finds expressions with sharpe 0.90-1.24, it automatically builds tuning batches. The tuning strategy depends on what's blocking the pass:
+
+- **Fitness < 1.00** (turnover too high) — adds `hump()` wrapper, increases decay, tries TOP200, replaces ts_decay_linear with ts_rank
+- **Checks < 6** — universe flips and lookback sweeps
+- **Sharpe < 1.25** — standard lookback/universe parameter sweep
+
+Run `python3 orchestrator.py --retune` to retune all historical near-misses.
 
 ---
 
 ## Notes
 
-- **D0 (delay=0) is not viable** for this competition — thresholds are Sharpe ≥ 2.0, Fitness ≥ 1.30
-- **Never mark a field dead from standard baseline alone** — always retry with flip sign and TOP200 universe
-- **TOP200 universe** consistently produces the best scores in IQC 2026
-- **3 concurrent simulations** is the WQ Brain platform limit — do not increase `max_workers`
+- **D0 (delay=0) is not viable** for IQC 2026 — thresholds are Sharpe >= 2.0, Fitness >= 1.30
+- **TOP200 universe** consistently produces the lowest self-correlation
+- **3 concurrent simulations** is the WQ Brain platform limit
+- **Score change** requires manual check on the Performance Comparison panel
+- Knowledge bases in `knowledge bases/` are fed to Gemini for domain-specific guidance

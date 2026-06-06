@@ -16,12 +16,25 @@ class WQSession(requests.Session):
         self.json_fn = json_fn
         self.login()
         old_get, old_post = self.get, self.post
-        def new_get(*args, **kwargs):
-            try:    return old_get(*args, **kwargs)
-            except: return new_get(*args, **kwargs)
-        def new_post(*args, **kwargs):
-            try:    return old_post(*args, **kwargs)
-            except: return new_post(*args, **kwargs)
+        MAX_RETRIES = 5
+        def new_get(*args, _retries=0, **kwargs):
+            try:
+                return old_get(*args, **kwargs)
+            except (requests.exceptions.RequestException, ConnectionError, TimeoutError) as e:
+                if _retries >= MAX_RETRIES:
+                    logging.warning(f'GET failed after {MAX_RETRIES} retries: {e}')
+                    raise
+                time.sleep(min(2 ** _retries, 30))
+                return new_get(*args, _retries=_retries + 1, **kwargs)
+        def new_post(*args, _retries=0, **kwargs):
+            try:
+                return old_post(*args, **kwargs)
+            except (requests.exceptions.RequestException, ConnectionError, TimeoutError) as e:
+                if _retries >= MAX_RETRIES:
+                    logging.warning(f'POST failed after {MAX_RETRIES} retries: {e}')
+                    raise
+                time.sleep(min(2 ** _retries, 30))
+                return new_post(*args, _retries=_retries + 1, **kwargs)
         self.get, self.post = new_get, new_post
         self.login_expired = False
         self.rows_processed = []
@@ -156,13 +169,13 @@ class WQSession(requests.Session):
                     })
                     nxt = r.headers['Location']
                     break
-                except:
+                except (requests.exceptions.RequestException, KeyError) as e:
                     try:
                         if 'credentials' in r.json()['detail']:
                             self.login_expired = True
                             return
-                    except:
-                        logging.info(f'  ⚠ Gateway error, skipping: {label}')
+                    except Exception:
+                        logging.info(f'  ⚠ Gateway error, skipping: {label} ({e})')
                         return
 
             ok = True

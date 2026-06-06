@@ -61,6 +61,7 @@ CATEGORY_PRIORITY = [
 ]
 
 FIELDS_PER_BATCH = 20
+MAX_TUNE_EXPRESSIONS = 50  # Cap tuning batch — fitness tuning generates more variants
 TRACKER_CSV = BASE_DIR / 'fields_tracker.csv'
 PASSES_LOG  = BASE_DIR / 'passes_to_review.txt'
 SESSION_LOG = BASE_DIR / 'orchestrator_log.txt'
@@ -109,23 +110,7 @@ def get_next_category() -> str | None:
 
 def update_tracker_from_csv(results_csv: Path):
     """Parse a results CSV and update fields_tracker.csv."""
-    def extract_field(code):
-        code = str(code)
-        patterns = [
-            r'group_(?:rank|zscore|neutralize|mean|scale)\((?:ts_\w+|rank|hump)\(([^,)]+)',
-            r'group_(?:rank|zscore|neutralize|mean|scale)\(([^,)]+)',
-            r'ts_regression\(([^,)]+)',
-            r'ts_corr\(([^,)]+)',
-            r'(?:ts_rank|ts_zscore|ts_decay_linear|ts_std_dev|ts_mean|ts_delta|ts_backfill|hump)\(([^,)]+)',
-            r'rank\(([^,)]+)',
-        ]
-        for pat in patterns:
-            m = re.search(pat, code)
-            if m:
-                field = m.group(1).strip()
-                if not re.match(r'^[\d\-]', field) and '(' not in field:
-                    return field
-        return None
+    from alpha_utils import extract_field
 
     def classify(row):
         try:
@@ -133,7 +118,7 @@ def update_tracker_from_csv(results_csv: Path):
             fitness = float(row.get('fitness', 0) or 0)
             passed  = int(row.get('passed', 0) or 0)
             link    = str(row.get('link', ''))
-        except:
+        except (ValueError, TypeError):
             return None, None
         if not re.search(r'worldquantbrain\.com/alpha/\w+', link):
             return 'dead', None
@@ -167,15 +152,25 @@ def update_tracker_from_csv(results_csv: Path):
         fieldnames = reader.fieldnames
         rows = list(reader)
 
-    status_rank = {'':0,'untested':0,'tested':1,'dead':0,'near_miss':2,'pass':3}
+    # Supports both plain and emoji-prefixed status values
+    # Abandoned/Backlog get rank 4 — never overwrite manually curated statuses
+    status_rank = {
+        '': 0, 'untested': 0, 'UNTESTED': 0,
+        'tested': 1, '🟡 Tested: Baseline Failed': 1,
+        'dead': 0, '❌ Dead': 0,
+        'near_miss': 2, '🟠 Test Soon': 2,
+        'pass': 3, '✅ In Use': 3,
+        '❌ Abandoned': 4, '⚪ Backlog': 0,
+        '🟡 Backlog: Needs Retest': 0,
+    }
     updated = 0
     for r in rows:
         result = field_best.get(r['field'])
         if not result:
             continue
-        old_rank = status_rank.get(r.get('status',''), 0)
+        old_rank = status_rank.get(r.get('status', '').strip(), 0)
         new_rank = status_rank.get(result['status'], 0)
-        if new_rank >= old_rank:
+        if new_rank > old_rank:
             status_map = {
                 'tested':    '🟡 Tested: Baseline Failed',
                 'near_miss': '🟠 Test Soon',
@@ -233,7 +228,8 @@ def _tune_expression(code: str, univ: str, field: str) -> list[tuple[str, str, s
     Returns list of (universe, code, comment) tuples.
     """
     entries = []
-    other_univ = 'TOP500' if univ == 'TOP200' else 'TOP200'
+    # TOP500 dropped from tuning (0 passes from 145 tests) — always flip to TOP200 or TOP3000
+    other_univ = 'TOP3000' if univ == 'TOP200' else 'TOP200'
 
     # ── ts_rank / ts_zscore / ts_std_dev — tune lookback ─────────────────
     for op in ['ts_rank', 'ts_zscore', 'ts_std_dev', 'ts_mean']:
@@ -313,8 +309,59 @@ def _tune_expression(code: str, univ: str, field: str) -> list[tuple[str, str, s
     return entries
 
 
+def _fitness_tune(code: str, univ: str, field: str, fitness: float) -> list[tuple[str, str, str]]:
+    """
+    Generate tuning variants specifically aimed at fixing fitness < 1.00 (turnover too high).
+    Strategies: increase decay, add hump wrapper, switch to TOP200, replace ts_decay_linear
+    with ts_rank (lower turnover by design).
+    """
+    entries = []
+
+    # Strategy 1: Always try TOP200 — smaller universe = lower turnover
+    if univ != 'TOP200':
+        entries.append(('TOP200', code, f'# Fitness fix TOP200: {field}'))
+
+    # Strategy 2: Add hump() wrapper — smooths signal, reduces turnover
+    if 'hump' not in code and code.startswith('-rank('):
+        entries.append((univ, f'-rank(hump({code[6:]})', f'# Fitness fix hump: {field}'))
+        if univ != 'TOP200':
+            entries.append(('TOP200', f'-rank(hump({code[6:]})', f'# Fitness fix hump+TOP200: {field}'))
+
+    # Strategy 3: If using ts_decay_linear, try longer decay periods
+    m = re.search(r'ts_decay_linear\((.+?),\s*(\d+)\)', code)
+    if m:
+        current_decay = int(m.group(2))
+        for new_d in [30, 40, 60]:
+            if new_d > current_decay:
+                new_code = re.sub(r'ts_decay_linear\((.+?),\s*\d+\)',
+                                  rf'ts_decay_linear(\1, {new_d})', code)
+                entries.append((univ, new_code, f'# Fitness fix decay={new_d}: {field}'))
+
+    # Strategy 4: If using ts_decay_linear template, try pure ts_rank instead
+    # ts_rank has structurally lower turnover than ts_decay_linear * momentum
+    if 'ts_decay_linear' in code and '* rank(ts_delta' in code:
+        # Extract inner field from ts_decay_linear(FIELD, N) * rank(ts_delta(close, M))
+        inner_m = re.search(r'ts_decay_linear\((\w+),', code)
+        if inner_m:
+            fname = inner_m.group(1)
+            for lb in [126, 252, 504]:
+                entries.append((univ, f'-rank(ts_rank({fname}, {lb}))',
+                               f'# Fitness fix ts_rank lb={lb}: {fname}'))
+                if univ != 'TOP200':
+                    entries.append(('TOP200', f'-rank(ts_rank({fname}, {lb}))',
+                                   f'# Fitness fix ts_rank+TOP200 lb={lb}: {fname}'))
+
+    # Strategy 5: If fitness is very close (>= 0.90), try increasing decay in settings
+    # The base settings use decay=6. Try decay=10 for reduced turnover.
+    if fitness >= 0.90:
+        entries.append((univ, code, f'# Fitness fix decay=10: {field}', {'decay': 10}))
+
+    return entries
+
+
 def build_tuning_batch(passes: list, near_misses: list) -> Path | None:
-    """Build a tuning batch for passes and near-misses, handling all template types."""
+    """Build a tuning batch for passes and near-misses, handling all template types.
+    Now separates fitness-blocked vs sharpe-blocked near-misses for targeted tuning."""
     if not passes and not near_misses:
         return None
 
@@ -330,23 +377,37 @@ def build_tuning_batch(passes: list, near_misses: list) -> Path | None:
         new_entries = _tune_expression(code, univ, field)
         entries.extend(new_entries)
 
-    for field, info in near_misses[:3]:
+    for field, info in near_misses[:5]:
         row = info.get('row', {})
         code, univ = row.get('code', '').strip(), row.get('universe', 'TOP200')
         if not code:
             continue
-        # Near-miss strategy: heavier decay + hump + TOP200
-        entries.append(('TOP200', code, f'# Near-miss TOP200: {field}'))
-        if 'hump' not in code and code.startswith('-rank('):
-            entries.append((univ, f'-rank(hump({code[6:]})', f'# Near-miss hump: {field}'))
-        # Also try the full tuning set
-        entries.extend(_tune_expression(code, univ, field)[:3])  # top 3 variants only
+        fitness = float(row.get('fitness', 0) or 0)
+
+        if fitness < 1.00:
+            # Fitness-blocked: use targeted fitness tuning
+            entries.extend(_fitness_tune(code, univ, field, fitness))
+        else:
+            # Sharpe/checks-blocked: use standard tuning (lookback, universe)
+            entries.append(('TOP200', code, f'# Near-miss TOP200: {field}'))
+            if 'hump' not in code and code.startswith('-rank('):
+                entries.append((univ, f'-rank(hump({code[6:]})', f'# Near-miss hump: {field}'))
+            entries.extend(_tune_expression(code, univ, field)[:5])
+
+    # Normalize all entries to 4-tuples: (universe, code, comment, overrides)
+    normalized = []
+    for e in entries:
+        if len(e) == 3:
+            normalized.append((e[0], e[1], e[2], {}))
+        else:
+            normalized.append(e)
+    entries = normalized
 
     # Deduplicate tuning entries
     seen_tune = set()
     deduped_entries = []
     for e in entries:
-        key = (e[1], e[0])  # (code, universe)
+        key = (e[1], e[0], tuple(sorted(e[3].items())) if e[3] else ())
         if key not in seen_tune:
             seen_tune.add(key)
             deduped_entries.append(e)
@@ -354,6 +415,11 @@ def build_tuning_batch(passes: list, near_misses: list) -> Path | None:
 
     if not entries:
         return None
+
+    # Cap tuning batch to prevent runaway simulation time
+    if len(entries) > MAX_TUNE_EXPRESSIONS:
+        log(f"  Tuning batch capped: {len(entries)} → {MAX_TUNE_EXPRESSIONS} expressions")
+        entries = entries[:MAX_TUNE_EXPRESSIONS]
 
     univ_map = {
         'TOP3000': "BASE",
@@ -376,10 +442,14 @@ def build_tuning_batch(passes: list, near_misses: list) -> Path | None:
         '',
         'DATA = [',
     ]
-    for univ, code, comment in entries:
+    for univ, code, comment, overrides in entries:
         var = univ_map.get(univ, 'B200')
         lines.append(f"    {comment}")
-        lines.append(f"    {{**{var}, 'code': {repr(code)}}},")
+        if overrides:
+            override_str = ', '.join(f"'{k}': {repr(v)}" for k, v in overrides.items())
+            lines.append(f"    {{**{var}, {override_str}, 'code': {repr(code)}}},")
+        else:
+            lines.append(f"    {{**{var}, 'code': {repr(code)}}},")
 
     lines += [
         ']',
@@ -632,6 +702,96 @@ def run_orchestrator(api_key: str, start_category: str = None, dry_run: bool = F
     separator()
 
 
+# ─── Retune historical near-misses ───────────────────────────────────────────
+
+def scan_historical_near_misses() -> list[tuple[str, dict]]:
+    """Scan all data/*.csv files for near-misses that were never tuned.
+    Returns list of (field, info) tuples compatible with build_tuning_batch."""
+    from alpha_utils import extract_field
+
+    near_misses = {}  # field → best near-miss row
+    for csv_path in sorted(glob.glob(str(BASE_DIR / 'data' / '*.csv'))):
+        try:
+            with open(csv_path) as f:
+                for row in csv.DictReader(f):
+                    try:
+                        sharpe  = float(row.get('sharpe', 0) or 0)
+                        fitness = float(row.get('fitness', 0) or 0)
+                        passed  = int(row.get('passed', 0) or 0)
+                        link    = str(row.get('link', ''))
+                    except (ValueError, TypeError):
+                        continue
+                    if not re.search(r'worldquantbrain\.com/alpha/\w+', link):
+                        continue
+                    # Near-miss: sharpe >= 0.90 but didn't pass all three thresholds
+                    is_pass = sharpe >= SHARPE_PASS and fitness >= FITNESS_PASS and passed >= CHECKS_PASS
+                    is_near = sharpe >= SHARPE_NEAR and fitness >= FITNESS_NEAR and passed >= CHECKS_NEAR
+                    if is_near and not is_pass:
+                        field = extract_field(row.get('code', ''))
+                        if not field:
+                            continue
+                        existing = near_misses.get(field)
+                        if existing is None or sharpe > existing['sharpe']:
+                            near_misses[field] = {
+                                'status': 'near_miss', 'sharpe': sharpe, 'row': row
+                            }
+        except Exception:
+            pass
+
+    # Sort by sharpe descending — best chances first
+    results = sorted(near_misses.items(), key=lambda x: x[1]['sharpe'], reverse=True)
+    return results
+
+
+def run_retune():
+    """Scan historical near-misses and build a tuning batch for the best candidates."""
+    separator()
+    log("  WQ Brain — Retune Historical Near-Misses")
+    separator()
+
+    near_misses = scan_historical_near_misses()
+    if not near_misses:
+        log("  No historical near-misses found.")
+        return
+
+    # Categorize by blocker type
+    fitness_blocked = [(f, v) for f, v in near_misses
+                       if float(v['row'].get('fitness', 0) or 0) < FITNESS_PASS]
+    checks_blocked  = [(f, v) for f, v in near_misses
+                       if float(v['row'].get('fitness', 0) or 0) >= FITNESS_PASS
+                       and int(v['row'].get('passed', 0) or 0) < CHECKS_PASS]
+    sharpe_blocked  = [(f, v) for f, v in near_misses
+                       if float(v['row'].get('fitness', 0) or 0) >= FITNESS_PASS
+                       and int(v['row'].get('passed', 0) or 0) >= CHECKS_PASS]
+
+    log(f"  Found {len(near_misses)} historical near-misses:")
+    log(f"    Fitness-blocked (fit < 1.00): {len(fitness_blocked)}")
+    log(f"    Checks-blocked  (chk < 6):    {len(checks_blocked)}")
+    log(f"    Sharpe-only     (sharpe < 1.25): {len(sharpe_blocked)}")
+
+    # Show top candidates
+    log("\n  Top 10 candidates for tuning:")
+    for field, info in near_misses[:10]:
+        row = info['row']
+        log(f"    sharpe={info['sharpe']:.3f} fit={float(row.get('fitness',0)):.2f} "
+            f"chk={row.get('passed','?')} univ={row.get('universe','?'):<7} "
+            f"{row.get('code','')[:60]}")
+
+    # Build tuning batch — prioritize checks-blocked (closest to passing),
+    # then fitness-blocked with highest sharpe
+    tune_candidates = checks_blocked[:5] + sharpe_blocked[:5] + fitness_blocked[:10]
+    tune_file = build_tuning_batch([], tune_candidates)
+
+    if tune_file:
+        log(f"\n  ✅ Tuning batch written: {tune_file.name}")
+        log(f"  To run:")
+        log(f"    cp {tune_file.name} parameters.py && python3 main.py")
+    else:
+        log("  Could not build tuning batch.")
+
+    separator()
+
+
 # ─── Entry point ─────────────────────────────────────────────────────────────
 
 def main():
@@ -649,6 +809,9 @@ Examples:
   # Plan only — show what would run without actually running
   python3 orchestrator.py --api-key YOUR_GEMINI_KEY --dry-run
 
+  # Retune historical near-misses (no API key needed)
+  python3 orchestrator.py --retune
+
   # Use environment variable instead of flag
   export GEMINI_API_KEY=YOUR_KEY
   python3 orchestrator.py
@@ -660,7 +823,13 @@ Examples:
                         help='Skip categories before this one')
     parser.add_argument('--dry-run', action='store_true',
                         help='Plan only — no LLM calls or simulations')
+    parser.add_argument('--retune', action='store_true',
+                        help='Scan historical near-misses and build a tuning batch')
     args = parser.parse_args()
+
+    if args.retune:
+        run_retune()
+        return
 
     api_key = args.api_key or os.environ.get('GEMINI_API_KEY')
     if not api_key and not args.dry_run:

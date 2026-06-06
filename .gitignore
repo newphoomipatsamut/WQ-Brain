@@ -40,3 +40,8 @@ passes_to_review.txt
 
 # Stale CSV artifacts in root
 llm_fundamental_*.csv
+
+# Auto-generated parameter files (batch-specific, not reusable)
+parameters_llm_*.py
+parameters_gen_*.py
+parameters_auto_tune_*.py

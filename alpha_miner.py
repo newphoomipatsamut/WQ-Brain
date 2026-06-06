@@ -38,7 +38,6 @@ BASE_SETTINGS = {
 
 UNIVERSE_PRESETS = {
     'TOP3000': {**BASE_SETTINGS, 'universe': 'TOP3000'},
-    'TOP500':  {**BASE_SETTINGS, 'universe': 'TOP500'},
     'TOP200':  {**BASE_SETTINGS, 'universe': 'TOP200'},
 }
 

@@ -359,7 +359,7 @@ def list_categories(csv_path: Path) -> dict:
 
 # ─── Gemini caller ────────────────────────────────────────────────────────────
 
-CHUNK_SIZE = 8  # fields per API call — reduced from 15 to handle expanded template set (11 templates × auto-TOP200)
+CHUNK_SIZE = 15  # fields per API call — Gemini 3.5 Flash handles 15 fields well with current prompt
 
 
 def _parse_json_response(raw: str) -> list[dict]:
@@ -380,7 +380,7 @@ def _parse_json_response(raw: str) -> list[dict]:
         raise
 
 
-def _call_chunk(generate_fn, fields: list[dict]) -> list[dict]:
+def _call_chunk(generate_fn, fields: list[dict], prev_templates_summary: str = '') -> list[dict]:
     """Send one chunk of fields and return parsed results."""
     field_lines = [
         f"- {f['field']} | {f['category']} | {f.get('frequency','QUARTERLY')} | {f.get('crowdedness','MEDIUM')} | {f['description'] or 'No description'}"
@@ -390,11 +390,14 @@ def _call_chunk(generate_fn, fields: list[dict]) -> list[dict]:
         n=len(fields),
         field_list='\n'.join(field_lines)
     )
+    if prev_templates_summary:
+        prompt += f"\n\nIMPORTANT — Templates already used in earlier chunks this batch (vary to avoid repetition):\n{prev_templates_summary}"
     return _parse_json_response(generate_fn(prompt))
 
 
 def _build_past_feedback(csv_path: Path, fields: list[dict]) -> str:
-    """Read tested fields from same category and summarise what worked/failed."""
+    """Read tested fields from same category and summarise what worked/failed.
+    Now includes actual passing expressions so Gemini can learn from concrete examples."""
     if not csv_path.exists() or not fields:
         return ''
     category = fields[0].get('category', '')
@@ -423,6 +426,26 @@ def _build_past_feedback(csv_path: Path, fields: list[dict]) -> str:
         lines.append(f"- {len(passing)} passed IS (avg Sharpe {avg}) — these fields and templates WORK in this category.")
         for r in passing[:3]:
             lines.append(f"  ✅ {r['field']} (sharpe={r['signal_strength']})")
+
+    # Include actual passing expressions from result CSVs so Gemini can learn
+    # what concrete template + lookback + sign combinations produced passes
+    try:
+        from alpha_utils import load_passing_expressions
+        data_dir = Path(__file__).parent / 'data'
+        all_passes = load_passing_expressions(data_dir)
+        # Filter to same category if possible, otherwise show top global passes
+        cat_passes = [p for p in all_passes if p.get('field', '') in
+                      {r['field'] for r in passing}] if passing else []
+        show_passes = cat_passes[:5] if cat_passes else all_passes[:5]
+        if show_passes:
+            lines.append(f"\n### Actual Passing Expressions — COPY THESE PATTERNS")
+            lines.append("These exact expressions passed IS. Generate variations of the same template/lookback/sign patterns for new fields:")
+            for p in show_passes:
+                lines.append(f"  PASS: {p['code']}")
+                lines.append(f"        field={p['field']} sharpe={p['sharpe']:.2f} fitness={p['fitness']:.2f} universe={p['universe']}")
+    except Exception:
+        pass
+
     if nearmiss:
         lines.append(f"- {len(nearmiss)} near-misses — signals exist but fitness/checks blocking.")
     if failed:
@@ -464,8 +487,26 @@ def call_gemini(api_key: str, fields: list[dict], dataset: str = None) -> list[d
     except Exception:
         pass
 
-    # Build system prompt — inject knowledge bases + RL recs + dataset-specific section
+    # Build submitted alpha book info for dedup
+    book_info = ''
+    try:
+        from alpha_utils import load_submitted_alphas
+        submitted = load_submitted_alphas(Path(__file__).parent / 'fields_tracker.csv')
+        if submitted:
+            book_fields = [a['field'] for a in submitted]
+            book_info = (
+                f"\n\n## Current Alpha Book — DO NOT generate expressions for these fields\n"
+                f"The following {len(submitted)} fields are already in the submitted book. "
+                f"Generating more expressions for them will fail self-correlation:\n"
+                + '\n'.join(f"  - {a['field']} (category={a['category']}, sharpe={a['signal_strength']})" for a in submitted)
+            )
+    except Exception:
+        pass
+
+    # Build system prompt — inject knowledge bases + RL recs + book + dataset-specific section
     system_prompt = SYSTEM_PROMPT
+    if book_info:
+        system_prompt += book_info
     if rl_recs:
         system_prompt += f'\n\n{rl_recs}'
     if past_feedback:
@@ -508,12 +549,31 @@ def call_gemini(api_key: str, fields: list[dict], dataset: str = None) -> list[d
     total_chunks = len(chunks)
     all_results = []
 
+    # Track template usage across chunks to encourage diversity
+    from collections import Counter
+    template_counter = Counter()
+
     for i, chunk in enumerate(chunks, 1):
+        # Build cross-chunk template summary
+        prev_summary = ''
+        if template_counter:
+            prev_summary = ', '.join(f"{t}: {c}x" for t, c in template_counter.most_common(5))
+
         print(f"  Chunk {i}/{total_chunks}: sending {len(chunk)} fields...")
         try:
-            results = _call_chunk(_generate, chunk)
+            results = _call_chunk(_generate, chunk, prev_templates_summary=prev_summary)
             all_results.extend(results)
             print(f"  Chunk {i}/{total_chunks}: ✓ got {len(results)} responses")
+
+            # Update template counter from this chunk's results
+            try:
+                from alpha_utils import extract_field as _ef
+                from template_rl import extract_template_type
+                for item in results:
+                    for expr in item.get('expressions', []):
+                        template_counter[extract_template_type(expr)] += 1
+            except Exception:
+                pass
         except (json.JSONDecodeError, ValueError) as e:
             print(f"  Chunk {i}/{total_chunks}: ✗ JSON parse failed — {e}")
             print(f"  Skipping chunk {i} and continuing...")
@@ -529,9 +589,17 @@ def write_parameters_file(results: list[dict], batch_name: str, output_path: Pat
     filepath = output_path / filename
     ts = datetime.now().strftime('%Y%m%d_%H%M%S')
 
+    # Load known fields for validation
+    try:
+        from alpha_utils import validate_expression, load_known_fields
+        known_fields = load_known_fields(output_path / 'fields_tracker.csv')
+    except Exception:
+        known_fields = None
+
     # Flatten all expressions into DATA list
     # For every TOP3000 expression, automatically add a TOP200 counterpart (self-corr control)
     entries = []
+    invalid_count = 0
     for item in results:
         field = item.get('field', '')
         expressions = item.get('expressions', [])
@@ -541,6 +609,16 @@ def write_parameters_file(results: list[dict], batch_name: str, output_path: Pat
             if expr in seen_exprs:
                 continue
             seen_exprs.add(expr)
+            # Validate expression before adding
+            if known_fields is not None:
+                try:
+                    valid, err = validate_expression(expr, known_fields)
+                    if not valid:
+                        invalid_count += 1
+                        print(f"  [validate] Skipping invalid: {expr[:60]}... — {err}")
+                        continue
+                except Exception:
+                    pass
             # Determine universe — keep what the LLM picked, default TOP3000
             if 'TOP200' in expr.upper():
                 univ = 'TOP200'
@@ -564,6 +642,8 @@ def write_parameters_file(results: list[dict], batch_name: str, output_path: Pat
     removed = len(entries) - len(deduped)
     if removed:
         print(f'  Deduplication: removed {removed} duplicate expressions')
+    if invalid_count:
+        print(f'  Validation: rejected {invalid_count} invalid expressions')
     entries = deduped
 
     lines = [

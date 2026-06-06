@@ -15,11 +15,11 @@ Usage:
     # Dry run — show what would change without writing
     python3 update_tracker.py --dry-run
 
-Status values written to fields_tracker.csv:
-    pass        — met submission thresholds (sharpe>=1.25, fitness>=1.0, passed>=6)
-    promising   — worth tuning (sharpe>=0.90, fitness>=0.70, passed>=5)
-    tested      — tested but no signal (below promising)
-    dead        — error / inaccessible field (no valid alpha_id returned)
+Status values written to fields_tracker.csv (emoji-prefixed, matches orchestrator.py):
+    ✅ In Use                  — met submission thresholds (sharpe>=1.25, fitness>=1.0, passed>=6)
+    🟠 Test Soon               — worth tuning (sharpe>=0.90, fitness>=0.70, passed>=5)
+    🟡 Tested: Baseline Failed — tested but no signal (below promising)
+    ❌ Dead                    — error / inaccessible field (no valid alpha_id returned)
 """
 
 import argparse
@@ -48,31 +48,11 @@ PASSED_PROMISING  = 5
 # ── HELPERS ───────────────────────────────────────────────────────────────────
 
 def extract_field(code):
-    """Extract the data field name from an alpha expression string."""
-    code = str(code)
-    # Try all known operator patterns — innermost field is always first non-operator arg
-    patterns = [
-        # Group operators: group_rank(ts_zscore(FIELD, N), group) → match inner operator
-        r'group_(?:rank|zscore|neutralize|mean|scale)\((?:ts_\w+|rank|hump)\(([^,)]+)',
-        # group_rank(FIELD, group) — direct field
-        r'group_(?:rank|zscore|neutralize|mean|scale)\(([^,)]+)',
-        # ts_regression(FIELD, ts_step...) — field is first arg
-        r'ts_regression\(([^,)]+)',
-        # ts_corr(FIELD, close/returns, N) — field is first arg
-        r'ts_corr\(([^,)]+)',
-        # Standard time-series operators
-        r'(?:ts_rank|ts_zscore|ts_decay_linear|ts_std_dev|ts_mean|ts_delta|ts_backfill|hump)\(([^,)]+)',
-        # Fallback: rank(FIELD) or -rank(FIELD)
-        r'rank\(([^,)]+)',
-    ]
-    for pat in patterns:
-        m = re.search(pat, code)
-        if m:
-            field = m.group(1).strip()
-            # Skip if it's another operator or a number
-            if not re.match(r'^[\d\-]', field) and '(' not in field:
-                return field
-    return None
+    """Extract the data field name from an alpha expression string.
+    Delegates to the canonical implementation in alpha_utils.py.
+    """
+    from alpha_utils import extract_field as _extract_field
+    return _extract_field(code)
 
 
 def classify_result(row):
@@ -178,8 +158,15 @@ def update_tracker(headers, rows, field_results, dry_run=False):
 
         # Never downgrade a field that's already marked pass/promising
         # (a later batch testing a different variant shouldn't overwrite a good result)
-        status_rank = {'': 0, 'untested': 0, 'UNTESTED': 0, 'tested': 1,
-                       'dead': 0, 'promising': 2, 'pass': 3}
+        # Supports both plain and emoji-prefixed status values
+        # Abandoned gets rank 4 — never overwrite manually curated statuses
+        status_rank = {'': 0, 'untested': 0, 'UNTESTED': 0,
+                       'tested': 1, '🟡 Tested: Baseline Failed': 1,
+                       'dead': 0, '❌ Dead': 0,
+                       'promising': 2, '🟠 Test Soon': 2,
+                       'pass': 3, '✅ In Use': 3,
+                       '❌ Abandoned': 4, '⚪ Backlog': 0,
+                       '🟡 Backlog: Needs Retest': 0}
         old_rank = status_rank.get(old_status, 0)
         new_rank = status_rank.get(new_status, 0)
 
@@ -189,8 +176,16 @@ def update_tracker(headers, rows, field_results, dry_run=False):
             updated_rows.append(row)
             continue
 
+        # Map plain status to emoji-prefixed format (matches orchestrator.py)
+        emoji_status_map = {
+            'tested':    '🟡 Tested: Baseline Failed',
+            'promising': '🟠 Test Soon',
+            'pass':      '✅ In Use',
+            'dead':      '❌ Dead',
+        }
+
         if not dry_run:
-            row['status'] = new_status
+            row['status'] = emoji_status_map.get(new_status, new_status)
             if new_sharpe is not None:
                 row['signal_strength'] = f"{new_sharpe:.3f}"
 

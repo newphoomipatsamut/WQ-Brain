@@ -49,7 +49,10 @@ TEMPLATES = [
 UNIVERSES = ['TOP3000', 'TOP200']   # TOP200 consistently scores best per your README
 
 # Fields marked with these statuses in fields_tracker.csv are skipped
-DEAD_STATUSES = {'dead', 'skip', 'corr_dead', 'error', 'DEAD', 'SKIP'}
+DEAD_STATUSES = {
+    'dead', 'skip', 'corr_dead', 'error', 'DEAD', 'SKIP',
+    '❌ Dead', '❌ Abandoned',
+}
 
 # Columns we expect in fields_tracker.csv
 COL_FIELD    = 'field'
@@ -94,7 +97,7 @@ def load_fields(csv_path, skip_tested=True, category_filter=None):
                     continue
 
                 # Skip already-tested fields if requested
-                if skip_tested and status and status not in {'', 'untested', 'UNTESTED'}:
+                if skip_tested and status and status not in {'', 'untested', 'UNTESTED', '⚪ Backlog', '🟡 Backlog: Needs Retest'}:
                     continue
 
             fields.append(field)

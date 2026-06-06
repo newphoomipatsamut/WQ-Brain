@@ -4,11 +4,13 @@ import logging
 import sys
 import pandas as pd
 
+MAX_SUBMIT_POLLS = 60  # 5 min max wait per alpha
+
 def submit(row):
     aid = row.link.split('/')[-1]
     wq.post(f'https://api.worldquantbrain.com/alphas/{aid}/submit')
     logging.info(f'Attempting to submit https://platform.worldquantbrain.com/alpha/{aid}')
-    while True:
+    for _ in range(MAX_SUBMIT_POLLS):
         submit_r = wq.get(f'https://api.worldquantbrain.com/alphas/{aid}/submit')
         if submit_r.status_code == 404:
             logging.info('Skipping due to status code 404, alpha is probably already submitted!')
@@ -21,7 +23,8 @@ def submit(row):
                     return check['result'] == 'PASS'
             break
         time.sleep(5)
-    logging.info(submit_r.json())
+    logging.info(f'Submit polling timed out for {aid}')
+    return False
 
 if len(sys.argv) > 1:
     wq = WQSession()

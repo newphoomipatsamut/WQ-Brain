@@ -75,22 +75,9 @@ def extract_template_type(code: str) -> str:
 
 
 def _extract_field(code: str) -> str | None:
-    """Extract field name from an expression (same logic as orchestrator)."""
-    patterns = [
-        r'group_(?:rank|zscore|neutralize)\((?:ts_\w+)\(([^,)]+)',
-        r'group_(?:rank|zscore|neutralize)\(([^,)]+)',
-        r'ts_regression\(([^,)]+)',
-        r'ts_corr\(([^,)]+)',
-        r'(?:ts_rank|ts_zscore|ts_decay_linear|ts_std_dev|ts_mean|ts_backfill|hump)\(([^,)]+)',
-        r'rank\(([^,)]+)',
-    ]
-    for pat in patterns:
-        m = re.search(pat, str(code))
-        if m:
-            field = m.group(1).strip()
-            if not re.match(r'^[\d\-]', field) and '(' not in field:
-                return field
-    return None
+    """Extract field name — delegates to canonical alpha_utils.extract_field."""
+    from alpha_utils import extract_field
+    return extract_field(code)
 
 
 def _load_field_frequencies(tracker_csv: Path) -> dict[str, str]:
@@ -183,10 +170,18 @@ def _print_summary(perf: dict):
     qualified = {k: v for k, v in perf.items() if v.get('runs', 0) >= MIN_RUNS_FOR_RECOMMENDATION}
     if not qualified:
         return
-    ranked = sorted(qualified.items(), key=lambda x: x[1].get('avg_sharpe', 0), reverse=True)
-    print('[rl] Template leaderboard (≥10 runs):')
+    def _score(item):
+        v = item[1]
+        runs = v.get('runs', 1)
+        pass_rate = v.get('passes', 0) / runs
+        near_miss_rate = (v.get('passes', 0) + v.get('near_misses', 0)) / runs
+        return (pass_rate, near_miss_rate, v.get('avg_sharpe', 0))
+    ranked = sorted(qualified.items(), key=_score, reverse=True)
+    print('[rl] Template leaderboard (≥10 runs, ranked by pass rate):')
     for key, v in ranked[:8]:
-        print(f"  {key:<30} avg={v['avg_sharpe']:.2f}  passes={v['passes']}  runs={v['runs']}")
+        runs = v.get('runs', 1)
+        pr = v.get('passes', 0) / runs * 100
+        print(f"  {key:<30} pass={pr:.1f}%  passes={v['passes']}/{v['runs']}  avg={v['avg_sharpe']:.2f}")
 
 
 # ─── Recommendations for Gemini ───────────────────────────────────────────────
@@ -204,19 +199,29 @@ def get_recommendations(frequency: str) -> str:
     if not relevant:
         return ''
 
-    ranked = sorted(relevant.items(), key=lambda x: x[1].get('avg_sharpe', 0), reverse=True)
+    # Rank by pass_rate (primary), then near_miss_rate, then avg_sharpe as tiebreaker
+    def _score(item):
+        v = item[1]
+        runs = v.get('runs', 1)
+        pass_rate = v.get('passes', 0) / runs
+        near_miss_rate = (v.get('passes', 0) + v.get('near_misses', 0)) / runs
+        return (pass_rate, near_miss_rate, v.get('avg_sharpe', 0))
+
+    ranked = sorted(relevant.items(), key=_score, reverse=True)
     total_runs = sum(v['runs'] for _, v in ranked)
 
     lines = [
         f'## RL Template Recommendations for {frequency} fields ({total_runs} historical tests)',
-        'Ranked by average IS Sharpe — use top templates, avoid bottom ones:',
+        'Ranked by PASS RATE (passes/runs) — use top templates, avoid bottom ones:',
     ]
     for key, v in ranked:
         tmpl = key.replace(f'_{frequency}', '')
-        bar  = '★' * min(5, max(1, int(v['avg_sharpe'] * 2)))
+        runs = v.get('runs', 1)
+        pass_rate = v.get('passes', 0) / runs * 100
+        bar  = '★' * min(5, max(1, int(pass_rate * 5 + 0.5))) if pass_rate > 0 else '☆'
         lines.append(
-            f"  {bar} {tmpl:<22} avg_sharpe={v['avg_sharpe']:.2f}  "
-            f"passes={v['passes']}/{v['runs']}"
+            f"  {bar} {tmpl:<22} pass_rate={pass_rate:.1f}%  "
+            f"passes={v['passes']}/{v['runs']}  avg_sharpe={v.get('avg_sharpe', 0):.2f}"
         )
 
     if ranked:
@@ -224,7 +229,7 @@ def get_recommendations(frequency: str) -> str:
         worst = ranked[-1][0].replace(f'_{frequency}', '')
         lines.append(f'→ STRONGLY PREFER: {best.upper()}')
         if len(ranked) > 1:
-            lines.append(f'→ AVOID (poor historical performance): {worst.upper()}')
+            lines.append(f'→ AVOID (low pass rate): {worst.upper()}')
 
     return '\n'.join(lines)
 

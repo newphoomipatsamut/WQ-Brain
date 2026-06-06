@@ -1350,7 +1350,7 @@ Fundamental,afss_accumulated_oci_adjustment_net_tax,,,fundamental2,Net of tax ad
 Fundamental,allocated_sbp_expense_rsu,,,fundamental2,Allocated expense for share-based compensation related to restricted stock units.,,
 Fundamental,allocated_sbp_expense_stock_options,,,fundamental2,Allocated expense for share-based compensation related to stock options.,,
 Fundamental,allocated_sbp_expense_total,,,fundamental2,Total allocated expense for share-based compensation.,,
-Fundamental,allowance_for_doubtful_accounts_2,,,fundamental2,Reserve set aside for potentially uncollectible accounts receivable.,,
+Fundamental,allowance_for_doubtful_accounts_2,🟡 Tested: Baseline Failed,,fundamental2,Reserve set aside for potentially uncollectible accounts receivable.,,
 Fundamental,amortized_cost_available_securities,,,fundamental2,Amortized cost of securities classified as available for sale.,,
 Fundamental,annual_deferred_income_tax_expense,,,fundamental2,Expense recognized for deferred income taxes during the annual period.,,
 Fundamental,annual_intangible_amortization_expense_second_year,,,fundamental2,"Amortization expense for finite-lived intangible assets in the second year, annual basis.",,

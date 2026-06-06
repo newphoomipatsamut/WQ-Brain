@@ -69,7 +69,7 @@ CORR_HIGH     = 0.80   # 0.70-0.80 = high but worth tuning (neut/universe may lo
 TUNE_DECAYS       = [0, 2, 4, 6, 8, 10, 13]
 TUNE_TRUNCATIONS  = [0.05, 0.08, 0.10]
 TUNE_NEUTRALS     = ['SUBINDUSTRY', 'INDUSTRY', 'MARKET']
-TUNE_UNIVERSES    = ['TOP3000', 'TOP500', 'TOP200', 'TOPSP500']
+TUNE_UNIVERSES    = ['TOP3000', 'TOP200', 'TOPSP500']  # TOP500 dropped: 0 passes from 145 tests
 TUNE_WINDOWS      = [252, 504]
 
 # ── LOGGING ───────────────────────────────────────────────────────────────────
@@ -95,8 +95,58 @@ class WQSession(requests.Session):
         r = self.post('https://api.worldquantbrain.com/authentication')
         if 'user' not in r.json():
             if 'inquiry' in r.json():
-                input(f"Complete biometric auth at {r.url}/persona?inquiry={r.json()['inquiry']} then press Enter...")
-                self.post(f"{r.url}/persona", json=r.json())
+                persona_url = r.url
+                inquiry_data = r.json()
+                current_auth_url = f"{persona_url}/persona?inquiry={inquiry_data['inquiry']}"
+
+                def _notify_safe(msg, urgent=False):
+                    try:
+                        from notify import notify
+                        notify(msg, title='WQ Brain — Action Needed' if urgent else 'WQ Brain', urgent=urgent)
+                    except Exception:
+                        pass
+
+                _notify_safe(f'Biometric auth required — complete on your phone.\n{current_auth_url}', urgent=True)
+                log(f'⏳ Biometric auth needed: {current_auth_url}')
+                log('   Complete it on your phone — script will continue automatically...')
+
+                authed = False
+                MAX_POLLS = 20
+                for attempt in range(1, MAX_POLLS + 1):
+                    time.sleep(30)
+                    log(f'   Biometric check {attempt}/{MAX_POLLS}...')
+                    try:
+                        check = self.post(f"{persona_url}/persona", json=inquiry_data)
+                        if 'user' in check.json():
+                            authed = True
+                            break
+                    except Exception:
+                        pass
+                    try:
+                        recheck = self.post('https://api.worldquantbrain.com/authentication')
+                        rj = recheck.json()
+                        if 'user' in rj:
+                            authed = True
+                            break
+                        if 'inquiry' in rj:
+                            new_auth_url = f"{recheck.url}/persona?inquiry={rj['inquiry']}"
+                            if new_auth_url != current_auth_url:
+                                inquiry_data = rj
+                                persona_url = recheck.url
+                                current_auth_url = new_auth_url
+                                log(f'   🔄 Previous link expired — new link issued')
+                                _notify_safe(f'New biometric link:\n{new_auth_url}', urgent=True)
+                    except Exception:
+                        pass
+
+                if authed:
+                    log('✅ Biometric auth completed — continuing automatically!')
+                    _notify_safe('Biometric auth done! Agent resuming.')
+                else:
+                    log('⚠️  Auth polling timed out (10 min) — please press Enter in terminal.')
+                    _notify_safe('⚠️ Biometric auth timed out — check terminal.', urgent=True)
+                    input(f'Complete biometric at {current_auth_url} then press Enter...')
+                    self.post(f"{persona_url}/persona", json=inquiry_data)
             else:
                 raise RuntimeError(f'Login failed: {r.json()}')
         log('Logged in to WQ Brain.')
@@ -207,14 +257,24 @@ def extract_alpha_id(link):
     return m.group(1) if m else None
 
 def extract_field(code):
-    """Pull the primary mdl177_* (or other named) field from an expression string."""
-    m = re.search(r'(mdl177[^\s,)*\'\"]+)', str(code))
-    if m:
-        return m.group(1)
-    # fallback: any named field with underscores
+    """Extract the data field name from an alpha expression.
+    Delegates to the canonical implementation in alpha_utils.py.
+    Falls back to a simple heuristic if alpha_utils is not available.
+    """
+    try:
+        from alpha_utils import extract_field as _extract_field
+        result = _extract_field(code)
+        if result:
+            return result
+    except ImportError:
+        pass
+    # Fallback: any named field with underscores
     for tok in re.findall(r'([a-z][a-z0-9]+(?:_[a-z0-9]+){1,})', str(code)):
-        if tok not in {'ts_rank','ts_zscore','ts_delta','ts_mean','ts_std','rank','zscore',
-                       'scale','log','abs','min','max','returns','volume','close','vwap','cap'}:
+        if tok not in {'ts_rank','ts_zscore','ts_delta','ts_mean','ts_std','ts_decay_linear',
+                       'ts_std_dev','ts_backfill','ts_corr','ts_regression','ts_step',
+                       'group_rank','group_zscore','group_neutralize',
+                       'rank','zscore','scale','log','abs','min','max',
+                       'returns','volume','close','vwap','cap'}:
             return tok
     return str(code)[:60]
 
@@ -319,35 +379,51 @@ def build_tune_variants(candidate):
             'code':           f'-rank({wrapper}({field},{w}))',
         }
 
-    # Always test both wrappers on the baseline settings first
+    def e_decay(field, w, uni, dec, trunc, neut):
+        """ts_decay_linear variant — different code shape."""
+        return {
+            'neutralization': neut,
+            'decay':          dec,
+            'truncation':     trunc,
+            'delay':          1,
+            'region':         'USA',
+            'universe':       uni,
+            'code':           f'-rank(ts_decay_linear({field},{w}) * rank(ts_delta(close,5)))',
+        }
+
+    # Always test all three top wrappers on baseline settings
     for wrapper in ['ts_rank', 'ts_zscore']:
-        for uni in ['TOP3000', 'TOP500']:
+        for uni in ['TOP3000', 'TOP200']:
             rows.append(e(field, wrapper, 252, uni, 6, 0.08, 'SUBINDUSTRY'))
+    # ts_decay_linear — best performer per RL data
+    for w in [21, 42]:
+        for uni in ['TOP3000', 'TOP200']:
+            rows.append(e_decay(field, w, uni, 6, 0.08, 'SUBINDUSTRY'))
 
     # ── subsharpe weak → lower decay, try MARKET neutralization ──────────────
     if 'subsharpe' in issues or 'maximize' in issues:
         for wrapper in ['ts_rank', 'ts_zscore']:
             for dec in [0, 2, 4]:   # low decay = less smoothing = better subsharpe
-                for uni in ['TOP3000', 'TOP500']:
+                for uni in ['TOP3000', 'TOP200']:
                     rows.append(e(field, wrapper, 252, uni, dec, 0.08, 'SUBINDUSTRY'))
             # MARKET neut removes broad market factor, often lifts subsharpe
-            for uni in ['TOP3000', 'TOP500']:
+            for uni in ['TOP3000', 'TOP200']:
                 rows.append(e(field, wrapper, 252, uni, 6, 0.08, 'MARKET'))
 
-    # ── sharpe weak → zscore wrapper, TOP500, higher decay ───────────────────
+    # ── sharpe weak → zscore wrapper, higher decay ──────────────────────────
     if 'sharpe' in issues or 'maximize' in issues:
         for dec in [8, 10, 13]:     # higher decay = more smoothing = higher sharpe
-            for uni in ['TOP3000', 'TOP500']:
+            for uni in ['TOP3000', 'TOP200']:
                 rows.append(e(field, 'ts_zscore', 252, uni, dec, 0.08, 'SUBINDUSTRY'))
         # 504w window — longer lookback often boosts sharpe
         for dec in [4, 6, 10]:
-            for uni in ['TOP3000', 'TOP500']:
+            for uni in ['TOP3000', 'TOP200']:
                 rows.append(e(field, 'ts_zscore', 504, uni, dec, 0.08, 'SUBINDUSTRY'))
 
-    # ── fitness weak → lower truncation, TOP500, zscore ──────────────────────
+    # ── fitness weak → lower truncation, zscore ──────────────────────────────
     if 'fitness' in issues or 'maximize' in issues:
         for trunc in [0.05, 0.06]:  # lower trunc = more concentrated = higher fitness
-            for uni in ['TOP3000', 'TOP500']:
+            for uni in ['TOP3000', 'TOP200']:
                 rows.append(e(field, 'ts_zscore', 252, uni, 4, trunc, 'SUBINDUSTRY'))
                 rows.append(e(field, 'ts_rank',   252, uni, 4, trunc, 'SUBINDUSTRY'))
 
@@ -356,7 +432,7 @@ def build_tune_variants(candidate):
         for wrapper in ['ts_rank', 'ts_zscore']:
             for uni in ['TOP200', 'TOPSP500']:
                 rows.append(e(field, wrapper, 252, uni, 6, 0.08, 'SUBINDUSTRY'))
-            for uni in ['TOP3000', 'TOP500']:
+            for uni in ['TOP3000', 'TOP200']:
                 rows.append(e(field, wrapper, 252, uni, 6, 0.08, 'INDUSTRY'))
 
     return rows

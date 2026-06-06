@@ -61,12 +61,19 @@ def scrape(result):
     '''
 
     # when scores don't matter anymore
-    while True:
+    MAX_CHECK_POLLS = 60
+    checks = None
+    for _ in range(MAX_CHECK_POLLS):
         check_r = wq.get(f'https://api.worldquantbrain.com/alphas/{aid}/check')
         if check_r.content:
-            try:    checks = check_r.json()['is']['checks']; break
-            except: pass
+            try:
+                checks = check_r.json()['is']['checks']
+                break
+            except (KeyError, ValueError, TypeError): pass
         time.sleep(2.5)
+    if checks is None:
+        logging.info(f'{thread} -- Check polling timed out for {aid}')
+        return -1
     if not all(check['result'] == 'PASS' for check in checks): return -1
     score = {'before': -1, 'after': -1}
     score['max_corr'] = [check['value'] for check in checks if check['name'] == 'SELF_CORRELATION'][0]
@@ -113,7 +120,7 @@ with open(SCRAPE_FN, 'w', newline='') as c:
         except Exception as e:
             logging.info(f'{type(e).__name__}: {e}')
             try:    logging.info(r.content)
-            except: pass
+            except Exception: pass
 if ret:
     pd.DataFrame(ret).sort_values(by=['after', 'max_corr'], ascending=[False, True]).to_csv(SCRAPE_FN, index=False)
     print(f'python submit_alphas.py {SCRAPE_FN}')
