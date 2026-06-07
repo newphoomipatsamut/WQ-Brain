@@ -8,11 +8,11 @@ An automated alpha discovery and simulation pipeline for [WorldQuant BRAIN](http
 
 ## What This Does
 
-- **LLM-powered alpha generation** — Gemini 3.5 Flash generates diverse alpha expressions from untested fields
-- **Reinforcement learning** — multi-armed bandit tracks which templates work per data frequency and steers Gemini toward them
+- **LLM-powered alpha generation** — Gemini 3.5 Flash with automatic Groq fallback (llama-3.3-70b) on rate limits
+- **Reinforcement learning** — multi-armed bandit tracks which templates work per data frequency and steers LLM toward them
 - **Fully automated orchestrator** — cycles through categories, generates batches, runs simulations, tunes near-misses, updates tracker
-- **Concurrent simulation** — 3 parallel simulations with auto-resume on timeout
-- **Auto biometric auth** — polls for auth link, sends LINE notifications, detects expired links
+- **Concurrent simulation** — parallel simulations with auto-resume on timeout
+- **Biometric auth** — sends LINE notification with auth link, waits for user completion
 - **Near-miss tuning** — automatically builds parameter sweeps for expressions close to passing thresholds
 - **Field tracking** — 6,500+ fields across 19 categories with emoji-coded status tracking
 
@@ -23,7 +23,7 @@ An automated alpha discovery and simulation pipeline for [WorldQuant BRAIN](http
 ```bash
 git clone https://github.com/newphoomipatsamut/WQ-Brain.git
 cd WQ-Brain
-pip install requests pandas openpyxl google-genai
+pip install requests pandas openpyxl google-genai groq
 cp credentials.json.example credentials.json
 # Edit credentials.json with your WQ Brain email and password
 ```
@@ -37,6 +37,9 @@ cp credentials.json.example credentials.json
 # Run the orchestrator — generates, simulates, tunes, repeats
 python3 orchestrator.py --api-key YOUR_GEMINI_KEY
 
+# With Groq fallback (auto-switches when Gemini hits rate limits)
+python3 orchestrator.py --api-key YOUR_GEMINI_KEY --groq-key YOUR_GROQ_KEY
+
 # Start from a specific category
 python3 orchestrator.py --api-key YOUR_GEMINI_KEY --start-category "Analyst"
 
@@ -45,6 +48,16 @@ python3 orchestrator.py --api-key YOUR_GEMINI_KEY --dry-run
 
 # Retune historical near-misses (no API key needed)
 python3 orchestrator.py --retune
+
+# Run curated seed alphas (101 Formulaic + research)
+python3 orchestrator.py --seed
+python3 orchestrator.py --seed --seed-category price_volume
+
+# Mutate passing alphas (genetic evolution)
+python3 orchestrator.py --mutate --mutate-count 50
+
+# Portfolio correlation check
+python3 agent.py --portfolio
 ```
 
 ### Manual workflow
@@ -70,9 +83,9 @@ python3 generate_batch.py --category "Model" --smart
 | File | Purpose |
 |------|---------|
 | `orchestrator.py` | Fully automated research loop — generate, simulate, tune, repeat |
-| `llm_alpha_generator.py` | Gemini-powered expression generator with RL recommendations |
+| `llm_alpha_generator.py` | LLM-powered expression generator (Gemini + Groq fallback) with RL recommendations |
 | `template_rl.py` | Multi-armed bandit tracking template performance by frequency |
-| `main.py` | Simulation engine — 3 concurrent workers, auto-resume, biometric auth |
+| `main.py` | Simulation engine — concurrent workers, auto-resume, biometric auth |
 | `agent.py` | Post-simulation analysis — corr check, score fetch, tuning |
 | `generate_batch.py` | Baseline sweep generator (no LLM, cross-product of templates) |
 | `alpha_miner.py` | Enumerate all template variants for a specific field |
@@ -83,6 +96,8 @@ python3 generate_batch.py --category "Model" --smart
 | `update_tracker.py` | Sync fields_tracker.csv with latest results |
 | `notify.py` | LINE + macOS notification system |
 | `database.py` | SQLite database management |
+| `seed_alphas.py` | 50+ curated seed expressions from 101 Formulaic Alphas + research |
+| `mutator.py` | Genetic mutation engine — operator swaps, crossover, lookback mutations |
 | `fields_tracker.csv` | 6,500+ fields with status, category, signal strength |
 | `wq_alpha.db` | SQLite database — queryable version of results |
 | `credentials.json` | Login credentials — **gitignored, never commit** |
@@ -140,10 +155,22 @@ Run `python3 orchestrator.py --retune` to retune all historical near-misses.
 
 ---
 
+## Seed Alphas & Genetic Mutation
+
+**Seed Alphas** (`seed_alphas.py`): A curated database of 50+ alpha expressions from the "101 Formulaic Alphas" paper and WorldQuant training materials. Run `python3 orchestrator.py --seed` to generate a batch. These are starting points that need tuning (decay, neutralization, universe) before passing IS thresholds.
+
+**Genetic Mutation** (`mutator.py`): Takes passing or near-miss alphas and generates variants through operator swaps (ts_rank to ts_zscore), lookback mutations, wrapper additions (hump, log), group argument swaps, and arithmetic crossover between two alphas. Run `python3 orchestrator.py --mutate` to generate mutations from your best-performing alphas.
+
+**Portfolio Check** (`agent.py --portfolio`): Analyzes your submittable alphas for pairwise correlation risk. Flags when multiple alphas use the same base field (likely high self-correlation) and checks universe/wrapper diversity.
+
+---
+
 ## Notes
 
 - **D0 (delay=0) is not viable** for IQC 2026 — thresholds are Sharpe >= 2.0, Fitness >= 1.30
 - **TOP200 universe** consistently produces the lowest self-correlation
-- **3 concurrent simulations** is the WQ Brain platform limit
+- **2-3 concurrent simulations** is the WQ Brain platform limit (server-side)
 - **Score change** requires manual check on the Performance Comparison panel
-- Knowledge bases in `knowledge bases/` are fed to Gemini for domain-specific guidance
+- Knowledge bases in `knowledge bases/` are fed to the LLM for domain-specific guidance
+- **Groq free tier** — 14,400 req/day vs Gemini's 20/day; get a key at [console.groq.com](https://console.groq.com)
+- **Environment variables** — set `GEMINI_API_KEY` and/or `GROQ_API_KEY` to avoid passing keys on CLI

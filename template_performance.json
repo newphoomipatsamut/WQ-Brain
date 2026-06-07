@@ -1,24 +1,24 @@
 {
   "group_rank_QUARTERLY": {
-    "avg_sharpe": 0.009,
+    "avg_sharpe": 0.028,
     "near_misses": 0,
     "passes": 0,
-    "runs": 65,
-    "sharpe_sum": 0.5800000000000003
+    "runs": 87,
+    "sharpe_sum": 2.4600000000000004
   },
   "group_zscore_QUARTERLY": {
-    "avg_sharpe": 0.076,
+    "avg_sharpe": 0.086,
     "near_misses": 1,
     "passes": 0,
-    "runs": 57,
-    "sharpe_sum": 4.33
+    "runs": 73,
+    "sharpe_sum": 6.309999999999999
   },
   "hump_ts_rank_QUARTERLY": {
-    "avg_sharpe": 0.11,
-    "near_misses": 1,
+    "avg_sharpe": 0.131,
+    "near_misses": 2,
     "passes": 1,
-    "runs": 175,
-    "sharpe_sum": 19.319999999999997
+    "runs": 199,
+    "sharpe_sum": 26.119999999999997
   },
   "other_QUARTERLY": {
     "avg_sharpe": -0.22,
@@ -28,18 +28,18 @@
     "sharpe_sum": -5.050000000000001
   },
   "ts_corr_QUARTERLY": {
-    "avg_sharpe": 0.053,
+    "avg_sharpe": 0.052,
     "near_misses": 0,
     "passes": 0,
-    "runs": 44,
-    "sharpe_sum": 2.35
+    "runs": 48,
+    "sharpe_sum": 2.52
   },
   "ts_decay_linear_QUARTERLY": {
-    "avg_sharpe": 0.39,
+    "avg_sharpe": 0.377,
     "near_misses": 39,
     "passes": 0,
-    "runs": 299,
-    "sharpe_sum": 116.57000000000005
+    "runs": 303,
+    "sharpe_sum": 114.26000000000005
   },
   "ts_decay_linear_SLOW": {
     "avg_sharpe": 0.574,
@@ -63,11 +63,11 @@
     "sharpe_sum": 0.0
   },
   "ts_rank_QUARTERLY": {
-    "avg_sharpe": 0.053,
+    "avg_sharpe": 0.039,
     "near_misses": 8,
     "passes": 3,
-    "runs": 384,
-    "sharpe_sum": 20.470000000000013
+    "runs": 456,
+    "sharpe_sum": 17.90000000000001
   },
   "ts_rank_SLOW": {
     "avg_sharpe": -0.39,
@@ -84,25 +84,25 @@
     "sharpe_sum": 28.13000000000001
   },
   "ts_regression_QUARTERLY": {
-    "avg_sharpe": 0.021,
+    "avg_sharpe": 0.032,
     "near_misses": 0,
     "passes": 0,
-    "runs": 116,
-    "sharpe_sum": 2.4100000000000006
+    "runs": 150,
+    "sharpe_sum": 4.73
   },
   "ts_std_dev_QUARTERLY": {
-    "avg_sharpe": -0.031,
+    "avg_sharpe": 0.018,
     "near_misses": 0,
     "passes": 0,
-    "runs": 62,
-    "sharpe_sum": -1.9299999999999993
+    "runs": 72,
+    "sharpe_sum": 1.3000000000000007
   },
   "ts_zscore_QUARTERLY": {
-    "avg_sharpe": 0.051,
+    "avg_sharpe": 0.042,
     "near_misses": 3,
     "passes": 0,
-    "runs": 185,
-    "sharpe_sum": 9.409999999999998
+    "runs": 197,
+    "sharpe_sum": 8.209999999999999
   },
   "ts_zscore_SLOW": {
     "avg_sharpe": -0.225,

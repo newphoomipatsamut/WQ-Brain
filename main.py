@@ -2,6 +2,7 @@ import csv
 import logging
 import requests
 import json
+import sys
 import time
 from parameters import DATA
 from concurrent.futures import ThreadPoolExecutor
@@ -47,68 +48,17 @@ class WQSession(requests.Session):
             r = self.post('https://api.worldquantbrain.com/authentication')
         if 'user' not in r.json():
             if 'inquiry' in r.json():
-                persona_url = r.url
-                inquiry_data = r.json()
-                current_auth_url = f"{persona_url}/persona?inquiry={inquiry_data['inquiry']}"
-
-                def _notify_safe(msg, urgent=False):
-                    try:
-                        from notify import notify
-                        notify(msg, title='WQ Brain — Action Needed' if urgent else 'WQ Brain', urgent=urgent)
-                    except Exception:
-                        pass
-
-                _notify_safe(f'Biometric auth required — complete on your phone, script will auto-continue.\n{current_auth_url}', urgent=True)
-                logging.info(f'⏳ Biometric auth needed: {current_auth_url}')
-                logging.info('   Complete it on your phone — script will continue automatically...')
-
-                # Poll every 30s for up to 20 attempts (10 min total).
-                # On each poll also re-checks authentication — if the link expired,
-                # WQ issues a new inquiry automatically, and we send a fresh LINE notification.
-                authed = False
-                MAX_POLLS = 20
-                for attempt in range(1, MAX_POLLS + 1):
-                    time.sleep(30)
-                    logging.info(f'   Biometric check {attempt}/{MAX_POLLS}...')
-                    try:
-                        # Try completing the current inquiry
-                        check = self.post(f"{persona_url}/persona", json=inquiry_data)
-                        if 'user' in check.json():
-                            authed = True
-                            break
-                    except Exception:
-                        pass
-                    try:
-                        # Re-check auth — detects completion OR gets a fresh link if expired
-                        recheck = self.post('https://api.worldquantbrain.com/authentication')
-                        rj = recheck.json()
-                        if 'user' in rj:
-                            authed = True
-                            break
-                        if 'inquiry' in rj:
-                            new_auth_url = f"{recheck.url}/persona?inquiry={rj['inquiry']}"
-                            if new_auth_url != current_auth_url:
-                                # Old link expired — WQ issued a fresh one
-                                inquiry_data = rj
-                                persona_url = recheck.url
-                                current_auth_url = new_auth_url
-                                logging.info(f'   🔄 Previous link expired — new link issued')
-                                _notify_safe(f'Previous biometric link expired — new link sent:\n{new_auth_url}', urgent=True)
-                    except Exception:
-                        pass
-
-                if authed:
-                    logging.info('✅ Biometric auth completed — continuing automatically!')
-                    _notify_safe('Biometric auth done! Simulations resuming.')
-                else:
-                    # 10 min elapsed, last resort — ask manually
-                    logging.info('⚠️  Auth polling timed out (10 min) — please press Enter in terminal.')
-                    _notify_safe('⚠️ Biometric auth timed out after 10 min — check terminal.', urgent=True)
-                    input(f'Complete biometric at {current_auth_url} then press Enter...')
-                    self.post(f"{persona_url}/persona", json=inquiry_data)
+                auth_url = f"{r.url}/persona?inquiry={r.json()['inquiry']}"
+                try:
+                    from notify import notify
+                    notify(f'Biometric auth required:\n{auth_url}',
+                           title='WQ Brain — Action Needed', urgent=True)
+                except Exception:
+                    pass
+                input(f"Please complete biometric authentication at {auth_url} before continuing...")
+                self.post(f"{r.url}/persona", json=r.json())
             else:
-                print(f'WARNING! {r.json()}')
-                input('Press enter to quit...')
+                logging.warning(f'Auth response: {r.json()} — continuing anyway')
         logging.info('Logged in to WQBrain!')
 
     def simulate(self, data):

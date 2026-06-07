@@ -46,45 +46,41 @@ Use these as your primary building blocks. Vary across templates for each field 
 Template A — Pure rank, annual lookback (low turnover):
   -rank(ts_rank(FIELD, 252))
 
-Template B — Value × price momentum (best Fitness):
-  -rank(ts_decay_linear(FIELD, 21) * rank(ts_delta(close, 5)))
-
-Template C — Fitness fix with hump:
+Template B — Fitness fix with hump:
   -rank(hump(ts_rank(FIELD, 252)))
 
-Template D — Zscore variant:
+Template C — Zscore variant:
   -rank(ts_zscore(FIELD, 252))
 
-Template E — Short lookback (63 days):
+Template D — Short lookback (63 days):
   -rank(ts_rank(FIELD, 63))
 
 ### Advanced Templates (higher alpha diversity — use at least 1-2 per field)
-Template F — Volatility signal (stability of FIELD over time):
+Template E — Volatility signal (stability of FIELD over time):
   -rank(ts_std_dev(FIELD, 63))
   -rank(ts_rank(ts_std_dev(FIELD, 22), 252))
 
-Template G — Correlation with price (momentum linkage):
+Template F — Correlation with price (momentum linkage):
   -rank(ts_corr(FIELD, close, 63))
   -rank(ts_rank(ts_corr(FIELD, returns, 22), 126))
 
-Template H — Trend slope extraction (best for slow-moving fundamentals):
+Template G — Trend slope extraction (best for slow-moving fundamentals):
   -rank(ts_regression(FIELD, ts_step(1), 252, rettype=2))
   Rettype=2 extracts the slope — captures steady upward/downward trend.
 
-Template I — Group-relative signal (lower self-correlation):
+Template H — Group-relative signal (lower self-correlation):
   -rank(group_rank(ts_zscore(FIELD, 252), sector))
   -rank(group_zscore(ts_rank(FIELD, 63), industry))
   Note: Use sector/industry/subindustry for the group argument.
 
-Template J — Preprocessed signal (handles sparse/noisy data better):
+Template I — Preprocessed signal (handles sparse/noisy data better):
   -rank(ts_rank(ts_backfill(FIELD, 120), 252))
   -rank(ts_zscore(winsorize(FIELD, std=4), 252))
   Use ts_backfill when description suggests sparse/quarterly data.
   Use winsorize when field has extreme outliers (e.g. financial statement items).
 
-Template K — Multi-stage composition (wraps one signal inside another):
+Template J — Multi-stage composition (wraps one signal inside another):
   -rank(ts_rank(ts_delta(FIELD, 21), 63))
-  -rank(ts_decay_linear(ts_zscore(FIELD, 63), 10) * rank(ts_delta(close, 5)))
 
 ### Lookback windows to vary
 Short: 5, 22 | Medium: 63, 126 | Long: 252, 504
@@ -136,9 +132,9 @@ The researcher's current book of 19 alphas is HEAVILY weighted toward:
 AVOID generating more value/quality signals — they will fail self-correlation checks.
 PREFER: momentum, growth rate of change, volatility-of-fundamentals, group-relative peer signals, trend slope (ts_regression).
 
-## Signal Direction — always test both
-For each field, generate at least one expression with `-rank(...)` (short high = bearish on high values)
-AND one with `rank(...)` (long high = bullish on high values). Financial theory doesn't always predict direction correctly — test both.
+## Signal Direction — only use -rank(...)
+Only generate expressions with `-rank(...)`. Do NOT generate `rank(...)` (positive sign) variants.
+If -rank gives IS sharpe of -1.25, we know rank would give +1.25 — no need to waste simulation budget testing both.
 
 ## Field Diversity — when multiple similar fields are given
 If you see fields with similar names (e.g. avg_ebitda_*, avg_capex_*, avg_revenue_*), they are correlated.
@@ -155,7 +151,7 @@ Use DIFFERENT templates for each — do not apply the same template to all relat
 Return ONLY a valid JSON array. No markdown, no explanation, no code blocks.
 Each element must have:
   - "field": exact field name as given
-  - "expressions": array of 4–6 alpha expression strings (vary templates AND signs)
+  - "expressions": array of 4–6 alpha expression strings (all -rank sign, vary templates)
   - "rationale": one sentence explaining the economic hypothesis
 
 Example:
@@ -164,10 +160,10 @@ Example:
     "field": "mdl177_2_deepvaluefactor_bp",
     "expressions": [
       "-rank(ts_rank(mdl177_2_deepvaluefactor_bp, 252))",
-      "rank(ts_rank(mdl177_2_deepvaluefactor_bp, 252))",
+      "-rank(ts_zscore(mdl177_2_deepvaluefactor_bp, 126))",
       "-rank(group_rank(ts_zscore(mdl177_2_deepvaluefactor_bp, 252), sector))",
       "-rank(ts_regression(mdl177_2_deepvaluefactor_bp, ts_step(1), 252, rettype=2))",
-      "-rank(ts_decay_linear(mdl177_2_deepvaluefactor_bp, 21) * rank(ts_delta(close, 5)))"
+      "-rank(ts_rank(ts_delta(mdl177_2_deepvaluefactor_bp, 21), 63))"
     ],
     "rationale": "Book-to-price value signal; slope captures consistent improvement vs. level."
   }
@@ -182,7 +178,7 @@ Fields to generate expressions for (format: field_name | category | update_frequ
 For each field:
 1. Use the update_frequency tag to choose appropriate lookback windows (QUARTERLY → 126-504, DAILY → 5-63)
 2. Use the crowdedness tag to choose templates (HIGH → prefer group_rank/TOP200, LOW → any template ok)
-3. Generate both -rank(...) and rank(...) sign variants to cover both directions
+3. Only use -rank(...) sign — do NOT generate rank(...) variants (we can infer the opposite from IS results)
 4. Vary templates across fields — if adjacent fields are similar, use different templates for each
 5. Prefer momentum/growth/trend templates over value — the existing book is value-heavy
 6. Include at least one group_rank or group_zscore expression per field for self-corr diversity
@@ -460,8 +456,87 @@ def _build_past_feedback(csv_path: Path, fields: list[dict]) -> str:
     return '\n'.join(lines)
 
 
-def call_gemini(api_key: str, fields: list[dict], dataset: str = None) -> list[dict]:
-    """Send fields to Gemini 3.5 Flash in chunks and return combined alpha expressions."""
+def _build_groq_system_prompt() -> str:
+    """Build a compact system prompt for Groq that fits within its 12K TPM limit.
+    Includes only the essential instructions and response format."""
+    return """You are an expert quantitative researcher generating alpha expressions for the WorldQuant BRAIN platform.
+
+## Platform Rules
+- All alphas use delay=1 (D1), region USA, language FASTEXPR.
+- Neutralization: SUBINDUSTRY (default) or MARKET.
+- Universe: TOP3000, TOP500, or TOP200.
+
+## Templates (use different ones per field — vary across fields)
+A: -rank(ts_rank(FIELD, 252))
+B: -rank(ts_zscore(FIELD, 252))
+C: -rank(hump(ts_rank(FIELD, 252)))
+D: -rank(ts_rank(FIELD, 63))
+E: -rank(ts_std_dev(FIELD, 63))
+F: -rank(ts_corr(FIELD, close, 63))
+G: -rank(ts_regression(FIELD, ts_step(1), 252, rettype=2))
+H: -rank(group_rank(ts_zscore(FIELD, 252), sector))
+I: -rank(group_zscore(ts_rank(FIELD, 63), industry))
+J: -rank(ts_rank(ts_backfill(FIELD, 120), 252))
+K: -rank(ts_rank(ts_delta(FIELD, 21), 63))
+
+Lookback: DAILY fields→5-63, WEEKLY→22-126, QUARTERLY→126-504, SLOW→252-504.
+
+## Rules
+- Only use -rank(...) sign. Do NOT generate rank(...) (positive sign) variants — if the negative gives sharpe -1.25, we know the positive passes.
+- Use DIFFERENT templates for similar fields to avoid self-correlation.
+- Include at least one group_rank or group_zscore per field.
+- Prefer momentum/growth/trend over value signals.
+
+## Response Format
+Return ONLY a valid JSON array. No markdown, no explanation, no code blocks.
+Each element must have:
+  - "field": exact field name as given
+  - "expressions": array of 4-6 alpha expression strings (all using -rank sign)
+  - "rationale": one sentence explaining the economic hypothesis
+
+Example:
+[
+  {
+    "field": "some_field",
+    "expressions": [
+      "-rank(ts_rank(some_field, 252))",
+      "-rank(ts_zscore(some_field, 126))",
+      "-rank(group_rank(ts_zscore(some_field, 252), sector))",
+      "-rank(ts_regression(some_field, ts_step(1), 252, rettype=2))"
+    ],
+    "rationale": "Signal captures trend in field values."
+  }
+]"""
+
+
+def _make_groq_generate(groq_key: str, system_prompt: str):
+    """Create a Groq-backed _generate function using llama-3.3-70b-versatile."""
+    try:
+        from groq import Groq
+    except ImportError:
+        print("  ⚠ groq package not installed. Run: pip install groq")
+        return None
+    client = Groq(api_key=groq_key)
+    # Use compact system prompt that fits Groq's 12K TPM limit
+    short_prompt = _build_groq_system_prompt()
+    def _generate(prompt):
+        response = client.chat.completions.create(
+            model='llama-3.3-70b-versatile',
+            messages=[
+                {'role': 'system', 'content': short_prompt},
+                {'role': 'user', 'content': prompt},
+            ],
+            temperature=0.7,
+            max_tokens=4096,
+        )
+        return response.choices[0].message.content
+    return _generate
+
+
+def call_gemini(api_key: str, fields: list[dict], dataset: str = None,
+                groq_key: str = None) -> list[dict]:
+    """Send fields to Gemini 3.5 Flash in chunks and return combined alpha expressions.
+    Falls back to Groq llama-3.3-70b-versatile if Gemini hits rate limits (429)."""
     try:
         from google import genai
         from google.genai import types as genai_types
@@ -518,9 +593,19 @@ def call_gemini(api_key: str, fields: list[dict], dataset: str = None) -> list[d
         system_prompt += DATASET_PROMPTS[dataset.lower()]
         print(f"  Using dataset-specific prompt for: {dataset}")
 
+    # Build Groq fallback generator (if key provided)
+    _groq_generate = None
+    _groq_key = groq_key or os.environ.get('GROQ_API_KEY')
+    if _groq_key:
+        _groq_generate = _make_groq_generate(_groq_key, system_prompt)
+        if _groq_generate:
+            print("  Groq fallback: ✓ ready (llama-3.3-70b-versatile)")
+
+    _using_groq = [False]  # mutable flag — once switched, stay on Groq
+
     if NEW_SDK:
         client = genai.Client(api_key=api_key)
-        def _generate(prompt):
+        def _gemini_generate(prompt):
             response = client.models.generate_content(
                 model='gemini-3.5-flash',
                 contents=prompt,
@@ -541,8 +626,27 @@ def call_gemini(api_key: str, fields: list[dict], dataset: str = None) -> list[d
                 max_output_tokens=16384,
             )
         )
-        def _generate(prompt):
+        def _gemini_generate(prompt):
             return _model.generate_content(prompt).text
+
+    def _generate(prompt):
+        """Try Gemini first; on 429/ResourceExhausted, fall back to Groq."""
+        if _using_groq[0] and _groq_generate:
+            return _groq_generate(prompt)
+        try:
+            return _gemini_generate(prompt)
+        except Exception as e:
+            err_str = str(e).lower()
+            if ('429' in err_str or 'resource_exhausted' in err_str or
+                    'quota' in err_str or 'rate' in err_str):
+                if _groq_generate:
+                    print(f"  ⚠ Gemini rate-limited — switching to Groq for remaining chunks")
+                    _using_groq[0] = True
+                    return _groq_generate(prompt)
+                else:
+                    print(f"  ⚠ Gemini rate-limited and no Groq key — set GROQ_API_KEY or pass --groq-key")
+                    raise
+            raise
 
     # Split into chunks to avoid token limit truncation
     chunks = [fields[i:i + CHUNK_SIZE] for i in range(0, len(fields), CHUNK_SIZE)]
@@ -712,6 +816,8 @@ Get a free API key at: https://aistudio.google.com/apikey
     )
     parser.add_argument('--api-key', '-k', type=str, default=None,
                         help='Google AI Studio API key (or set GEMINI_API_KEY env var)')
+    parser.add_argument('--groq-key', type=str, default=None,
+                        help='Groq API key for fallback (or set GROQ_API_KEY env var). Free at console.groq.com')
     parser.add_argument('--category', '-c', type=str, default=None,
                         help='Category filter (e.g. "Model", "Fundamental", "Analyst")')
     parser.add_argument('--count', '-n', type=int, default=30,
@@ -784,7 +890,8 @@ Get a free API key at: https://aistudio.google.com/apikey
 
     # ── Call Gemini ───────────────────────────────────────────────────────────
     print(f"\n  Calling Gemini 3.5 Flash...")
-    results = call_gemini(api_key, fields, dataset=args.dataset)
+    groq_key = args.groq_key or os.environ.get('GROQ_API_KEY')
+    results = call_gemini(api_key, fields, dataset=args.dataset, groq_key=groq_key)
     total_exprs = sum(len(r.get('expressions', [])) for r in results)
     print(f"  ✓ Received {len(results)} field responses, {total_exprs} expressions (x2 with auto-TOP200 = {total_exprs*2})")
 
@@ -793,7 +900,7 @@ Get a free API key at: https://aistudio.google.com/apikey
         batch_name = args.batch_name
     else:
         ts = datetime.now().strftime('%m%d_%H%M')
-        cat_slug = (args.category or 'mixed').lower().replace(' ', '_').replace('-', '_')
+        cat_slug = (args.category or 'mixed').lower().replace(' ', '_').replace('-', '_').replace('/', '_')
         # Collapse multiple underscores (e.g. "model___credit" → "model_credit")
         import re as _re
         cat_slug = _re.sub(r'_+', '_', cat_slug).strip('_')

@@ -199,7 +199,8 @@ def parse_passes_and_near_misses(field_best: dict) -> tuple[list, list]:
 
 # ─── Batch generation ────────────────────────────────────────────────────────
 
-def generate_batch(api_key: str, category: str, count: int = FIELDS_PER_BATCH) -> Path | None:
+def generate_batch(api_key: str, category: str, count: int = FIELDS_PER_BATCH,
+                    groq_key: str = None) -> Path | None:
     """Call llm_alpha_generator.py and return the generated parameters file path."""
     log(f"Generating LLM batch: category='{category}', count={count}")
     cmd = [
@@ -208,6 +209,8 @@ def generate_batch(api_key: str, category: str, count: int = FIELDS_PER_BATCH) -
         '--category', category,
         '--count', str(count),
     ]
+    if groq_key:
+        cmd.extend(['--groq-key', groq_key])
     result = subprocess.run(cmd, capture_output=True, text=True, cwd=BASE_DIR)
     print(result.stdout)
     if result.returncode != 0:
@@ -579,7 +582,8 @@ def wait_for_user_confirmation(auto_continue_minutes: int = 30):
 
 # ─── Main orchestration loop ─────────────────────────────────────────────────
 
-def run_orchestrator(api_key: str, start_category: str = None, dry_run: bool = False):
+def run_orchestrator(api_key: str, start_category: str = None, dry_run: bool = False,
+                     groq_key: str = None):
     separator()
     log("  WQ Brain Orchestrator — Automated Research Loop")
     log(f"  Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -626,7 +630,7 @@ def run_orchestrator(api_key: str, start_category: str = None, dry_run: bool = F
                 continue
 
             # ── Step 1: Generate batch ────────────────────────────────────
-            params_file = generate_batch(api_key, cat, FIELDS_PER_BATCH)
+            params_file = generate_batch(api_key, cat, FIELDS_PER_BATCH, groq_key=groq_key)
             if not params_file:
                 log(f"Batch generation failed for {cat}, skipping...")
                 continue
@@ -792,6 +796,72 @@ def run_retune():
     separator()
 
 
+# ─── Seed alphas mode ───────────────────────────────────────────────────────
+
+def run_seed(category: str = None):
+    """Generate and optionally run a batch from curated seed alphas."""
+    separator()
+    log("  WQ Brain — Seed Alphas (101 Formulaic + Curated)")
+    separator()
+
+    try:
+        from seed_alphas import get_seeds, generate_seed_batch
+    except ImportError:
+        log("ERROR: seed_alphas.py not found.")
+        return
+
+    seeds = get_seeds(category=category)
+    log(f"  Available seeds: {len(seeds)}" + (f" (category: {category})" if category else ""))
+
+    if not seeds:
+        log("  No seeds found.")
+        return
+
+    batch_file = generate_seed_batch(count=30, universe='TOP3000', category=category)
+    if batch_file:
+        log(f"\n  Seed batch written: {batch_file.name}")
+        log(f"  To run:")
+        log(f"    cp {batch_file.name} parameters.py && python3 main.py")
+
+    separator()
+
+
+# ─── Mutation mode ──────────────────────────────────────────────────────────
+
+def run_mutate(count: int = 40):
+    """Generate mutations from passing alphas."""
+    separator()
+    log("  WQ Brain — Genetic Mutation Engine")
+    separator()
+
+    try:
+        from mutator import mutate_batch
+        from alpha_utils import load_passing_expressions
+    except ImportError as e:
+        log(f"ERROR: Required module not found: {e}")
+        return
+
+    passes = load_passing_expressions(BASE_DIR / 'data')
+    if not passes:
+        log("  No passing expressions found in data/.")
+        log("  Try running seed alphas first: python3 orchestrator.py --seed")
+        return
+
+    log(f"  Found {len(passes)} passing expressions.")
+    log(f"  Top 5 parents:")
+    for p in passes[:5]:
+        log(f"    sharpe={p['sharpe']:.2f} {p['universe']:<7} {p['code'][:60]}")
+
+    # Mutate top 10 parents
+    batch_file = mutate_batch(passes[:10], count=count, universe='TOP3000')
+    if batch_file:
+        log(f"\n  Mutation batch written: {batch_file.name}")
+        log(f"  To run:")
+        log(f"    cp {batch_file.name} parameters.py && python3 main.py")
+
+    separator()
+
+
 # ─── Entry point ─────────────────────────────────────────────────────────────
 
 def main():
@@ -819,16 +889,34 @@ Examples:
     )
     parser.add_argument('--api-key', '-k', default=None,
                         help='Gemini API key (or set GEMINI_API_KEY env var)')
+    parser.add_argument('--groq-key', default=None,
+                        help='Groq API key for fallback (or set GROQ_API_KEY env var). Free at console.groq.com')
     parser.add_argument('--start-category', '-s', default=None,
                         help='Skip categories before this one')
     parser.add_argument('--dry-run', action='store_true',
                         help='Plan only — no LLM calls or simulations')
     parser.add_argument('--retune', action='store_true',
                         help='Scan historical near-misses and build a tuning batch')
+    parser.add_argument('--seed', action='store_true',
+                        help='Run seed alphas from curated 101 Formulaic Alphas database')
+    parser.add_argument('--seed-category', default=None,
+                        help='Filter seed alphas by category (e.g., price_volume, fundamental)')
+    parser.add_argument('--mutate', action='store_true',
+                        help='Generate mutations of passing alphas')
+    parser.add_argument('--mutate-count', type=int, default=40,
+                        help='Number of mutations to generate (default: 40)')
     args = parser.parse_args()
 
     if args.retune:
         run_retune()
+        return
+
+    if args.seed:
+        run_seed(args.seed_category)
+        return
+
+    if args.mutate:
+        run_mutate(args.mutate_count)
         return
 
     api_key = args.api_key or os.environ.get('GEMINI_API_KEY')
@@ -836,7 +924,8 @@ Examples:
         print("ERROR: No API key. Pass --api-key or set GEMINI_API_KEY env var.")
         sys.exit(1)
 
-    run_orchestrator(api_key, args.start_category, args.dry_run)
+    groq_key = args.groq_key or os.environ.get('GROQ_API_KEY')
+    run_orchestrator(api_key, args.start_category, args.dry_run, groq_key=groq_key)
 
 
 if __name__ == '__main__':

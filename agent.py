@@ -700,6 +700,70 @@ def process_csv(csv_path, session, state):
     save_state(state)
     log(f'\n  Finished {csv_path}. Added {len(new_submittable)} submittable, {len(tune_candidates)} tuning.')
 
+# ── PORTFOLIO CORRELATION PRE-CHECK ──────────────────────────────────────────
+def portfolio_corr_check(session, state):
+    """
+    Check all submittable alphas against each other for pairwise correlation.
+    Warns if any pair exceeds CORR_MAX — submitting both would hurt the portfolio.
+    This helps design uncorrelated alpha baskets (CrisperX-50 strategy).
+    """
+    submittable = state.get('submittable', [])
+    if len(submittable) < 2:
+        log('Portfolio corr check: fewer than 2 submittable alphas — skipped.')
+        return
+
+    banner('Portfolio Correlation Matrix')
+    log(f'  Checking pairwise correlation for {len(submittable)} submittable alphas...')
+
+    # Build a simple pairwise check using field similarity as a proxy
+    # (True API-based pairwise corr would require simulating each pair together)
+    from alpha_utils import extract_field
+    field_groups = {}
+    for s in submittable:
+        field = extract_field(s.get('code', s.get('field', ''))) or s.get('field', '?')
+        base_field = re.sub(r'_\d+$', '', field)  # Group variants like fam_roe vs fam_roe_rank
+        if base_field not in field_groups:
+            field_groups[base_field] = []
+        field_groups[base_field].append(s)
+
+    # Flag groups with multiple alphas on the same base field
+    risky_pairs = []
+    for base_field, alphas in field_groups.items():
+        if len(alphas) > 1:
+            risky_pairs.append((base_field, alphas))
+
+    if risky_pairs:
+        log(f'\n  WARNING: {len(risky_pairs)} field group(s) have multiple submittable alphas:')
+        for base_field, alphas in risky_pairs:
+            log(f'    {base_field} ({len(alphas)} alphas):')
+            for a in alphas:
+                corr = a.get('corr', '?')
+                sharpe = a.get('sharpe', 0)
+                univ = a.get('universe', '?')
+                log(f'      sharpe={sharpe:.2f} corr={corr} {univ} | {a.get("alpha_id", "?")}')
+            log(f'      -> Consider submitting only the best one to avoid self-correlation.')
+    else:
+        log(f'  All {len(submittable)} alphas use different base fields — good diversity.')
+
+    # Also check universe distribution
+    univ_counts = {}
+    for s in submittable:
+        univ = s.get('universe', '?')
+        univ_counts[univ] = univ_counts.get(univ, 0) + 1
+    log(f'\n  Universe distribution: {univ_counts}')
+    if len(univ_counts) == 1:
+        log(f'  -> Consider diversifying across universes for lower portfolio correlation.')
+
+    # Wrapper distribution
+    wrapper_counts = {}
+    for s in submittable:
+        wrapper = s.get('wrapper', 'unknown')
+        wrapper_counts[wrapper] = wrapper_counts.get(wrapper, 0) + 1
+    log(f'  Wrapper distribution: {wrapper_counts}')
+
+    log(f'\n  Portfolio summary: {len(submittable)} alphas, {len(field_groups)} unique field groups')
+
+
 # ── MAIN LOOP ─────────────────────────────────────────────────────────────────
 def main():
     banner('WQ Brain AutoAgent v2')
@@ -747,6 +811,16 @@ if __name__ == '__main__':
             'submittable':    [],
         })
         print('✅ agent_state.json reset.')
+
+    # Portfolio correlation check: python3 agent.py --portfolio
+    elif '--portfolio' in sys.argv:
+        try:
+            session = WQSession()
+        except Exception as e:
+            log(f'Auth Failed: {e}')
+            sys.exit(1)
+        state = load_state()
+        portfolio_corr_check(session, state)
 
     # Interactive corr entry: python3 agent.py --corr
     # Prompts for each alpha with null corr, you just type the number
