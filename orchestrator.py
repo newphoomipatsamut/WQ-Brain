@@ -471,26 +471,59 @@ def build_tuning_batch(passes: list, near_misses: list) -> Path | None:
 
 # ─── Simulation runner ───────────────────────────────────────────────────────
 
+# ─── Shared WQ session — authenticate ONCE, reuse across all batches ─────────
+_wq_session = None
+
+def _get_session():
+    """Get or create the shared WQSession. Only authenticates on first call."""
+    global _wq_session
+    if _wq_session is None:
+        sys.path.insert(0, str(BASE_DIR))
+        from main import WQSession
+        _wq_session = WQSession()
+    return _wq_session
+
+
 def run_simulation(params_file: Path) -> Path | None:
-    """Copy params file and run main.py. Returns path to results CSV."""
-    import shutil
-    shutil.copy(params_file, BASE_DIR / 'parameters.py')
+    """Load params file and run simulation using shared session.
+    Returns path to results CSV."""
     log(f"Running: {params_file.name}")
 
-    before = set(glob.glob(str(BASE_DIR / 'data' / '*.csv')))
-    proc = subprocess.run(
-        [sys.executable, str(BASE_DIR / 'main.py')],
-        cwd=BASE_DIR,
-    )
+    # Load DATA from the parameters file
+    import importlib.util
+    spec = importlib.util.spec_from_file_location('params', params_file)
+    params_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(params_mod)
+    data = params_mod.DATA
 
-    after = set(glob.glob(str(BASE_DIR / 'data' / '*.csv')))
-    new_csvs = after - before
-    if not new_csvs:
-        # fallback: find most recent
-        all_csvs = sorted(glob.glob(str(BASE_DIR / 'data' / '*.csv')),
-                         key=os.path.getmtime)
-        return Path(all_csvs[-1]) if all_csvs else None
-    return Path(sorted(new_csvs, key=os.path.getmtime)[-1])
+    if not data:
+        log(f"  No expressions in {params_file.name}, skipping...")
+        return None
+
+    session = _get_session()
+
+    # Run simulation with retries (same as main.py __main__)
+    total = len(data)
+    MAX_ATTEMPTS = 2
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        remaining = len(data)
+        done = total - remaining
+        log(f"  Attempt #{attempt}/{MAX_ATTEMPTS} | {done}/{total} done | {remaining} queued")
+        data = session.simulate(data)
+        if not data:
+            break
+        if attempt < MAX_ATTEMPTS:
+            log(f"  ↩ {len(data)} timed-out — retrying in 30s...")
+            import time as _time
+            _time.sleep(30)
+        else:
+            log(f"  ⚠ {len(data)} expressions still failed after {MAX_ATTEMPTS} attempts — skipping.")
+    log(f"  ✅ Done! {total - len(data)}/{total} simulations completed.")
+
+    # Find the CSV that was just created
+    all_csvs = sorted(glob.glob(str(BASE_DIR / 'data' / '*.csv')),
+                     key=os.path.getmtime)
+    return Path(all_csvs[-1]) if all_csvs else None
 
 
 # ─── Pass notification ────────────────────────────────────────────────────────

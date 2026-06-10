@@ -58,7 +58,8 @@ class WQSession(requests.Session):
                 input(f"Please complete biometric authentication at {auth_url} before continuing...")
                 self.post(f"{r.url}/persona", json=r.json())
             else:
-                logging.warning(f'Auth response: {r.json()} — continuing anyway')
+                print(f'WARNING! {r.json()}')
+                input('Press enter to quit...')
         logging.info('Logged in to WQBrain!')
 
     def simulate(self, data):
