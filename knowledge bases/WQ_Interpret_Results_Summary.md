@@ -22,6 +22,10 @@ The "IS Summary" block displays the vital stats of your Alpha over the testing p
 * **Margin:** Profit per dollar traded (`PnL / Total Dollars Traded`). 
 * **Drawdown:** The largest peak-to-trough drop in PnL, divided by half of book size. Measures worst-case scenario risk.
 
+**Risk ratio:** `(Mean Annual Return) / (Max Drawdown) > 1` is a useful combined risk metric. An alpha returning 10% annually with a max drawdown of 8% (ratio = 1.25) is healthier than one returning 15% with a 20% drawdown (ratio = 0.75). This metric is not displayed by BRAIN directly — compute it from the IS Summary numbers.
+
+**Drawdown is idea-specific and regime-dependent.** An alpha that underperforms in 2008 (financial crisis) may excel in 2020 (COVID), and vice versa. High drawdown in early backtest years is often a regime mismatch, not a broken idea. The fix is **neutralization** (removes macro/sector exposure) rather than forcing the expression to fit one bad year. If the drawdown persists across multiple regimes despite neutralization, the idea itself may need to change.
+
 ---
 
 ## 3. The Alpha Timeline (The 3 Phases)

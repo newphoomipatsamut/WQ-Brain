@@ -4,8 +4,8 @@ Analyst,actual_dividend_value_quarterly,🟠 Test Soon,1.250,analyst4,Dividend -
 Analyst,actual_eps_value_quarterly,🟡 Tested: Baseline Failed,0.500,analyst4,Earnings Per Share (Income Statement/Per Share) (Actual),,
 Analyst,actual_sales_value_annual,🟡 Tested: Baseline Failed,0.790,analyst4,Sales - Actual Value,,
 Analyst,actual_sales_value_quarterly,🟡 Tested: Baseline Failed,0.480,analyst4,Sales - Value in financial services income statement (in millions),,
-Analyst,actuals_reporting_currency,,,analyst4,Home currency of instrument,,
-Analyst,actuals_value_currency_code,,,analyst4,Pricing Currency where the security trades,,
+Analyst,actuals_reporting_currency,❌ Abandoned,,analyst4,Home currency of instrument,,no_signal
+Analyst,actuals_value_currency_code,❌ Abandoned,,analyst4,Pricing Currency where the security trades,,no_signal
 Analyst,adj_net_income_avg,🟡 Tested: Baseline Failed,0.340,analyst4,"Average adjusted net profit, excluding non-recurring items, for the period.",,
 Analyst,adj_net_income_median,🟡 Tested: Baseline Failed,0.340,analyst4,"Median adjusted net profit, excluding non-recurring items, for the period.",,
 Analyst,adj_net_income_stddev,🟡 Tested: Baseline Failed,0.590,analyst4,"Standard deviation of adjusted net profit estimates, excluding non-recurring items.",,
@@ -937,392 +937,392 @@ Analyst,anl4_totgw_mean,❌ Dead,,analyst4,Total Goodwill - mean of estimations,
 Analyst,anl4_totgw_median,❌ Dead,,analyst4,Total Goodwill - median of estimations,anl4_* family: confirmed event-type data. ady/detail/adxq all fail. Sub-families not yet verified as continuous — avoid until confirmed. Exception: anl4_adjusted_netincome_ft (confirmed working).,event_type
 Analyst,anl4_totgw_number,❌ Dead,,analyst4,Total Goodwill - number of estimations,anl4_* family: confirmed event-type data. ady/detail/adxq all fail. Sub-families not yet verified as continuous — avoid until confirmed. Exception: anl4_adjusted_netincome_ft (confirmed working).,event_type
 Analyst,anl4_under,❌ Dead,,analyst4,The number of Underweight recommendations,anl4_* family: confirmed event-type data. ady/detail/adxq all fail. Sub-families not yet verified as continuous — avoid until confirmed. Exception: anl4_adjusted_netincome_ft (confirmed working).,event_type
-Analyst,avg_capex_quarterly_estimate,,,analyst4,The arithmetic average of broker estimates for capital expenditures in the current quarter.,,
-Analyst,avg_ebitda_quarterly_estimate,,,analyst4,"The arithmetic average of quarterly broker estimates for earnings before interest, taxes, depreciation, and amortization.",,
-Analyst,avg_pretax_profit_quarterly_estimate,,,analyst4,The arithmetic average of broker estimates for pretax profit in the current quarter.,,
-Analyst,avg_total_assets_quarterly_estimate,,,analyst4,The arithmetic average of broker estimates for total assets in the current quarter.,,
-Analyst,basic_shares_max_guidance_qtr,,,analyst4,The maximum guidance value for Basic Shares.,,
-Analyst,book_value_per_share_2,,,analyst4,Book Value Per Share - Actual Value,,
-Analyst,book_value_per_share_avg,,,analyst4,Average book value per share.,,
-Analyst,book_value_per_share_max,,,analyst4,Highest estimate of book value per share.,,
-Analyst,book_value_per_share_median,,,analyst4,Median value of book value per share.,,
-Analyst,book_value_per_share_min,,,analyst4,Lowest estimate of book value per share.,,
-Analyst,book_value_per_share_min_guidance_qtr,,,analyst4,Book value per share - minimum guidance value,,
-Analyst,book_value_per_share_reported_value,,,analyst4,Book Value Per Share - Actual Value,,
-Analyst,capital_expenditure_amount,,,analyst4,Capital Expenditures - Total value,,
-Analyst,capital_expenditure_guidance_value,,,analyst4,Capital Expenditures - Total value for the annual guidance,,
-Analyst,capital_expenditure_max,,,analyst4,Highest estimate of capital expenditures for the period.,,
-Analyst,capital_expenditure_max_guidance_qtr,,,analyst4,The maximum guidance value for Capital Expenditures,,
-Analyst,capital_expenditure_median,,,analyst4,Median value of capital expenditures for the period.,,
-Analyst,capital_expenditure_min,,,analyst4,Minimum projected spending on fixed assets for the period.,,
-Analyst,capital_expenditure_reported_value,,,analyst4,Capital Expenditures - Total (Cash Flow/Investing) (Millions),,
-Analyst,capital_expenditure_stddev,,,analyst4,Standard deviation of capital expenditure estimates.,,
-Analyst,cash_flow_financing_max_guidance,,,analyst4,Cash Flow From Financing - Maximum guidance value provided annually,,
-Analyst,cash_flow_from_financing,,,analyst4,Cash Flow From Financing - Value,,
-Analyst,cash_flow_from_investing,,,analyst4,Cash Flow from Investing - Value,,
-Analyst,cash_flow_from_operations,,,analyst4,Cash Flow from Operations - Value for the annual period,,
-Analyst,cash_flow_operations_min_guidance,,,analyst4,Minimum guidance value for Cash Flow from Operations on an annual basis.,,
-Analyst,cashflow_financing_avg,,,analyst4,Average cash flows from financing activities.,,
-Analyst,cashflow_financing_max,,,analyst4,Highest estimate of cash flows from financing activities.,,
-Analyst,cashflow_financing_median,,,analyst4,Median value of cash flows from financing activities.,,
-Analyst,cashflow_financing_min,,,analyst4,Lowest estimate of cash flows from financing activities.,,
-Analyst,cashflow_investing_avg,,,analyst4,Average cash flows from investing activities.,,
-Analyst,cashflow_investing_max,,,analyst4,Highest estimate of cash flows from investing activities.,,
-Analyst,cashflow_investing_median,,,analyst4,Median value of cash flows from investing activities.,,
-Analyst,cashflow_investing_min,,,analyst4,Lowest estimate of cash flows from investing activities.,,
-Analyst,cashflow_per_share_average,,,analyst4,Cash Flow Per Share - average of estimations with a delay of 1 quarter,,
-Analyst,cashflow_per_share_estimate_count,,,analyst4,Cash Flow Per Share - number of estimations - delay1,,
-Analyst,cashflow_per_share_max_guidance,,,analyst4,The maximum guidance value for Cash Flow Per Share on an annual basis.,,
-Analyst,cashflow_per_share_max_guidance_quarterly,,,analyst4,The maximum guidance value for Cash Flow Per Share.,,
-Analyst,cashflow_per_share_maximum,,,analyst4,"Cash Flow - The highest estimation, per share, with a delay of 1 quarter",,
-Analyst,cashflow_per_share_median_value,,,analyst4,Cash Flow Per Share - Median value among forecasts,,
-Analyst,cashflow_per_share_min_guidance,,,analyst4,Cash Flow Per Share - Minimum guidance value for the annual period,,
-Analyst,cashflow_per_share_min_guidance_quarterly,,,analyst4,Minimum guidance value for Cash Flow Per Share,,
-Analyst,cashflow_per_share_minimum,,,analyst4,"Cash Flow Per Share - The lowest estimation, delay 1 quarter",,
-Analyst,dividend_estimate_average,,,analyst4,Dividend per share - average of estimations - delay 1,,
-Analyst,dividend_estimate_count,,,analyst4,Dividend per share - number of estimations with a delay of 1 quarter,,
-Analyst,dividend_estimate_maximum,,,analyst4,Dividend per share - The highest value among forecasts with a delay of 1 quarter,,
-Analyst,dividend_estimate_median_value,,,analyst4,Dividend per share - median of estimations,,
-Analyst,dividend_estimate_minimum,,,analyst4,Dividend per share - The lowest value among forecasts - D1,,
-Analyst,dividend_estimate_standard_deviation,,,analyst4,Dividend per share - standard deviation of estimations,,
-Analyst,dividend_estimate_stddev_quarterly,,,analyst4,Dividend per share - standard deviation of estimations,,
-Analyst,dividend_estimate_value,,,analyst4,Dividend per share - estimated value,,
-Analyst,dividend_max_guidance_quarterly,,,analyst4,Maximum guidance value for Dividend per share,,
-Analyst,dividend_max_guidance_value,,,analyst4,The maximum guidance value for Dividend per share on an annual basis.,,
-Analyst,dividend_min_guidance_quarterly,,,analyst4,Minimum guidance value for Dividend per share,,
-Analyst,dividend_min_guidance_value,,,analyst4,Minimum guidance value for Dividend per share on an annual basis,,
-Analyst,dividend_previous_estimate_value,,,analyst4,The previous estimation of dividend,,
-Analyst,earnings_per_share_average,,,analyst4,Earnings per share - mean of estimations,,
-Analyst,earnings_per_share_estimate_count,,,analyst4,Earnings per share - number of estimations,,
-Analyst,earnings_per_share_guidance_value,,,analyst4,Earnings Per Share - guidance value for annual frequency,,
-Analyst,earnings_per_share_max_guidance,,,analyst4,The maximum guidance value for Earnings Per Share on an annual basis.,,
-Analyst,earnings_per_share_maximum,,,analyst4,Earnings per share - The highest estimation,,
-Analyst,earnings_per_share_median_value,,,analyst4,Earnings per share - median of estimations,,
-Analyst,earnings_per_share_min_guidance,,,analyst4,Minimum guidance value for Earnings Per Share on an annual basis.,,
-Analyst,earnings_per_share_minimum,,,analyst4,Earnings per share - The lowest estimation,,
-Analyst,earnings_per_share_nongaap_value,,,analyst4,Non-GAAP Earnings Per Share - Actual Value,,
-Analyst,earnings_per_share_reported,,,analyst4,Reported Earnings Per Share - Actual Value,,
-Analyst,earnings_per_share_reported_value,,,analyst4,Reported Earnings Per Share - Actual Value,,
-Analyst,earnings_per_share_standard_deviation,,,analyst4,Earnings per share - standard deviation of estimations,,
-Analyst,ebit_avg,,,analyst4,Average operating profit before interest and taxes.,,
-Analyst,ebit_max,,,analyst4,Highest estimate of operating profit before interest and taxes.,,
-Analyst,ebit_median,,,analyst4,Median value of operating profit before interest and taxes.,,
-Analyst,ebit_min,,,analyst4,Lowest estimate of operating profit before interest and taxes.,,
-Analyst,ebit_reported_value,,,analyst4,Earnings Before Interest & Taxes - actual value for the quarter,,
-Analyst,ebit_stddev,,,analyst4,Standard deviation of operating profit before interest and taxes.,,
-Analyst,ebitda_max,,,analyst4,Highest estimate of EBITDA for the period.,,
-Analyst,ebitda_median,,,analyst4,Median value of EBITDA for the period.,,
-Analyst,ebitda_min,,,analyst4,Lowest estimate of EBITDA for the period.,,
-Analyst,ebitda_reported_value,,,analyst4,EBITDA value for the quarter.,,
-Analyst,ebitda_stddev,,,analyst4,"Standard deviation of EBITDA estimates, indicating variability.",,
-Analyst,eps_adjusted_min_guidance_qtr,,,analyst4,Minimum guidance value for adjusted Earnings per share excluding extraordinary items and stock option expenses.,,
-Analyst,eps_adjusted_min_guidance_value,,,analyst4,The minimum guidance value for adjusted earnings per share excluding extraordinary items and stock option expenses on an annual basis.,,
-Analyst,eps_estimate_value,,,analyst4,Earnings per share - estimation value,,
-Analyst,eps_guidance_value_quarterly,,,analyst4,Earnings Per Share - Basic value,,
-Analyst,eps_max_guidance_quarterly,,,analyst4,The maximum guidance value for Earnings Per Share.,,
-Analyst,eps_min_guidance_quarterly,,,analyst4,Minimum guidance value for Earnings per Share,,
-Analyst,eps_previous_estimate_value,,,analyst4,The previous estimation of Earnings Per Share,,
-Analyst,eps_reported_avg,,,analyst4,Average reported earnings per share.,,
-Analyst,eps_reported_max,,,analyst4,Highest estimate of reported earnings per share.,,
-Analyst,eps_reported_median,,,analyst4,Median value of reported earnings per share.,,
-Analyst,eps_reported_min_guidance_qtr,,,analyst4,Reported Earnings Per Share - Minimum guidance value,,
-Analyst,est_bookvalue_ps,,,analyst4,Book value per share - average of estimations,,
-Analyst,est_capex,,,analyst4,Capital Expenditures - mean of estimations,,
-Analyst,est_cashflow_fin,,,analyst4,Cash Flow From Financing - mean of estimations,,
-Analyst,est_cashflow_invst,,,analyst4,Cash Flow From Investing - mean of estimations,,
-Analyst,est_cashflow_op,,,analyst4,Cash Flow From Operations - mean of estimations,,
-Analyst,est_cashflow_ps,,,analyst4,Cash Flow Per Share - average of estimations,,
-Analyst,est_dividend_ps,,,analyst4,Dividend per share - average of estimations,,
-Analyst,est_ebit,,,analyst4,Earnings before interest and taxes - mean of estimations,,
-Analyst,est_ebitda,,,analyst4,"Earnings before interest, taxes, depreciation, and amortization - mean of estimations",,
-Analyst,est_eps,,,analyst4,Earnings per share - mean of estimations,,
-Analyst,est_epsa,,,analyst4,Earnings per share adjusted by excluding extraordinary items and stock option expenses - average of estimations,,
-Analyst,est_epsr,,,analyst4,GAAP Earnings per share - mean of estimations,,
-Analyst,est_fcf,,,analyst4,Free Cash Flow - Mean of Estimations,,
-Analyst,est_fcf_ps,,,analyst4,Free Cash Flow Per Share - Mean of Estimations,,
-Analyst,est_ffo,,,analyst4,"Funds From Operation - Summary on Estimations, Mean",,
-Analyst,est_grossincome,,,analyst4,Gross income - Mean of estimations,,
-Analyst,est_netdebt,,,analyst4,Net debt - mean of estimations,,
-Analyst,est_netprofit,,,analyst4,Net profit - mean of estimations,,
-Analyst,est_netprofit_adj,,,analyst4,Adjusted net income - Mean of estimations,,
-Analyst,est_ptp,,,analyst4,Pretax income - mean of estimations,,
-Analyst,est_ptpr,,,analyst4,Reported pretax income - mean of estimations,,
-Analyst,est_rd_expense,,,analyst4,Research and Development Expense - mean of estimations,,
-Analyst,est_sales,,,analyst4,Sales - mean of estimations,,
-Analyst,est_sga,,,analyst4,SGA - mean of estimations,,
-Analyst,est_shequity,,,analyst4,Mean of SH Equity segment - mean of estimations,,
-Analyst,est_tbv_ps,,,analyst4,Tangible Book Value per Share - mean of estimations,,
-Analyst,est_tot_assets,,,analyst4,Total Assets - mean of estimations,,
-Analyst,est_tot_goodwill,,,analyst4,Total Goodwill - mean of estimations,,
-Analyst,estimate_value_currency_code,,,analyst4,Home currency of instrument,,
-Analyst,estimate_value_currency_code_detail_qtr,,,analyst4,Home currency of instrument,,
-Analyst,estimate_value_currency_code_qtr,,,analyst4,Home currency of instrument,,
-Analyst,financing_cashflow_reported_value,,,analyst4,Cash Flow From Financing - Value,,
-Analyst,free_cash_flow_per_share,,,analyst4,Free cash flow per share - actual financial value for the annual period,,
-Analyst,free_cash_flow_per_share_actual_value,,,analyst4,Free cash flow per share- announced financial value,,
-Analyst,free_cash_flow_per_share_max_guidance,,,analyst4,The maximum guidance value for Free Cash Flow Per Share on an annual basis.,,
-Analyst,free_cash_flow_per_share_reported_value,,,analyst4,Free cash flow per share- announced financial value,,
-Analyst,free_cash_flow_reported_value,,,analyst4,Free cash flow value for the quarter.,,
-Analyst,free_cash_flow_total,,,analyst4,Free Cash Flow value - Annual,,
-Analyst,free_cashflow_avg,,,analyst4,Average free cash flow for the period.,,
-Analyst,free_cashflow_max,,,analyst4,Highest estimate of free cash flow for the period.,,
-Analyst,free_cashflow_min,,,analyst4,Lowest estimate of free cash flow for the period.,,
-Analyst,free_cashflow_per_share_avg,,,analyst4,Average free cash flow per share.,,
-Analyst,free_cashflow_per_share_max,,,analyst4,Highest estimate of free cash flow per share.,,
-Analyst,free_cashflow_per_share_median,,,analyst4,Median value of free cash flow per share.,,
-Analyst,funds_from_operations_max_guidance,,,analyst4,The maximum guidance value for Funds from operation - annual,,
-Analyst,goodwill_min_guidance_qtr,,,analyst4,Minimum guidance value for Total Goodwill,,
-Analyst,gross_income_avg,,,analyst4,Average gross income for the period.,,
-Analyst,gross_income_max,,,analyst4,Highest estimate of gross income for the period.,,
-Analyst,gross_income_median,,,analyst4,Median value of gross income for the period.,,
-Analyst,gross_income_reported_value,,,analyst4,Gross Income value for the quarter,,
-Analyst,gross_income_total,,,analyst4,Gross Income value on an annual basis,,
-Analyst,guidance_estimate_value,,,analyst4,Estimated value for basic annual financial guidance,,
-Analyst,guidance_previous_estimate_value_qtr,,,analyst4,The previous estimation of finanicial item,,
-Analyst,guidance_reporting_currency,,,analyst4,Pricing Currency where the security trades - Annual,,
-Analyst,guidance_value_currency_code_qtr,,,analyst4,Home currency of instrument,,
-Analyst,highest_sales_estimate,,,analyst4,Sales - The highest estimation for the annual period,,
-Analyst,investing_cashflow_reported_value,,,analyst4,Cash Flow from Investing - Value,,
-Analyst,lowest_sales_estimate,,,analyst4,Sales - The lowest estimation for the annual period,,
-Analyst,max_adj_net_income_quarterly_estimate,,,analyst4,The highest broker estimate for adjusted net profit in the current quarter.,,
-Analyst,max_adjusted_eps_guidance,,,analyst4,The maximum guidance value for adjusted earnings per share.,,
-Analyst,max_adjusted_eps_guidance_2,,,analyst4,The maximum guidance value for adjusted earnings per share on an annual basis.,,
-Analyst,max_adjusted_funds_from_operations_adj_guidance,,,analyst4,Adjusted funds from operation - Maximum guidance value,,
-Analyst,max_adjusted_funds_from_operations_guidance,,,analyst4,Max guidance value for Funds from operation,,
-Analyst,max_adjusted_funds_from_operations_guidance_2,,,analyst4,Adjusted funds from operation - maximum guidance value for the annual period,,
-Analyst,max_adjusted_net_income_guidance,,,analyst4,The maximum guidance value for Adjusted net income.,,
-Analyst,max_adjusted_net_profit_guidance,,,analyst4,The maximum guidance value for adjusted net profit on an annual basis.,,
-Analyst,max_book_value_per_share_guidance,,,analyst4,Book value per share - Maximum value among forecasts,,
-Analyst,max_book_value_per_share_guidance_2,,,analyst4,Book value per share - Maximum guidance value for the annual period,,
-Analyst,max_capital_expenditure_guidance,,,analyst4,The maximum guidance value for Capital Expenditures on an annual basis.,,
-Analyst,max_custom_eps_guidance,,,analyst4,Custom Earnings per share - The highest guidance value,,
-Analyst,max_customized_eps_guidance,,,analyst4,The maximum guidance value for custom earnings per share on an annual basis.,,
-Analyst,max_ebit_guidance,,,analyst4,The maximum guidance value for Earnings Before Interest and Taxes (EBIT) on an annual basis.,,
-Analyst,max_ebitda_guidance,,,analyst4,"The maximum guidance value for Earnings Before Interest, Taxes, Depreciation, and Amortization (EBITDA) on an annual basis.",,
-Analyst,max_financing_cashflow_guidance,,,analyst4,Cash Flow From Financing - Maximum guidance value,,
-Analyst,max_free_cash_flow_guidance,,,analyst4,The maximum guidance value for Free Cash Flow on an annual basis.,,
-Analyst,max_free_cashflow_guidance,,,analyst4,The maximum guidance value for Free Cash Flow.,,
-Analyst,max_free_cashflow_per_share_guidance,,,analyst4,The maximum guidance value for free cash flow per share.,,
-Analyst,max_gross_income_guidance,,,analyst4,The maximum guidance value for Gross Income.,,
-Analyst,max_gross_income_guidance_2,,,analyst4,The maximum guidance for Gross Income on an annual basis.,,
-Analyst,max_investing_cashflow_guidance,,,analyst4,The maximum guidance value for Cash Flow from Investing.,,
-Analyst,max_investing_cashflow_guidance_2,,,analyst4,The maximum guidance value for Cash Flow from Investing activities on an annual basis.,,
-Analyst,max_net_debt_guidance,,,analyst4,The maximum guidance value for Net Debt on an annual basis.,,
-Analyst,max_net_income_guidance,,,analyst4,The maximum guidance value for net profit.,,
-Analyst,max_net_profit_guidance,,,analyst4,The maximum guidance value for net profit on an annual basis.,,
-Analyst,max_net_profit_quarterly_estimate,,,analyst4,The highest broker estimate for net profit in the current quarter.,,
-Analyst,max_operating_cashflow_guidance,,,analyst4,The maximum guidance value for Cash Flow from Operations.,,
-Analyst,max_operating_cashflow_guidance_2,,,analyst4,The maximum guidance value for Cash Flow from Operations on an annual basis.,,
-Analyst,max_pretax_profit_guidance,,,analyst4,The maximum guidance value for Pretax income on an annual basis.,,
-Analyst,max_reported_eps_guidance,,,analyst4,Reported Earnings Per Share - Maximum guidance value,,
-Analyst,max_reported_eps_guidance_2,,,analyst4,Reported Earnings Per Share - Maximum guidance value for the annual period,,
-Analyst,max_reported_pretax_income_guidance,,,analyst4,Reported Pretax income- maximum guidance value,,
-Analyst,max_reported_pretax_income_guidance_2,,,analyst4,Reported Pretax income- maximum guidance value,,
-Analyst,max_reported_pretax_profit_quarterly_estimate,,,analyst4,The highest broker estimate for reported pretax profit in the current quarter.,,
-Analyst,max_research_development_expense_guidance,,,analyst4,The maximum guidance value for Research and Development Expense.,,
-Analyst,max_selling_general_admin_guidance,,,analyst4,"The maximum guidance value for Selling, General & Administrative Expense",,
-Analyst,max_share_buyback_guidance,,,analyst4,Maximum guidance value for Shares Basic - Annual,,
-Analyst,max_shareholders_equity_guidance,,,analyst4,The maximum guidance value for Total Shareholders' Equity.,,
-Analyst,max_shares_outstanding_guidance,,,analyst4,The maximum guidance for Shares,,
-Analyst,max_stock_option_expense_guidance,,,analyst4,Stock option expense - Maximum guidance value for the annual period,,
-Analyst,max_tangible_book_value_per_share_guidance,,,analyst4,Tangible Book Value per Share - maximum guidance value,,
-Analyst,max_total_assets_guidance,,,analyst4,The maximum guidance value for Total Assets.,,
-Analyst,max_total_assets_guidance_2,,,analyst4,The maximum guidance value for Total Assets,,
-Analyst,max_total_assets_quarterly_estimate,,,analyst4,The highest broker estimate for total assets in the current quarter.,,
-Analyst,max_total_goodwill_guidance,,,analyst4,The maximum guidance value for Total Goodwill.,,
-Analyst,max_total_goodwill_guidance_2,,,analyst4,The maximum guidance value for Total Goodwill on an annual basis.,,
-Analyst,maximum_guidance_value,,,analyst4,Maximum guidance value for basic annual financials,,
-Analyst,median_free_cash_flow_quarterly_estimate,,,analyst4,The median broker estimate for free cash flow in the current quarter.,,
-Analyst,median_sales_estimate,,,analyst4,Sales - median of estimations,,
-Analyst,min_adj_net_income_quarterly_estimate,,,analyst4,The lowest broker estimate for adjusted net profit in the current quarter.,,
-Analyst,min_adjusted_funds_from_operations_adj_guidance,,,analyst4,Minimum guidance value for Adjusted funds from operation,,
-Analyst,min_adjusted_funds_from_operations_guidance,,,analyst4,Funds from operation - minimum guidance value,,
-Analyst,min_adjusted_funds_from_operations_guidance_2,,,analyst4,Adjusted funds from operation - minimum guidance for the annual period,,
-Analyst,min_adjusted_net_income_guidance,,,analyst4,Adjusted net income - minimum guidance value,,
-Analyst,min_basic_shares_guidance,,,analyst4,Shares Basic - Minimum guidance value,,
-Analyst,min_book_value_per_share_guidance,,,analyst4,Book value per share - minimum guidance value for the annual period,,
-Analyst,min_capex_guidance,,,analyst4,Minimum guidance value for Capital Expenditures,,
-Analyst,min_capital_expenditure_guidance,,,analyst4,Minimum guidance value for Capital Expenditures,,
-Analyst,min_custom_eps_guidance,,,analyst4,Custom Earnings per share - Minimum guidance value,,
-Analyst,min_customized_eps_guidance,,,analyst4,Customized Earnings per share - Minimum guidance value for the annual period,,
-Analyst,min_ebit_guidance,,,analyst4,Minimum guidance value for Earnings Before Interest and Taxes (EBIT),,
-Analyst,min_ebit_guidance_2,,,analyst4,Minimum guidance value for Earnings Before Interest and Taxes (EBIT) on an annual basis.,,
-Analyst,min_ebitda_guidance,,,analyst4,"Minimum guidance value for Earnings Before Interest, Taxes, Depreciation, and Amortization (EBITDA) - Annual",,
-Analyst,min_financing_cashflow_guidance,,,analyst4,Minimum guidance value for Cash Flow From Financing,,
-Analyst,min_financing_cashflow_guidance_2,,,analyst4,Minimum guidance value for Cash Flow From Financing on an annual basis,,
-Analyst,min_free_cash_flow_guidance,,,analyst4,The minimum guidance value for Free Cash Flow on an annual basis.,,
-Analyst,min_free_cash_flow_per_share_guidance,,,analyst4,Free cash flow per share - minimum guidance value for the annual period,,
-Analyst,min_free_cash_flow_per_share_quarterly_estimate,,,analyst4,The lowest broker estimate for free cash flow per share in the current quarter.,,
-Analyst,min_free_cashflow_guidance,,,analyst4,Minimum guidance value for Free Cash Flow,,
-Analyst,min_free_cashflow_per_share_guidance,,,analyst4,Free cash flow per share - minimum guidance value,,
-Analyst,min_funds_from_operations_guidance,,,analyst4,Funds from operation - minimum guidance value for annual period,,
-Analyst,min_gross_income_guidance,,,analyst4,The minimum guidance value for Gross Income.,,
-Analyst,min_gross_income_guidance_2,,,analyst4,The minimum guidance for Gross Income on an annual basis.,,
-Analyst,min_gross_income_quarterly_estimate,,,analyst4,The lowest broker estimate for gross income in the current quarter.,,
-Analyst,min_investing_cashflow_guidance,,,analyst4,Cash Flow From Investing - Minimum guidance value,,
-Analyst,min_investing_cashflow_guidance_2,,,analyst4,Cash Flow From Investing - Minimum guidance value for the annual period,,
-Analyst,min_net_debt_guidance,,,analyst4,The minimum guidance value for Net Debt on an annual basis.,,
-Analyst,min_net_income_guidance,,,analyst4,Net profit - minimum guidance value,,
-Analyst,min_net_profit_guidance,,,analyst4,Minimum guidance value for Net Profit on an annual basis,,
-Analyst,min_operating_cashflow_guidance,,,analyst4,Minimum guidance value for Cash Flow from Operations,,
-Analyst,min_pretax_profit_guidance,,,analyst4,Minimum guidance value for Pretax income,,
-Analyst,min_pretax_profit_guidance_2,,,analyst4,The minimum guidance value for Pretax income on an annual basis.,,
-Analyst,min_reported_eps_guidance,,,analyst4,Reported Earnings Per Share - Minimum guidance value for the annual period,,
-Analyst,min_reported_eps_quarterly_estimate,,,analyst4,The lowest broker estimate for reported earnings per share in the current quarter.,,
-Analyst,min_research_development_expense_guidance,,,analyst4,Minimum guidance value for Research & Development Expense,,
-Analyst,min_research_development_expense_guidance_2,,,analyst4,Minimum guidance value for Research & Development Expense on an annual basis,,
-Analyst,min_sg_and_a_expense_guidance,,,analyst4,"Selling, General & Administrative Expense - Minimum guidance value",,
-Analyst,min_share_buyback_guidance,,,analyst4,Shares Basic - Minimum guidance value for the annual period,,
-Analyst,min_share_count_guidance,,,analyst4,Minimum guidance for shares on an annual basis,,
-Analyst,min_shareholders_equity_guidance,,,analyst4,Minimum guidance value for Shareholders' Equity,,
-Analyst,min_shares_outstanding_guidance,,,analyst4,Minimum guidance value for Shares,,
-Analyst,min_stock_option_expense_guidance,,,analyst4,Stock option expense - minimum guidance value,,
-Analyst,min_stock_option_expense_guidance_2,,,analyst4,Minimum guidance value for stock option expense on an annual basis,,
-Analyst,min_tangible_book_value_per_share_guidance,,,analyst4,Tangible Book Value per Share - minimum guidance value,,
-Analyst,min_tangible_book_value_per_share_guidance_2,,,analyst4,Tangible Book Value per Share - Minimum guidance value,,
-Analyst,min_total_assets_guidance,,,analyst4,Minimum guidance value for Total Assets,,
-Analyst,min_total_assets_guidance_2,,,analyst4,Minimum guidance value for Total Assets on an annual basis,,
-Analyst,min_total_goodwill_guidance,,,analyst4,Total Goodwill - The lowest guidance value,,
-Analyst,minimum_guidance_value,,,analyst4,Minimum guidance value for basic annual financials,,
-Analyst,net_debt_actual_value,,,analyst4,Net debt- announced financial value,,
-Analyst,net_debt_amount,,,analyst4,Net debt - actual value for the annual period,,
-Analyst,net_debt_avg,,,analyst4,"Average net debt, calculated as total debt minus cash.",,
-Analyst,net_debt_max,,,analyst4,"Highest estimate of net debt, calculated as total debt minus cash.",,
-Analyst,net_debt_max_guidance_qtr,,,analyst4,Maximum guidance value for Net Debt,,
-Analyst,net_debt_median,,,analyst4,"Median value of net debt, calculated as total debt minus cash.",,
-Analyst,net_debt_min,,,analyst4,"Lowest estimate of net debt, calculated as total debt minus cash.",,
-Analyst,net_debt_min_guidance_qtr,,,analyst4,Minimum guidance value for Net Debt,,
-Analyst,net_debt_reported_value,,,analyst4,Net Debt value for the quarter,,
-Analyst,net_income_adjusted,,,analyst4,Adjusted net income- announced financial value for annual frequency,,
-Analyst,net_income_avg,,,analyst4,Average net profit after all expenses and taxes.,,
-Analyst,net_income_median,,,analyst4,Median value of net profit after all expenses and taxes.,,
-Analyst,net_income_min,,,analyst4,Lowest estimate of net profit after all expenses and taxes.,,
-Analyst,net_income_stddev,,,analyst4,Standard deviation of net profit estimates.,,
-Analyst,net_income_total_2,,,analyst4,Net profit- announced financial value for annual data,,
-Analyst,net_profit_adjusted_min_guidance,,,analyst4,The minimum guidance value for adjusted net profit on an annual basis.,,
-Analyst,net_profit_adjusted_value,,,analyst4,Adjusted net income- announced financial value,,
-Analyst,net_profit_reported_value,,,analyst4,Net profit- announced financial value,,
-Analyst,num_adj_net_income_est,,,analyst4,"Number of estimates for adjusted net profit, excluding non-recurring items.",,
-Analyst,num_book_value_per_share_est,,,analyst4,Number of estimates for book value per share.,,
-Analyst,num_capex_est,,,analyst4,Number of estimates for capital expenditures.,,
-Analyst,num_cashflow_financing_est,,,analyst4,Number of estimates for cash flows from financing activities.,,
-Analyst,num_cashflow_investing_est,,,analyst4,Number of estimates for cash flows from investing activities.,,
-Analyst,num_ebit_est,,,analyst4,Number of estimates for operating profit before interest and taxes.,,
-Analyst,num_ebitda_estimates_quarter,,,analyst4,The count of broker estimates for EBITDA in the current quarter.,,
-Analyst,num_eps_reported_est,,,analyst4,Number of estimates for reported earnings per share.,,
-Analyst,num_free_cashflow_est,,,analyst4,Number of estimates for free cash flow.,,
-Analyst,num_free_cashflow_per_share_est,,,analyst4,Number of estimates for free cash flow per share.,,
-Analyst,num_gross_income_est,,,analyst4,Number of estimates for gross income.,,
-Analyst,num_net_debt_est,,,analyst4,Number of estimates for net debt.,,
-Analyst,num_net_income_est,,,analyst4,Number of estimates for net profit after all expenses and taxes.,,
-Analyst,num_op_cash_flow_est,,,analyst4,Number of estimates for cash flow from operations.,,
-Analyst,num_pretax_income_est,,,analyst4,Number of estimates for profit before taxes.,,
-Analyst,num_pretax_income_reported_est,,,analyst4,"Number of estimates for reported profit before taxes, including exceptional items.",,
-Analyst,num_rnd_expense_est,,,analyst4,Number of estimates for research and development expenses.,,
-Analyst,num_sga_estimates_quarter,,,analyst4,"The count of broker estimates for selling, general, and administrative expenses in the current quarter.",,
-Analyst,num_shareholders_equity_est,,,analyst4,Number of estimates for owners’ equity after liabilities.,,
-Analyst,num_total_assets_est,,,analyst4,Number of estimates for total assets.,,
-Analyst,num_total_goodwill_estimates_quarter,,,analyst4,The count of broker estimates for total goodwill in the current quarter.,,
-Analyst,op_cash_flow_avg,,,analyst4,Average cash generated from core business operations.,,
-Analyst,op_cash_flow_max,,,analyst4,Highest estimate of cash generated from core business operations.,,
-Analyst,op_cash_flow_median,,,analyst4,Median value of cash generated from core business operations.,,
-Analyst,op_cash_flow_min,,,analyst4,Lowest estimate of cash generated from core business operations.,,
-Analyst,op_cash_flow_stddev,,,analyst4,Standard deviation of operating cash flow estimates.,,
-Analyst,operating_cashflow_reported_value,,,analyst4,Cash Flow from Operations - Value,,
-Analyst,operating_profit_before_depr_amort,,,analyst4,EBITDA value - Annual,,
-Analyst,operating_profit_before_depr_amort_max_guidance_qtr,,,analyst4,"Max guidance value for Earnings before interest, taxes, depreciation and amortization",,
-Analyst,operating_profit_before_depr_amort_min_guidance_qtr,,,analyst4,"Minimum guidance value for Earnings before interest, taxes, depreciation and amortization",,
-Analyst,operating_profit_before_interest_tax,,,analyst4,Earnings Before Interest and Taxes (EBIT) - Actual Value,,
-Analyst,operating_profit_max_guidance_qtr,,,analyst4,The maximum guidance value for Earnings Before Interest and Taxes.,,
-Analyst,pretax_income_actual_reported_value,,,analyst4,Reported Pretax income- announced financial value,,
-Analyst,pretax_income_max,,,analyst4,Highest estimate of profit before taxes.,,
-Analyst,pretax_income_max_guidance_qtr,,,analyst4,The maximum guidance value for Pretax income.,,
-Analyst,pretax_income_median,,,analyst4,Median value of profit before taxes.,,
-Analyst,pretax_income_min,,,analyst4,Lowest estimate of profit before taxes.,,
-Analyst,pretax_income_reported,,,analyst4,Reported Pretax income - actual value for the annual fiscal period,,
-Analyst,pretax_income_reported_avg,,,analyst4,"Average reported profit before taxes, including exceptional items.",,
-Analyst,pretax_income_reported_median,,,analyst4,"Median reported profit before taxes, including exceptional items.",,
-Analyst,pretax_income_reported_min,,,analyst4,"Lowest estimate of reported profit before taxes, including exceptional items.",,
-Analyst,pretax_income_reported_min_guidance,,,analyst4,Reported Pretax income - minimum guidance value,,
-Analyst,pretax_income_reported_min_guidance_qtr,,,analyst4,Reported Pretax income- minimum guidance value,,
-Analyst,pretax_income_reported_value,,,analyst4,Reported Pretax income - actual value for the quarter,,
-Analyst,pretax_income_standalone_value,,,analyst4,Pretax Profit - actual value for the quarter,,
-Analyst,pretax_income_stddev,,,analyst4,"Standard deviation of profit before taxes, showing estimate dispersion.",,
-Analyst,pretax_income_total,,,analyst4,Pretax Profit - Value for the annual period,,
-Analyst,previous_guidance_estimate,,,analyst4,The previous estimation of financial item - annual frequency,,
-Analyst,previous_guidance_value_annual,,,analyst4,The previous estimation of finanicial item,,
-Analyst,previous_quarterly_guidance_estimate,,,analyst4,The previous estimation of finanicial item,,
-Analyst,previous_recommendation_value,,,analyst4,The previous estimation of financial item for recommendation,,
-Analyst,reporting_currency_code_9,,,analyst4,Home currency of instrument,,
-Analyst,research_development_expense,,,analyst4,Research & Development Expense - Actual Value (Annual),,
-Analyst,research_development_expense_actual_value,,,analyst4,Research and Development Expense- announced financial value,,
-Analyst,research_development_expense_reported_value,,,analyst4,Research & Development (Income Statement) Value in Millions,,
-Analyst,research_development_max_guidance,,,analyst4,The maximum guidance value for Research and Development Expense on an annual basis.,,
-Analyst,rnd_expense_avg,,,analyst4,Average research and development expenses.,,
-Analyst,rnd_expense_max,,,analyst4,Highest estimate of research and development expenses.,,
-Analyst,rnd_expense_median,,,analyst4,Median value of research and development expenses.,,
-Analyst,rnd_expense_min,,,analyst4,Lowest estimate of research and development expenses.,,
-Analyst,sales_estimate_average,,,analyst4,Sales - mean of estimations with a delay of 1 quarter,,
-Analyst,sales_estimate_average_annual,,,analyst4,Sales - mean of estimations,,
-Analyst,sales_estimate_average_quarterly,,,analyst4,Sales - mean of estimations,,
-Analyst,sales_estimate_count,,,analyst4,Sales - number of estimations,,
-Analyst,sales_estimate_count_2,,,analyst4,Number of Sales estimates,,
-Analyst,sales_estimate_count_quarterly,,,analyst4,Sales - number of estimations,,
-Analyst,sales_estimate_dispersion,,,analyst4,Standard deviation of Sales estimations for the annual period.,,
-Analyst,sales_estimate_maximum,,,analyst4,Sales - The highest estimation,,
-Analyst,sales_estimate_maximum_quarterly,,,analyst4,Sales - The highest estimation,,
-Analyst,sales_estimate_median_quarterly,,,analyst4,Sales - median of estimations,,
-Analyst,sales_estimate_median_value,,,analyst4,Sales - Median value among forecasts,,
-Analyst,sales_estimate_minimum,,,analyst4,Sales - The lowest estimation,,
-Analyst,sales_estimate_minimum_quarterly,,,analyst4,Sales - The lowest estimation,,
-Analyst,sales_estimate_standard_deviation,,,analyst4,Sales - standard deviation of estimations,,
-Analyst,sales_estimate_stddev_quarterly,,,analyst4,Standard deviation of Sales estimations,,
-Analyst,sales_estimate_value,,,analyst4,Sales - Estimated value,,
-Analyst,sales_guidance_value,,,analyst4,Sales - Guidance value for the annual period,,
-Analyst,sales_guidance_value_quarterly,,,analyst4,Sales - guidance value,,
-Analyst,sales_max_guidance_quarterly,,,analyst4,The maximum guidance value for sales.,,
-Analyst,sales_max_guidance_value,,,analyst4,Maximum guidance value for annual sales,,
-Analyst,sales_min_guidance_quarterly,,,analyst4,Minimum guidance value for Sales,,
-Analyst,sales_min_guidance_value,,,analyst4,Minimum sales guidance for the annual period.,,
-Analyst,sales_previous_estimate_value,,,analyst4,The previous estimation of Sales,,
-Analyst,selling_general_admin_expense,,,analyst4,"Selling, General & Administrative Expense Value",,
-Analyst,selling_general_admin_expense_actual_value,,,analyst4,"Selling, General & Administrative Expense - actual value",,
-Analyst,selling_general_admin_expense_max_guidance_qtr,,,analyst4,"Selling, General & Admin Expenses - Maximum guidance value",,
-Analyst,selling_general_admin_expense_reported_value,,,analyst4,"Selling, General & Administrative Expense value",,
-Analyst,sg_and_a_expense_avg,,,analyst4,"Average selling, general, and administrative expenses.",,
-Analyst,sg_and_a_expense_max,,,analyst4,"Highest estimate of selling, general, and administrative expenses.",,
-Analyst,sg_and_a_expense_median,,,analyst4,"Median value of selling, general, and administrative expenses.",,
-Analyst,sg_and_a_expense_min,,,analyst4,"Lowest estimate of selling, general, and administrative expenses.",,
-Analyst,sg_and_admin_min_guidance_value,,,analyst4,"Minimum guidance value for Selling, General & Administrative Expense on an annual basis.",,
-Analyst,shareholders_equity_actual_value,,,analyst4,Shareholders' Equity - Total Value,,
-Analyst,shareholders_equity_avg,,,analyst4,Average owners’ equity after liabilities.,,
-Analyst,shareholders_equity_max,,,analyst4,Highest estimate of owners’ equity after liabilities.,,
-Analyst,shareholders_equity_max_guidance,,,analyst4,The maximum guidance value for Shareholder's Equity on an annual basis.,,
-Analyst,shareholders_equity_median,,,analyst4,Median value of owners’ equity after liabilities for the period.,,
-Analyst,shareholders_equity_min,,,analyst4,Lowest estimate of owners’ equity after liabilities for the period.,,
-Analyst,shareholders_equity_min_guidance,,,analyst4,Minimum guidance value for Share Equity,,
-Analyst,shareholders_equity_reported_value,,,analyst4,Shareholders' Equity - Total Value,,
-Analyst,shareholders_equity_stddev,,,analyst4,Standard deviation of owners’ equity estimates.,,
-Analyst,shareholders_equity_total_2,,,analyst4,Shareholder's Equity - Total Value,,
-Analyst,shares_outstanding_max_guidance,,,analyst4,Maximum guidance value for Shares,,
-Analyst,stddev_gross_income_quarterly_estimate,,,analyst4,The standard deviation of broker estimates for gross income in the current quarter.,,
-Analyst,stddev_rd_expense_quarterly_estimate,,,analyst4,The standard deviation of broker estimates for research and development expense in the current quarter.,,
-Analyst,stddev_reported_eps_quarterly_estimate,,,analyst4,The standard deviation of broker estimates for reported earnings per share in the current quarter.,,
-Analyst,stddev_sga_expense_quarterly_estimate,,,analyst4,"The standard deviation of broker estimates for selling, general, and administrative expenses in the current quarter.",,
-Analyst,stock_option_expense_max_guidance_qtr,,,analyst4,Stock option expense - maximum guidance value,,
-Analyst,tangible_book_value_per_share_max_guidance,,,analyst4,Tangible Book Value per Share - Maximum guidance value,,
-Analyst,total_assets_amount,,,analyst4,Total Assets - actual value,,
-Analyst,total_assets_median,,,analyst4,Median value of total assets owned by the company.,,
-Analyst,total_assets_min,,,analyst4,Lowest estimate of total assets owned by the company.,,
-Analyst,total_assets_reported_value,,,analyst4,Total Assets - actual value,,
-Analyst,total_assets_stddev,,,analyst4,Standard deviation of total assets estimates.,,
-Analyst,total_goodwill_actual_value,,,analyst4,Total Goodwill - announced financial value,,
-Analyst,total_goodwill_amount,,,analyst4,Total Goodwill - Value,,
-Analyst,total_goodwill_avg,,,analyst4,Average value of goodwill assets for the period.,,
-Analyst,total_goodwill_max,,,analyst4,Highest estimate of goodwill assets for the period.,,
-Analyst,total_goodwill_median,,,analyst4,Median value of goodwill assets for the period.,,
-Analyst,total_goodwill_min,,,analyst4,Lowest estimate of goodwill assets for the period.,,
-Analyst,total_goodwill_reported_value,,,analyst4,Total Goodwill - Actual Value in Millions,,
+Analyst,avg_capex_quarterly_estimate,❌ Abandoned,,analyst4,The arithmetic average of broker estimates for capital expenditures in the current quarter.,,no_signal
+Analyst,avg_ebitda_quarterly_estimate,❌ Abandoned,,analyst4,"The arithmetic average of quarterly broker estimates for earnings before interest, taxes, depreciation, and amortization.",,no_signal
+Analyst,avg_pretax_profit_quarterly_estimate,❌ Abandoned,,analyst4,The arithmetic average of broker estimates for pretax profit in the current quarter.,,no_signal
+Analyst,avg_total_assets_quarterly_estimate,❌ Abandoned,,analyst4,The arithmetic average of broker estimates for total assets in the current quarter.,,no_signal
+Analyst,basic_shares_max_guidance_qtr,❌ Abandoned,,analyst4,The maximum guidance value for Basic Shares.,,no_signal
+Analyst,book_value_per_share_2,🟡 Tested: Baseline Failed,0.150,analyst4,Book Value Per Share - Actual Value,,
+Analyst,book_value_per_share_avg,❌ Abandoned,,analyst4,Average book value per share.,,no_signal
+Analyst,book_value_per_share_max,❌ Abandoned,,analyst4,Highest estimate of book value per share.,,no_signal
+Analyst,book_value_per_share_median,❌ Abandoned,,analyst4,Median value of book value per share.,,no_signal
+Analyst,book_value_per_share_min,❌ Abandoned,,analyst4,Lowest estimate of book value per share.,,no_signal
+Analyst,book_value_per_share_min_guidance_qtr,🟡 Tested: Baseline Failed,0.160,analyst4,Book value per share - minimum guidance value,,
+Analyst,book_value_per_share_reported_value,❌ Abandoned,,analyst4,Book Value Per Share - Actual Value,,no_signal
+Analyst,capital_expenditure_amount,❌ Abandoned,,analyst4,Capital Expenditures - Total value,,no_signal
+Analyst,capital_expenditure_guidance_value,❌ Abandoned,,analyst4,Capital Expenditures - Total value for the annual guidance,,no_signal
+Analyst,capital_expenditure_max,❌ Abandoned,,analyst4,Highest estimate of capital expenditures for the period.,,no_signal
+Analyst,capital_expenditure_max_guidance_qtr,❌ Abandoned,,analyst4,The maximum guidance value for Capital Expenditures,,no_signal
+Analyst,capital_expenditure_median,❌ Abandoned,,analyst4,Median value of capital expenditures for the period.,,no_signal
+Analyst,capital_expenditure_min,❌ Abandoned,,analyst4,Minimum projected spending on fixed assets for the period.,,no_signal
+Analyst,capital_expenditure_reported_value,❌ Abandoned,,analyst4,Capital Expenditures - Total (Cash Flow/Investing) (Millions),,no_signal
+Analyst,capital_expenditure_stddev,❌ Abandoned,,analyst4,Standard deviation of capital expenditure estimates.,,no_signal
+Analyst,cash_flow_financing_max_guidance,❌ Abandoned,,analyst4,Cash Flow From Financing - Maximum guidance value provided annually,,no_signal
+Analyst,cash_flow_from_financing,❌ Abandoned,,analyst4,Cash Flow From Financing - Value,,no_signal
+Analyst,cash_flow_from_investing,❌ Abandoned,,analyst4,Cash Flow from Investing - Value,,no_signal
+Analyst,cash_flow_from_operations,❌ Abandoned,,analyst4,Cash Flow from Operations - Value for the annual period,,no_signal
+Analyst,cash_flow_operations_min_guidance,❌ Abandoned,,analyst4,Minimum guidance value for Cash Flow from Operations on an annual basis.,,no_signal
+Analyst,cashflow_financing_avg,❌ Abandoned,,analyst4,Average cash flows from financing activities.,,no_signal
+Analyst,cashflow_financing_max,❌ Abandoned,,analyst4,Highest estimate of cash flows from financing activities.,,no_signal
+Analyst,cashflow_financing_median,❌ Abandoned,,analyst4,Median value of cash flows from financing activities.,,no_signal
+Analyst,cashflow_financing_min,❌ Abandoned,,analyst4,Lowest estimate of cash flows from financing activities.,,no_signal
+Analyst,cashflow_investing_avg,❌ Abandoned,,analyst4,Average cash flows from investing activities.,,no_signal
+Analyst,cashflow_investing_max,❌ Abandoned,,analyst4,Highest estimate of cash flows from investing activities.,,no_signal
+Analyst,cashflow_investing_median,❌ Abandoned,,analyst4,Median value of cash flows from investing activities.,,no_signal
+Analyst,cashflow_investing_min,❌ Abandoned,,analyst4,Lowest estimate of cash flows from investing activities.,,no_signal
+Analyst,cashflow_per_share_average,❌ Abandoned,,analyst4,Cash Flow Per Share - average of estimations with a delay of 1 quarter,,no_signal
+Analyst,cashflow_per_share_estimate_count,🟡 Tested: Baseline Failed,0.260,analyst4,Cash Flow Per Share - number of estimations - delay1,,
+Analyst,cashflow_per_share_max_guidance,❌ Abandoned,,analyst4,The maximum guidance value for Cash Flow Per Share on an annual basis.,,no_signal
+Analyst,cashflow_per_share_max_guidance_quarterly,❌ Abandoned,,analyst4,The maximum guidance value for Cash Flow Per Share.,,no_signal
+Analyst,cashflow_per_share_maximum,❌ Abandoned,,analyst4,"Cash Flow - The highest estimation, per share, with a delay of 1 quarter",,no_signal
+Analyst,cashflow_per_share_median_value,❌ Abandoned,,analyst4,Cash Flow Per Share - Median value among forecasts,,no_signal
+Analyst,cashflow_per_share_min_guidance,❌ Abandoned,,analyst4,Cash Flow Per Share - Minimum guidance value for the annual period,,no_signal
+Analyst,cashflow_per_share_min_guidance_quarterly,❌ Abandoned,,analyst4,Minimum guidance value for Cash Flow Per Share,,no_signal
+Analyst,cashflow_per_share_minimum,❌ Abandoned,,analyst4,"Cash Flow Per Share - The lowest estimation, delay 1 quarter",,no_signal
+Analyst,dividend_estimate_average,❌ Abandoned,,analyst4,Dividend per share - average of estimations - delay 1,,no_signal
+Analyst,dividend_estimate_count,❌ Abandoned,,analyst4,Dividend per share - number of estimations with a delay of 1 quarter,,no_signal
+Analyst,dividend_estimate_maximum,❌ Abandoned,,analyst4,Dividend per share - The highest value among forecasts with a delay of 1 quarter,,no_signal
+Analyst,dividend_estimate_median_value,❌ Abandoned,,analyst4,Dividend per share - median of estimations,,no_signal
+Analyst,dividend_estimate_minimum,❌ Abandoned,,analyst4,Dividend per share - The lowest value among forecasts - D1,,no_signal
+Analyst,dividend_estimate_standard_deviation,❌ Abandoned,,analyst4,Dividend per share - standard deviation of estimations,,no_signal
+Analyst,dividend_estimate_stddev_quarterly,❌ Abandoned,,analyst4,Dividend per share - standard deviation of estimations,,no_signal
+Analyst,dividend_estimate_value,❌ Abandoned,,analyst4,Dividend per share - estimated value,,no_signal
+Analyst,dividend_max_guidance_quarterly,❌ Abandoned,,analyst4,Maximum guidance value for Dividend per share,,no_signal
+Analyst,dividend_max_guidance_value,❌ Abandoned,,analyst4,The maximum guidance value for Dividend per share on an annual basis.,,no_signal
+Analyst,dividend_min_guidance_quarterly,❌ Abandoned,,analyst4,Minimum guidance value for Dividend per share,,no_signal
+Analyst,dividend_min_guidance_value,❌ Abandoned,,analyst4,Minimum guidance value for Dividend per share on an annual basis,,no_signal
+Analyst,dividend_previous_estimate_value,❌ Abandoned,,analyst4,The previous estimation of dividend,,no_signal
+Analyst,earnings_per_share_average,❌ Abandoned,,analyst4,Earnings per share - mean of estimations,,no_signal
+Analyst,earnings_per_share_estimate_count,❌ Abandoned,,analyst4,Earnings per share - number of estimations,,no_signal
+Analyst,earnings_per_share_guidance_value,❌ Abandoned,,analyst4,Earnings Per Share - guidance value for annual frequency,,no_signal
+Analyst,earnings_per_share_max_guidance,❌ Abandoned,,analyst4,The maximum guidance value for Earnings Per Share on an annual basis.,,no_signal
+Analyst,earnings_per_share_maximum,❌ Abandoned,,analyst4,Earnings per share - The highest estimation,,no_signal
+Analyst,earnings_per_share_median_value,❌ Abandoned,,analyst4,Earnings per share - median of estimations,,no_signal
+Analyst,earnings_per_share_min_guidance,❌ Abandoned,,analyst4,Minimum guidance value for Earnings Per Share on an annual basis.,,no_signal
+Analyst,earnings_per_share_minimum,❌ Abandoned,,analyst4,Earnings per share - The lowest estimation,,no_signal
+Analyst,earnings_per_share_nongaap_value,❌ Abandoned,,analyst4,Non-GAAP Earnings Per Share - Actual Value,,no_signal
+Analyst,earnings_per_share_reported,❌ Abandoned,,analyst4,Reported Earnings Per Share - Actual Value,,no_signal
+Analyst,earnings_per_share_reported_value,❌ Abandoned,,analyst4,Reported Earnings Per Share - Actual Value,,no_signal
+Analyst,earnings_per_share_standard_deviation,❌ Abandoned,,analyst4,Earnings per share - standard deviation of estimations,,no_signal
+Analyst,ebit_avg,❌ Abandoned,,analyst4,Average operating profit before interest and taxes.,,no_signal
+Analyst,ebit_max,❌ Abandoned,,analyst4,Highest estimate of operating profit before interest and taxes.,,no_signal
+Analyst,ebit_median,❌ Abandoned,,analyst4,Median value of operating profit before interest and taxes.,,no_signal
+Analyst,ebit_min,❌ Abandoned,,analyst4,Lowest estimate of operating profit before interest and taxes.,,no_signal
+Analyst,ebit_reported_value,❌ Abandoned,,analyst4,Earnings Before Interest & Taxes - actual value for the quarter,,no_signal
+Analyst,ebit_stddev,❌ Abandoned,,analyst4,Standard deviation of operating profit before interest and taxes.,,no_signal
+Analyst,ebitda_max,❌ Abandoned,,analyst4,Highest estimate of EBITDA for the period.,,no_signal
+Analyst,ebitda_median,❌ Abandoned,,analyst4,Median value of EBITDA for the period.,,no_signal
+Analyst,ebitda_min,❌ Abandoned,,analyst4,Lowest estimate of EBITDA for the period.,,no_signal
+Analyst,ebitda_reported_value,❌ Abandoned,,analyst4,EBITDA value for the quarter.,,no_signal
+Analyst,ebitda_stddev,❌ Abandoned,,analyst4,"Standard deviation of EBITDA estimates, indicating variability.",,no_signal
+Analyst,eps_adjusted_min_guidance_qtr,❌ Abandoned,,analyst4,Minimum guidance value for adjusted Earnings per share excluding extraordinary items and stock option expenses.,,no_signal
+Analyst,eps_adjusted_min_guidance_value,❌ Abandoned,,analyst4,The minimum guidance value for adjusted earnings per share excluding extraordinary items and stock option expenses on an annual basis.,,no_signal
+Analyst,eps_estimate_value,❌ Abandoned,,analyst4,Earnings per share - estimation value,,no_signal
+Analyst,eps_guidance_value_quarterly,❌ Abandoned,,analyst4,Earnings Per Share - Basic value,,no_signal
+Analyst,eps_max_guidance_quarterly,❌ Abandoned,,analyst4,The maximum guidance value for Earnings Per Share.,,no_signal
+Analyst,eps_min_guidance_quarterly,❌ Abandoned,,analyst4,Minimum guidance value for Earnings per Share,,no_signal
+Analyst,eps_previous_estimate_value,❌ Abandoned,,analyst4,The previous estimation of Earnings Per Share,,no_signal
+Analyst,eps_reported_avg,❌ Abandoned,,analyst4,Average reported earnings per share.,,no_signal
+Analyst,eps_reported_max,❌ Abandoned,,analyst4,Highest estimate of reported earnings per share.,,no_signal
+Analyst,eps_reported_median,❌ Abandoned,,analyst4,Median value of reported earnings per share.,,no_signal
+Analyst,eps_reported_min_guidance_qtr,❌ Abandoned,,analyst4,Reported Earnings Per Share - Minimum guidance value,,no_signal
+Analyst,est_bookvalue_ps,❌ Abandoned,,analyst4,Book value per share - average of estimations,,no_signal
+Analyst,est_capex,❌ Abandoned,,analyst4,Capital Expenditures - mean of estimations,,no_signal
+Analyst,est_cashflow_fin,❌ Abandoned,,analyst4,Cash Flow From Financing - mean of estimations,,no_signal
+Analyst,est_cashflow_invst,❌ Abandoned,,analyst4,Cash Flow From Investing - mean of estimations,,no_signal
+Analyst,est_cashflow_op,❌ Abandoned,,analyst4,Cash Flow From Operations - mean of estimations,,no_signal
+Analyst,est_cashflow_ps,❌ Abandoned,,analyst4,Cash Flow Per Share - average of estimations,,no_signal
+Analyst,est_dividend_ps,❌ Abandoned,,analyst4,Dividend per share - average of estimations,,no_signal
+Analyst,est_ebit,❌ Abandoned,,analyst4,Earnings before interest and taxes - mean of estimations,,no_signal
+Analyst,est_ebitda,❌ Abandoned,,analyst4,"Earnings before interest, taxes, depreciation, and amortization - mean of estimations",,no_signal
+Analyst,est_eps,❌ Abandoned,,analyst4,Earnings per share - mean of estimations,,no_signal
+Analyst,est_epsa,❌ Abandoned,,analyst4,Earnings per share adjusted by excluding extraordinary items and stock option expenses - average of estimations,,no_signal
+Analyst,est_epsr,❌ Abandoned,,analyst4,GAAP Earnings per share - mean of estimations,,no_signal
+Analyst,est_fcf,❌ Abandoned,,analyst4,Free Cash Flow - Mean of Estimations,,no_signal
+Analyst,est_fcf_ps,❌ Abandoned,,analyst4,Free Cash Flow Per Share - Mean of Estimations,,no_signal
+Analyst,est_ffo,❌ Abandoned,,analyst4,"Funds From Operation - Summary on Estimations, Mean",,no_signal
+Analyst,est_grossincome,❌ Abandoned,,analyst4,Gross income - Mean of estimations,,no_signal
+Analyst,est_netdebt,❌ Abandoned,,analyst4,Net debt - mean of estimations,,no_signal
+Analyst,est_netprofit,❌ Abandoned,,analyst4,Net profit - mean of estimations,,no_signal
+Analyst,est_netprofit_adj,❌ Abandoned,,analyst4,Adjusted net income - Mean of estimations,,no_signal
+Analyst,est_ptp,❌ Abandoned,,analyst4,Pretax income - mean of estimations,,no_signal
+Analyst,est_ptpr,❌ Abandoned,,analyst4,Reported pretax income - mean of estimations,,no_signal
+Analyst,est_rd_expense,❌ Abandoned,,analyst4,Research and Development Expense - mean of estimations,,no_signal
+Analyst,est_sales,❌ Abandoned,,analyst4,Sales - mean of estimations,,no_signal
+Analyst,est_sga,❌ Abandoned,,analyst4,SGA - mean of estimations,,no_signal
+Analyst,est_shequity,❌ Abandoned,,analyst4,Mean of SH Equity segment - mean of estimations,,no_signal
+Analyst,est_tbv_ps,❌ Abandoned,,analyst4,Tangible Book Value per Share - mean of estimations,,no_signal
+Analyst,est_tot_assets,❌ Abandoned,,analyst4,Total Assets - mean of estimations,,no_signal
+Analyst,est_tot_goodwill,❌ Abandoned,,analyst4,Total Goodwill - mean of estimations,,no_signal
+Analyst,estimate_value_currency_code,❌ Abandoned,,analyst4,Home currency of instrument,,no_signal
+Analyst,estimate_value_currency_code_detail_qtr,❌ Abandoned,,analyst4,Home currency of instrument,,no_signal
+Analyst,estimate_value_currency_code_qtr,❌ Abandoned,,analyst4,Home currency of instrument,,no_signal
+Analyst,financing_cashflow_reported_value,❌ Abandoned,,analyst4,Cash Flow From Financing - Value,,no_signal
+Analyst,free_cash_flow_per_share,❌ Abandoned,,analyst4,Free cash flow per share - actual financial value for the annual period,,no_signal
+Analyst,free_cash_flow_per_share_actual_value,❌ Abandoned,,analyst4,Free cash flow per share- announced financial value,,no_signal
+Analyst,free_cash_flow_per_share_max_guidance,❌ Abandoned,,analyst4,The maximum guidance value for Free Cash Flow Per Share on an annual basis.,,no_signal
+Analyst,free_cash_flow_per_share_reported_value,❌ Abandoned,,analyst4,Free cash flow per share- announced financial value,,no_signal
+Analyst,free_cash_flow_reported_value,❌ Abandoned,,analyst4,Free cash flow value for the quarter.,,no_signal
+Analyst,free_cash_flow_total,❌ Abandoned,,analyst4,Free Cash Flow value - Annual,,no_signal
+Analyst,free_cashflow_avg,❌ Abandoned,,analyst4,Average free cash flow for the period.,,no_signal
+Analyst,free_cashflow_max,❌ Abandoned,,analyst4,Highest estimate of free cash flow for the period.,,no_signal
+Analyst,free_cashflow_min,❌ Abandoned,,analyst4,Lowest estimate of free cash flow for the period.,,no_signal
+Analyst,free_cashflow_per_share_avg,❌ Abandoned,,analyst4,Average free cash flow per share.,,no_signal
+Analyst,free_cashflow_per_share_max,❌ Abandoned,,analyst4,Highest estimate of free cash flow per share.,,no_signal
+Analyst,free_cashflow_per_share_median,❌ Abandoned,,analyst4,Median value of free cash flow per share.,,no_signal
+Analyst,funds_from_operations_max_guidance,❌ Abandoned,,analyst4,The maximum guidance value for Funds from operation - annual,,no_signal
+Analyst,goodwill_min_guidance_qtr,❌ Abandoned,,analyst4,Minimum guidance value for Total Goodwill,,no_signal
+Analyst,gross_income_avg,❌ Abandoned,,analyst4,Average gross income for the period.,,no_signal
+Analyst,gross_income_max,❌ Abandoned,,analyst4,Highest estimate of gross income for the period.,,no_signal
+Analyst,gross_income_median,❌ Abandoned,,analyst4,Median value of gross income for the period.,,no_signal
+Analyst,gross_income_reported_value,❌ Abandoned,,analyst4,Gross Income value for the quarter,,no_signal
+Analyst,gross_income_total,❌ Abandoned,,analyst4,Gross Income value on an annual basis,,no_signal
+Analyst,guidance_estimate_value,❌ Abandoned,,analyst4,Estimated value for basic annual financial guidance,,no_signal
+Analyst,guidance_previous_estimate_value_qtr,❌ Abandoned,,analyst4,The previous estimation of finanicial item,,no_signal
+Analyst,guidance_reporting_currency,❌ Abandoned,,analyst4,Pricing Currency where the security trades - Annual,,no_signal
+Analyst,guidance_value_currency_code_qtr,❌ Abandoned,,analyst4,Home currency of instrument,,no_signal
+Analyst,highest_sales_estimate,❌ Abandoned,,analyst4,Sales - The highest estimation for the annual period,,no_signal
+Analyst,investing_cashflow_reported_value,❌ Abandoned,,analyst4,Cash Flow from Investing - Value,,no_signal
+Analyst,lowest_sales_estimate,❌ Abandoned,,analyst4,Sales - The lowest estimation for the annual period,,no_signal
+Analyst,max_adj_net_income_quarterly_estimate,❌ Abandoned,,analyst4,The highest broker estimate for adjusted net profit in the current quarter.,,no_signal
+Analyst,max_adjusted_eps_guidance,❌ Abandoned,,analyst4,The maximum guidance value for adjusted earnings per share.,,no_signal
+Analyst,max_adjusted_eps_guidance_2,❌ Abandoned,,analyst4,The maximum guidance value for adjusted earnings per share on an annual basis.,,no_signal
+Analyst,max_adjusted_funds_from_operations_adj_guidance,❌ Abandoned,,analyst4,Adjusted funds from operation - Maximum guidance value,,no_signal
+Analyst,max_adjusted_funds_from_operations_guidance,❌ Abandoned,,analyst4,Max guidance value for Funds from operation,,no_signal
+Analyst,max_adjusted_funds_from_operations_guidance_2,❌ Abandoned,,analyst4,Adjusted funds from operation - maximum guidance value for the annual period,,no_signal
+Analyst,max_adjusted_net_income_guidance,❌ Abandoned,,analyst4,The maximum guidance value for Adjusted net income.,,no_signal
+Analyst,max_adjusted_net_profit_guidance,❌ Abandoned,,analyst4,The maximum guidance value for adjusted net profit on an annual basis.,,no_signal
+Analyst,max_book_value_per_share_guidance,❌ Abandoned,,analyst4,Book value per share - Maximum value among forecasts,,no_signal
+Analyst,max_book_value_per_share_guidance_2,❌ Abandoned,,analyst4,Book value per share - Maximum guidance value for the annual period,,no_signal
+Analyst,max_capital_expenditure_guidance,❌ Abandoned,,analyst4,The maximum guidance value for Capital Expenditures on an annual basis.,,no_signal
+Analyst,max_custom_eps_guidance,❌ Abandoned,,analyst4,Custom Earnings per share - The highest guidance value,,no_signal
+Analyst,max_customized_eps_guidance,❌ Abandoned,,analyst4,The maximum guidance value for custom earnings per share on an annual basis.,,no_signal
+Analyst,max_ebit_guidance,❌ Abandoned,,analyst4,The maximum guidance value for Earnings Before Interest and Taxes (EBIT) on an annual basis.,,no_signal
+Analyst,max_ebitda_guidance,❌ Abandoned,,analyst4,"The maximum guidance value for Earnings Before Interest, Taxes, Depreciation, and Amortization (EBITDA) on an annual basis.",,no_signal
+Analyst,max_financing_cashflow_guidance,❌ Abandoned,,analyst4,Cash Flow From Financing - Maximum guidance value,,no_signal
+Analyst,max_free_cash_flow_guidance,❌ Abandoned,,analyst4,The maximum guidance value for Free Cash Flow on an annual basis.,,no_signal
+Analyst,max_free_cashflow_guidance,❌ Abandoned,,analyst4,The maximum guidance value for Free Cash Flow.,,no_signal
+Analyst,max_free_cashflow_per_share_guidance,❌ Abandoned,,analyst4,The maximum guidance value for free cash flow per share.,,no_signal
+Analyst,max_gross_income_guidance,❌ Abandoned,,analyst4,The maximum guidance value for Gross Income.,,no_signal
+Analyst,max_gross_income_guidance_2,❌ Abandoned,,analyst4,The maximum guidance for Gross Income on an annual basis.,,no_signal
+Analyst,max_investing_cashflow_guidance,❌ Abandoned,,analyst4,The maximum guidance value for Cash Flow from Investing.,,no_signal
+Analyst,max_investing_cashflow_guidance_2,❌ Abandoned,,analyst4,The maximum guidance value for Cash Flow from Investing activities on an annual basis.,,no_signal
+Analyst,max_net_debt_guidance,❌ Abandoned,,analyst4,The maximum guidance value for Net Debt on an annual basis.,,no_signal
+Analyst,max_net_income_guidance,❌ Abandoned,,analyst4,The maximum guidance value for net profit.,,no_signal
+Analyst,max_net_profit_guidance,❌ Abandoned,,analyst4,The maximum guidance value for net profit on an annual basis.,,no_signal
+Analyst,max_net_profit_quarterly_estimate,❌ Abandoned,,analyst4,The highest broker estimate for net profit in the current quarter.,,no_signal
+Analyst,max_operating_cashflow_guidance,❌ Abandoned,,analyst4,The maximum guidance value for Cash Flow from Operations.,,no_signal
+Analyst,max_operating_cashflow_guidance_2,❌ Abandoned,,analyst4,The maximum guidance value for Cash Flow from Operations on an annual basis.,,no_signal
+Analyst,max_pretax_profit_guidance,❌ Abandoned,,analyst4,The maximum guidance value for Pretax income on an annual basis.,,no_signal
+Analyst,max_reported_eps_guidance,❌ Abandoned,,analyst4,Reported Earnings Per Share - Maximum guidance value,,no_signal
+Analyst,max_reported_eps_guidance_2,❌ Abandoned,,analyst4,Reported Earnings Per Share - Maximum guidance value for the annual period,,no_signal
+Analyst,max_reported_pretax_income_guidance,❌ Abandoned,,analyst4,Reported Pretax income- maximum guidance value,,no_signal
+Analyst,max_reported_pretax_income_guidance_2,❌ Abandoned,,analyst4,Reported Pretax income- maximum guidance value,,no_signal
+Analyst,max_reported_pretax_profit_quarterly_estimate,❌ Abandoned,,analyst4,The highest broker estimate for reported pretax profit in the current quarter.,,no_signal
+Analyst,max_research_development_expense_guidance,❌ Abandoned,,analyst4,The maximum guidance value for Research and Development Expense.,,no_signal
+Analyst,max_selling_general_admin_guidance,❌ Abandoned,,analyst4,"The maximum guidance value for Selling, General & Administrative Expense",,no_signal
+Analyst,max_share_buyback_guidance,❌ Abandoned,,analyst4,Maximum guidance value for Shares Basic - Annual,,no_signal
+Analyst,max_shareholders_equity_guidance,❌ Abandoned,,analyst4,The maximum guidance value for Total Shareholders' Equity.,,no_signal
+Analyst,max_shares_outstanding_guidance,❌ Abandoned,,analyst4,The maximum guidance for Shares,,no_signal
+Analyst,max_stock_option_expense_guidance,❌ Abandoned,,analyst4,Stock option expense - Maximum guidance value for the annual period,,no_signal
+Analyst,max_tangible_book_value_per_share_guidance,❌ Abandoned,,analyst4,Tangible Book Value per Share - maximum guidance value,,no_signal
+Analyst,max_total_assets_guidance,❌ Abandoned,,analyst4,The maximum guidance value for Total Assets.,,no_signal
+Analyst,max_total_assets_guidance_2,❌ Abandoned,,analyst4,The maximum guidance value for Total Assets,,no_signal
+Analyst,max_total_assets_quarterly_estimate,❌ Abandoned,,analyst4,The highest broker estimate for total assets in the current quarter.,,no_signal
+Analyst,max_total_goodwill_guidance,❌ Abandoned,,analyst4,The maximum guidance value for Total Goodwill.,,no_signal
+Analyst,max_total_goodwill_guidance_2,❌ Abandoned,,analyst4,The maximum guidance value for Total Goodwill on an annual basis.,,no_signal
+Analyst,maximum_guidance_value,❌ Abandoned,,analyst4,Maximum guidance value for basic annual financials,,no_signal
+Analyst,median_free_cash_flow_quarterly_estimate,❌ Abandoned,,analyst4,The median broker estimate for free cash flow in the current quarter.,,no_signal
+Analyst,median_sales_estimate,❌ Abandoned,,analyst4,Sales - median of estimations,,no_signal
+Analyst,min_adj_net_income_quarterly_estimate,❌ Abandoned,,analyst4,The lowest broker estimate for adjusted net profit in the current quarter.,,no_signal
+Analyst,min_adjusted_funds_from_operations_adj_guidance,❌ Abandoned,,analyst4,Minimum guidance value for Adjusted funds from operation,,no_signal
+Analyst,min_adjusted_funds_from_operations_guidance,❌ Abandoned,,analyst4,Funds from operation - minimum guidance value,,no_signal
+Analyst,min_adjusted_funds_from_operations_guidance_2,❌ Abandoned,,analyst4,Adjusted funds from operation - minimum guidance for the annual period,,no_signal
+Analyst,min_adjusted_net_income_guidance,❌ Abandoned,,analyst4,Adjusted net income - minimum guidance value,,no_signal
+Analyst,min_basic_shares_guidance,❌ Abandoned,,analyst4,Shares Basic - Minimum guidance value,,no_signal
+Analyst,min_book_value_per_share_guidance,❌ Abandoned,,analyst4,Book value per share - minimum guidance value for the annual period,,no_signal
+Analyst,min_capex_guidance,❌ Abandoned,,analyst4,Minimum guidance value for Capital Expenditures,,no_signal
+Analyst,min_capital_expenditure_guidance,❌ Abandoned,,analyst4,Minimum guidance value for Capital Expenditures,,no_signal
+Analyst,min_custom_eps_guidance,❌ Abandoned,,analyst4,Custom Earnings per share - Minimum guidance value,,no_signal
+Analyst,min_customized_eps_guidance,❌ Abandoned,,analyst4,Customized Earnings per share - Minimum guidance value for the annual period,,no_signal
+Analyst,min_ebit_guidance,❌ Abandoned,,analyst4,Minimum guidance value for Earnings Before Interest and Taxes (EBIT),,no_signal
+Analyst,min_ebit_guidance_2,❌ Abandoned,,analyst4,Minimum guidance value for Earnings Before Interest and Taxes (EBIT) on an annual basis.,,no_signal
+Analyst,min_ebitda_guidance,❌ Abandoned,,analyst4,"Minimum guidance value for Earnings Before Interest, Taxes, Depreciation, and Amortization (EBITDA) - Annual",,no_signal
+Analyst,min_financing_cashflow_guidance,❌ Abandoned,,analyst4,Minimum guidance value for Cash Flow From Financing,,no_signal
+Analyst,min_financing_cashflow_guidance_2,❌ Abandoned,,analyst4,Minimum guidance value for Cash Flow From Financing on an annual basis,,no_signal
+Analyst,min_free_cash_flow_guidance,❌ Abandoned,,analyst4,The minimum guidance value for Free Cash Flow on an annual basis.,,no_signal
+Analyst,min_free_cash_flow_per_share_guidance,❌ Abandoned,,analyst4,Free cash flow per share - minimum guidance value for the annual period,,no_signal
+Analyst,min_free_cash_flow_per_share_quarterly_estimate,❌ Abandoned,,analyst4,The lowest broker estimate for free cash flow per share in the current quarter.,,no_signal
+Analyst,min_free_cashflow_guidance,❌ Abandoned,,analyst4,Minimum guidance value for Free Cash Flow,,no_signal
+Analyst,min_free_cashflow_per_share_guidance,❌ Abandoned,,analyst4,Free cash flow per share - minimum guidance value,,no_signal
+Analyst,min_funds_from_operations_guidance,❌ Abandoned,,analyst4,Funds from operation - minimum guidance value for annual period,,no_signal
+Analyst,min_gross_income_guidance,❌ Abandoned,,analyst4,The minimum guidance value for Gross Income.,,no_signal
+Analyst,min_gross_income_guidance_2,❌ Abandoned,,analyst4,The minimum guidance for Gross Income on an annual basis.,,no_signal
+Analyst,min_gross_income_quarterly_estimate,❌ Abandoned,,analyst4,The lowest broker estimate for gross income in the current quarter.,,no_signal
+Analyst,min_investing_cashflow_guidance,❌ Abandoned,,analyst4,Cash Flow From Investing - Minimum guidance value,,no_signal
+Analyst,min_investing_cashflow_guidance_2,❌ Abandoned,,analyst4,Cash Flow From Investing - Minimum guidance value for the annual period,,no_signal
+Analyst,min_net_debt_guidance,❌ Abandoned,,analyst4,The minimum guidance value for Net Debt on an annual basis.,,no_signal
+Analyst,min_net_income_guidance,❌ Abandoned,,analyst4,Net profit - minimum guidance value,,no_signal
+Analyst,min_net_profit_guidance,❌ Abandoned,,analyst4,Minimum guidance value for Net Profit on an annual basis,,no_signal
+Analyst,min_operating_cashflow_guidance,❌ Abandoned,,analyst4,Minimum guidance value for Cash Flow from Operations,,no_signal
+Analyst,min_pretax_profit_guidance,❌ Abandoned,,analyst4,Minimum guidance value for Pretax income,,no_signal
+Analyst,min_pretax_profit_guidance_2,❌ Abandoned,,analyst4,The minimum guidance value for Pretax income on an annual basis.,,no_signal
+Analyst,min_reported_eps_guidance,❌ Abandoned,,analyst4,Reported Earnings Per Share - Minimum guidance value for the annual period,,no_signal
+Analyst,min_reported_eps_quarterly_estimate,❌ Abandoned,,analyst4,The lowest broker estimate for reported earnings per share in the current quarter.,,no_signal
+Analyst,min_research_development_expense_guidance,❌ Abandoned,,analyst4,Minimum guidance value for Research & Development Expense,,no_signal
+Analyst,min_research_development_expense_guidance_2,❌ Abandoned,,analyst4,Minimum guidance value for Research & Development Expense on an annual basis,,no_signal
+Analyst,min_sg_and_a_expense_guidance,❌ Abandoned,,analyst4,"Selling, General & Administrative Expense - Minimum guidance value",,no_signal
+Analyst,min_share_buyback_guidance,❌ Abandoned,,analyst4,Shares Basic - Minimum guidance value for the annual period,,no_signal
+Analyst,min_share_count_guidance,❌ Abandoned,,analyst4,Minimum guidance for shares on an annual basis,,no_signal
+Analyst,min_shareholders_equity_guidance,❌ Abandoned,,analyst4,Minimum guidance value for Shareholders' Equity,,no_signal
+Analyst,min_shares_outstanding_guidance,❌ Abandoned,,analyst4,Minimum guidance value for Shares,,no_signal
+Analyst,min_stock_option_expense_guidance,❌ Abandoned,,analyst4,Stock option expense - minimum guidance value,,no_signal
+Analyst,min_stock_option_expense_guidance_2,❌ Abandoned,,analyst4,Minimum guidance value for stock option expense on an annual basis,,no_signal
+Analyst,min_tangible_book_value_per_share_guidance,❌ Abandoned,,analyst4,Tangible Book Value per Share - minimum guidance value,,no_signal
+Analyst,min_tangible_book_value_per_share_guidance_2,❌ Abandoned,,analyst4,Tangible Book Value per Share - Minimum guidance value,,no_signal
+Analyst,min_total_assets_guidance,❌ Abandoned,,analyst4,Minimum guidance value for Total Assets,,no_signal
+Analyst,min_total_assets_guidance_2,❌ Abandoned,,analyst4,Minimum guidance value for Total Assets on an annual basis,,no_signal
+Analyst,min_total_goodwill_guidance,❌ Abandoned,,analyst4,Total Goodwill - The lowest guidance value,,no_signal
+Analyst,minimum_guidance_value,❌ Abandoned,,analyst4,Minimum guidance value for basic annual financials,,no_signal
+Analyst,net_debt_actual_value,❌ Abandoned,,analyst4,Net debt- announced financial value,,no_signal
+Analyst,net_debt_amount,❌ Abandoned,,analyst4,Net debt - actual value for the annual period,,no_signal
+Analyst,net_debt_avg,❌ Abandoned,,analyst4,"Average net debt, calculated as total debt minus cash.",,no_signal
+Analyst,net_debt_max,❌ Abandoned,,analyst4,"Highest estimate of net debt, calculated as total debt minus cash.",,no_signal
+Analyst,net_debt_max_guidance_qtr,❌ Abandoned,,analyst4,Maximum guidance value for Net Debt,,no_signal
+Analyst,net_debt_median,❌ Abandoned,,analyst4,"Median value of net debt, calculated as total debt minus cash.",,no_signal
+Analyst,net_debt_min,❌ Abandoned,,analyst4,"Lowest estimate of net debt, calculated as total debt minus cash.",,no_signal
+Analyst,net_debt_min_guidance_qtr,❌ Abandoned,,analyst4,Minimum guidance value for Net Debt,,no_signal
+Analyst,net_debt_reported_value,❌ Abandoned,,analyst4,Net Debt value for the quarter,,no_signal
+Analyst,net_income_adjusted,❌ Abandoned,,analyst4,Adjusted net income- announced financial value for annual frequency,,no_signal
+Analyst,net_income_avg,❌ Abandoned,,analyst4,Average net profit after all expenses and taxes.,,no_signal
+Analyst,net_income_median,❌ Abandoned,,analyst4,Median value of net profit after all expenses and taxes.,,no_signal
+Analyst,net_income_min,❌ Abandoned,,analyst4,Lowest estimate of net profit after all expenses and taxes.,,no_signal
+Analyst,net_income_stddev,❌ Abandoned,,analyst4,Standard deviation of net profit estimates.,,no_signal
+Analyst,net_income_total_2,❌ Abandoned,,analyst4,Net profit- announced financial value for annual data,,no_signal
+Analyst,net_profit_adjusted_min_guidance,❌ Abandoned,,analyst4,The minimum guidance value for adjusted net profit on an annual basis.,,no_signal
+Analyst,net_profit_adjusted_value,❌ Abandoned,,analyst4,Adjusted net income- announced financial value,,no_signal
+Analyst,net_profit_reported_value,❌ Abandoned,,analyst4,Net profit- announced financial value,,no_signal
+Analyst,num_adj_net_income_est,❌ Abandoned,,analyst4,"Number of estimates for adjusted net profit, excluding non-recurring items.",,no_signal
+Analyst,num_book_value_per_share_est,❌ Abandoned,,analyst4,Number of estimates for book value per share.,,no_signal
+Analyst,num_capex_est,❌ Abandoned,,analyst4,Number of estimates for capital expenditures.,,no_signal
+Analyst,num_cashflow_financing_est,❌ Abandoned,,analyst4,Number of estimates for cash flows from financing activities.,,no_signal
+Analyst,num_cashflow_investing_est,❌ Abandoned,,analyst4,Number of estimates for cash flows from investing activities.,,no_signal
+Analyst,num_ebit_est,❌ Abandoned,,analyst4,Number of estimates for operating profit before interest and taxes.,,no_signal
+Analyst,num_ebitda_estimates_quarter,❌ Abandoned,,analyst4,The count of broker estimates for EBITDA in the current quarter.,,no_signal
+Analyst,num_eps_reported_est,❌ Abandoned,,analyst4,Number of estimates for reported earnings per share.,,no_signal
+Analyst,num_free_cashflow_est,❌ Abandoned,,analyst4,Number of estimates for free cash flow.,,no_signal
+Analyst,num_free_cashflow_per_share_est,❌ Abandoned,,analyst4,Number of estimates for free cash flow per share.,,no_signal
+Analyst,num_gross_income_est,❌ Abandoned,,analyst4,Number of estimates for gross income.,,no_signal
+Analyst,num_net_debt_est,❌ Abandoned,,analyst4,Number of estimates for net debt.,,no_signal
+Analyst,num_net_income_est,❌ Abandoned,,analyst4,Number of estimates for net profit after all expenses and taxes.,,no_signal
+Analyst,num_op_cash_flow_est,❌ Abandoned,,analyst4,Number of estimates for cash flow from operations.,,no_signal
+Analyst,num_pretax_income_est,❌ Abandoned,,analyst4,Number of estimates for profit before taxes.,,no_signal
+Analyst,num_pretax_income_reported_est,❌ Abandoned,,analyst4,"Number of estimates for reported profit before taxes, including exceptional items.",,no_signal
+Analyst,num_rnd_expense_est,❌ Abandoned,,analyst4,Number of estimates for research and development expenses.,,no_signal
+Analyst,num_sga_estimates_quarter,❌ Abandoned,,analyst4,"The count of broker estimates for selling, general, and administrative expenses in the current quarter.",,no_signal
+Analyst,num_shareholders_equity_est,❌ Abandoned,,analyst4,Number of estimates for owners’ equity after liabilities.,,no_signal
+Analyst,num_total_assets_est,❌ Abandoned,,analyst4,Number of estimates for total assets.,,no_signal
+Analyst,num_total_goodwill_estimates_quarter,❌ Abandoned,,analyst4,The count of broker estimates for total goodwill in the current quarter.,,no_signal
+Analyst,op_cash_flow_avg,❌ Abandoned,,analyst4,Average cash generated from core business operations.,,no_signal
+Analyst,op_cash_flow_max,❌ Abandoned,,analyst4,Highest estimate of cash generated from core business operations.,,no_signal
+Analyst,op_cash_flow_median,❌ Abandoned,,analyst4,Median value of cash generated from core business operations.,,no_signal
+Analyst,op_cash_flow_min,❌ Abandoned,,analyst4,Lowest estimate of cash generated from core business operations.,,no_signal
+Analyst,op_cash_flow_stddev,❌ Abandoned,,analyst4,Standard deviation of operating cash flow estimates.,,no_signal
+Analyst,operating_cashflow_reported_value,❌ Abandoned,,analyst4,Cash Flow from Operations - Value,,no_signal
+Analyst,operating_profit_before_depr_amort,❌ Abandoned,,analyst4,EBITDA value - Annual,,no_signal
+Analyst,operating_profit_before_depr_amort_max_guidance_qtr,❌ Abandoned,,analyst4,"Max guidance value for Earnings before interest, taxes, depreciation and amortization",,no_signal
+Analyst,operating_profit_before_depr_amort_min_guidance_qtr,❌ Abandoned,,analyst4,"Minimum guidance value for Earnings before interest, taxes, depreciation and amortization",,no_signal
+Analyst,operating_profit_before_interest_tax,❌ Abandoned,,analyst4,Earnings Before Interest and Taxes (EBIT) - Actual Value,,no_signal
+Analyst,operating_profit_max_guidance_qtr,❌ Abandoned,,analyst4,The maximum guidance value for Earnings Before Interest and Taxes.,,no_signal
+Analyst,pretax_income_actual_reported_value,❌ Abandoned,,analyst4,Reported Pretax income- announced financial value,,no_signal
+Analyst,pretax_income_max,❌ Abandoned,,analyst4,Highest estimate of profit before taxes.,,no_signal
+Analyst,pretax_income_max_guidance_qtr,❌ Abandoned,,analyst4,The maximum guidance value for Pretax income.,,no_signal
+Analyst,pretax_income_median,❌ Abandoned,,analyst4,Median value of profit before taxes.,,no_signal
+Analyst,pretax_income_min,❌ Abandoned,,analyst4,Lowest estimate of profit before taxes.,,no_signal
+Analyst,pretax_income_reported,❌ Abandoned,,analyst4,Reported Pretax income - actual value for the annual fiscal period,,no_signal
+Analyst,pretax_income_reported_avg,❌ Abandoned,,analyst4,"Average reported profit before taxes, including exceptional items.",,no_signal
+Analyst,pretax_income_reported_median,❌ Abandoned,,analyst4,"Median reported profit before taxes, including exceptional items.",,no_signal
+Analyst,pretax_income_reported_min,❌ Abandoned,,analyst4,"Lowest estimate of reported profit before taxes, including exceptional items.",,no_signal
+Analyst,pretax_income_reported_min_guidance,❌ Abandoned,,analyst4,Reported Pretax income - minimum guidance value,,no_signal
+Analyst,pretax_income_reported_min_guidance_qtr,❌ Abandoned,,analyst4,Reported Pretax income- minimum guidance value,,no_signal
+Analyst,pretax_income_reported_value,❌ Abandoned,,analyst4,Reported Pretax income - actual value for the quarter,,no_signal
+Analyst,pretax_income_standalone_value,❌ Abandoned,,analyst4,Pretax Profit - actual value for the quarter,,no_signal
+Analyst,pretax_income_stddev,❌ Abandoned,,analyst4,"Standard deviation of profit before taxes, showing estimate dispersion.",,no_signal
+Analyst,pretax_income_total,❌ Abandoned,,analyst4,Pretax Profit - Value for the annual period,,no_signal
+Analyst,previous_guidance_estimate,❌ Abandoned,,analyst4,The previous estimation of financial item - annual frequency,,no_signal
+Analyst,previous_guidance_value_annual,❌ Abandoned,,analyst4,The previous estimation of finanicial item,,no_signal
+Analyst,previous_quarterly_guidance_estimate,❌ Abandoned,,analyst4,The previous estimation of finanicial item,,no_signal
+Analyst,previous_recommendation_value,❌ Abandoned,,analyst4,The previous estimation of financial item for recommendation,,no_signal
+Analyst,reporting_currency_code_9,❌ Abandoned,,analyst4,Home currency of instrument,,no_signal
+Analyst,research_development_expense,❌ Abandoned,,analyst4,Research & Development Expense - Actual Value (Annual),,no_signal
+Analyst,research_development_expense_actual_value,❌ Abandoned,,analyst4,Research and Development Expense- announced financial value,,no_signal
+Analyst,research_development_expense_reported_value,❌ Abandoned,,analyst4,Research & Development (Income Statement) Value in Millions,,no_signal
+Analyst,research_development_max_guidance,❌ Abandoned,,analyst4,The maximum guidance value for Research and Development Expense on an annual basis.,,no_signal
+Analyst,rnd_expense_avg,❌ Abandoned,,analyst4,Average research and development expenses.,,no_signal
+Analyst,rnd_expense_max,❌ Abandoned,,analyst4,Highest estimate of research and development expenses.,,no_signal
+Analyst,rnd_expense_median,❌ Abandoned,,analyst4,Median value of research and development expenses.,,no_signal
+Analyst,rnd_expense_min,❌ Abandoned,,analyst4,Lowest estimate of research and development expenses.,,no_signal
+Analyst,sales_estimate_average,❌ Abandoned,,analyst4,Sales - mean of estimations with a delay of 1 quarter,,no_signal
+Analyst,sales_estimate_average_annual,❌ Abandoned,,analyst4,Sales - mean of estimations,,no_signal
+Analyst,sales_estimate_average_quarterly,❌ Abandoned,,analyst4,Sales - mean of estimations,,no_signal
+Analyst,sales_estimate_count,❌ Abandoned,,analyst4,Sales - number of estimations,,no_signal
+Analyst,sales_estimate_count_2,❌ Abandoned,,analyst4,Number of Sales estimates,,no_signal
+Analyst,sales_estimate_count_quarterly,❌ Abandoned,,analyst4,Sales - number of estimations,,no_signal
+Analyst,sales_estimate_dispersion,❌ Abandoned,,analyst4,Standard deviation of Sales estimations for the annual period.,,no_signal
+Analyst,sales_estimate_maximum,❌ Abandoned,,analyst4,Sales - The highest estimation,,no_signal
+Analyst,sales_estimate_maximum_quarterly,❌ Abandoned,,analyst4,Sales - The highest estimation,,no_signal
+Analyst,sales_estimate_median_quarterly,❌ Abandoned,,analyst4,Sales - median of estimations,,no_signal
+Analyst,sales_estimate_median_value,❌ Abandoned,,analyst4,Sales - Median value among forecasts,,no_signal
+Analyst,sales_estimate_minimum,❌ Abandoned,,analyst4,Sales - The lowest estimation,,no_signal
+Analyst,sales_estimate_minimum_quarterly,❌ Abandoned,,analyst4,Sales - The lowest estimation,,no_signal
+Analyst,sales_estimate_standard_deviation,❌ Abandoned,,analyst4,Sales - standard deviation of estimations,,no_signal
+Analyst,sales_estimate_stddev_quarterly,❌ Abandoned,,analyst4,Standard deviation of Sales estimations,,no_signal
+Analyst,sales_estimate_value,❌ Abandoned,,analyst4,Sales - Estimated value,,no_signal
+Analyst,sales_guidance_value,❌ Abandoned,,analyst4,Sales - Guidance value for the annual period,,no_signal
+Analyst,sales_guidance_value_quarterly,❌ Abandoned,,analyst4,Sales - guidance value,,no_signal
+Analyst,sales_max_guidance_quarterly,❌ Abandoned,,analyst4,The maximum guidance value for sales.,,no_signal
+Analyst,sales_max_guidance_value,❌ Abandoned,,analyst4,Maximum guidance value for annual sales,,no_signal
+Analyst,sales_min_guidance_quarterly,❌ Abandoned,,analyst4,Minimum guidance value for Sales,,no_signal
+Analyst,sales_min_guidance_value,❌ Abandoned,,analyst4,Minimum sales guidance for the annual period.,,no_signal
+Analyst,sales_previous_estimate_value,❌ Abandoned,,analyst4,The previous estimation of Sales,,no_signal
+Analyst,selling_general_admin_expense,❌ Abandoned,,analyst4,"Selling, General & Administrative Expense Value",,no_signal
+Analyst,selling_general_admin_expense_actual_value,❌ Abandoned,,analyst4,"Selling, General & Administrative Expense - actual value",,no_signal
+Analyst,selling_general_admin_expense_max_guidance_qtr,❌ Abandoned,,analyst4,"Selling, General & Admin Expenses - Maximum guidance value",,no_signal
+Analyst,selling_general_admin_expense_reported_value,❌ Abandoned,,analyst4,"Selling, General & Administrative Expense value",,no_signal
+Analyst,sg_and_a_expense_avg,❌ Abandoned,,analyst4,"Average selling, general, and administrative expenses.",,no_signal
+Analyst,sg_and_a_expense_max,❌ Abandoned,,analyst4,"Highest estimate of selling, general, and administrative expenses.",,no_signal
+Analyst,sg_and_a_expense_median,❌ Abandoned,,analyst4,"Median value of selling, general, and administrative expenses.",,no_signal
+Analyst,sg_and_a_expense_min,❌ Abandoned,,analyst4,"Lowest estimate of selling, general, and administrative expenses.",,no_signal
+Analyst,sg_and_admin_min_guidance_value,❌ Abandoned,,analyst4,"Minimum guidance value for Selling, General & Administrative Expense on an annual basis.",,no_signal
+Analyst,shareholders_equity_actual_value,❌ Abandoned,,analyst4,Shareholders' Equity - Total Value,,no_signal
+Analyst,shareholders_equity_avg,❌ Abandoned,,analyst4,Average owners’ equity after liabilities.,,no_signal
+Analyst,shareholders_equity_max,❌ Abandoned,,analyst4,Highest estimate of owners’ equity after liabilities.,,no_signal
+Analyst,shareholders_equity_max_guidance,❌ Abandoned,,analyst4,The maximum guidance value for Shareholder's Equity on an annual basis.,,no_signal
+Analyst,shareholders_equity_median,❌ Abandoned,,analyst4,Median value of owners’ equity after liabilities for the period.,,no_signal
+Analyst,shareholders_equity_min,❌ Abandoned,,analyst4,Lowest estimate of owners’ equity after liabilities for the period.,,no_signal
+Analyst,shareholders_equity_min_guidance,❌ Abandoned,,analyst4,Minimum guidance value for Share Equity,,no_signal
+Analyst,shareholders_equity_reported_value,❌ Abandoned,,analyst4,Shareholders' Equity - Total Value,,no_signal
+Analyst,shareholders_equity_stddev,❌ Abandoned,,analyst4,Standard deviation of owners’ equity estimates.,,no_signal
+Analyst,shareholders_equity_total_2,❌ Abandoned,,analyst4,Shareholder's Equity - Total Value,,no_signal
+Analyst,shares_outstanding_max_guidance,❌ Abandoned,,analyst4,Maximum guidance value for Shares,,no_signal
+Analyst,stddev_gross_income_quarterly_estimate,❌ Abandoned,,analyst4,The standard deviation of broker estimates for gross income in the current quarter.,,no_signal
+Analyst,stddev_rd_expense_quarterly_estimate,❌ Abandoned,,analyst4,The standard deviation of broker estimates for research and development expense in the current quarter.,,no_signal
+Analyst,stddev_reported_eps_quarterly_estimate,❌ Abandoned,,analyst4,The standard deviation of broker estimates for reported earnings per share in the current quarter.,,no_signal
+Analyst,stddev_sga_expense_quarterly_estimate,❌ Abandoned,,analyst4,"The standard deviation of broker estimates for selling, general, and administrative expenses in the current quarter.",,no_signal
+Analyst,stock_option_expense_max_guidance_qtr,❌ Abandoned,,analyst4,Stock option expense - maximum guidance value,,no_signal
+Analyst,tangible_book_value_per_share_max_guidance,❌ Abandoned,,analyst4,Tangible Book Value per Share - Maximum guidance value,,no_signal
+Analyst,total_assets_amount,❌ Abandoned,,analyst4,Total Assets - actual value,,no_signal
+Analyst,total_assets_median,❌ Abandoned,,analyst4,Median value of total assets owned by the company.,,no_signal
+Analyst,total_assets_min,❌ Abandoned,,analyst4,Lowest estimate of total assets owned by the company.,,no_signal
+Analyst,total_assets_reported_value,❌ Abandoned,,analyst4,Total Assets - actual value,,no_signal
+Analyst,total_assets_stddev,❌ Abandoned,,analyst4,Standard deviation of total assets estimates.,,no_signal
+Analyst,total_goodwill_actual_value,❌ Abandoned,,analyst4,Total Goodwill - announced financial value,,no_signal
+Analyst,total_goodwill_amount,❌ Abandoned,,analyst4,Total Goodwill - Value,,no_signal
+Analyst,total_goodwill_avg,❌ Abandoned,,analyst4,Average value of goodwill assets for the period.,,no_signal
+Analyst,total_goodwill_max,❌ Abandoned,,analyst4,Highest estimate of goodwill assets for the period.,,no_signal
+Analyst,total_goodwill_median,❌ Abandoned,,analyst4,Median value of goodwill assets for the period.,,no_signal
+Analyst,total_goodwill_min,❌ Abandoned,,analyst4,Lowest estimate of goodwill assets for the period.,,no_signal
+Analyst,total_goodwill_reported_value,❌ Abandoned,,analyst4,Total Goodwill - Actual Value in Millions,,no_signal
 Fundamental,accrued_liabilities_total,🟡 Tested: Baseline Failed,0.540,model77,Total amount of accrued liabilities.,,
 Fundamental,accrued_liabilities_total_2,🟡 Tested: Baseline Failed,0.930,model77,Total amount of liabilities that have been incurred but not yet paid.,,
 Fundamental,accumulated_amortization_customer_intangibles,🟡 Tested: Baseline Failed,0.470,model77,Total accumulated amortization for customer-related finite-lived intangible assets.,,
@@ -1363,238 +1363,238 @@ Fundamental,assets,🟡 Tested: Baseline Failed,0.140,,Assets - Total,,
 Fundamental,assets_curr,🟡 Tested: Baseline Failed,,,Current Assets - Total,,
 Fundamental,assets_fair_value_lvl1,🟡 Tested: Baseline Failed,0.490,fundamental2,Recurring fair value of level 1 assets.,,
 Fundamental,assets_fair_value_lvl2,🟡 Tested: Baseline Failed,0.190,fundamental2,Recurring fair value of level 2 assets.,,
-Fundamental,authorized_exercisable_options_count_price_range,,,fundamental2,Number of exercisable options authorized under stock option plans within a specified exercise price range.,,
-Fundamental,authorized_option_shares_outstanding_count,,,fundamental2,Number of outstanding shares authorized under stock option plans within exercise price range.,,
-Fundamental,authorized_share_award_total,,,fundamental2,Total number of shares authorized for share-based payment awards.,,
-Fundamental,authorized_stock_buyback_amount,,,fundamental2,Maximum amount authorized for stock repurchase programs.,,
-Fundamental,authorized_stock_repurchase_amount,,,fundamental2,Total amount authorized for stock repurchase programs.,,
-Fundamental,available_debt_securities_value,,,fundamental2,Value of debt securities classified as available for sale.,,
-Fundamental,available_for_sale_securities_amortized_cost,,,fundamental2,Amortized cost of securities available for sale.,,
-Fundamental,available_for_sale_securities_oci_adjustment,,,fundamental2,Net-of-tax adjustment for available-for-sale securities in other comprehensive income.,,
-Fundamental,available_for_sale_securities_oci_net,,,fundamental2,"Net adjustment to accumulated other comprehensive income for available-for-sale securities, net of tax.",,
-Fundamental,available_for_sale_securities_value,,,fundamental2,Value of securities classified as available for sale.,,
-Fundamental,available_for_sale_securities_value_2,,,fundamental2,Value of securities available for sale.,,
-Fundamental,avg_grant_date_fair_value_forfeited_equity_awards,,,fundamental2,"Weighted average grant date fair value of forfeited equity awards, excluding options.",,
-Fundamental,benefit_obligation_interest_cost_change,,,fundamental2,Change in interest cost for defined benefit plan obligations.,,
-Fundamental,benefit_obligation_service_cost_change,,,fundamental2,Change in service cost for defined benefit plan obligations.,,
-Fundamental,benefits_paid_defined_benefit_plan,,,fundamental2,Benefits paid out under a defined benefit plan.,,
-Fundamental,benefits_paid_defined_benefit_plan_assets,,,fundamental2,Assets paid out as benefits under a defined benefit plan.,,
+Fundamental,authorized_exercisable_options_count_price_range,🟡 Tested: Baseline Failed,0.970,fundamental2,Number of exercisable options authorized under stock option plans within a specified exercise price range.,,
+Fundamental,authorized_option_shares_outstanding_count,🟡 Tested: Baseline Failed,1.020,fundamental2,Number of outstanding shares authorized under stock option plans within exercise price range.,,
+Fundamental,authorized_share_award_total,🟡 Tested: Baseline Failed,0.850,fundamental2,Total number of shares authorized for share-based payment awards.,,
+Fundamental,authorized_stock_buyback_amount,🟡 Tested: Baseline Failed,0.990,fundamental2,Maximum amount authorized for stock repurchase programs.,,
+Fundamental,authorized_stock_repurchase_amount,🟡 Tested: Baseline Failed,1.300,fundamental2,Total amount authorized for stock repurchase programs.,,
+Fundamental,available_debt_securities_value,🟡 Tested: Baseline Failed,0.940,fundamental2,Value of debt securities classified as available for sale.,,
+Fundamental,available_for_sale_securities_amortized_cost,🟡 Tested: Baseline Failed,0.980,fundamental2,Amortized cost of securities available for sale.,,
+Fundamental,available_for_sale_securities_oci_adjustment,🟡 Tested: Baseline Failed,1.120,fundamental2,Net-of-tax adjustment for available-for-sale securities in other comprehensive income.,,
+Fundamental,available_for_sale_securities_oci_net,🟡 Tested: Baseline Failed,1.330,fundamental2,"Net adjustment to accumulated other comprehensive income for available-for-sale securities, net of tax.",,
+Fundamental,available_for_sale_securities_value,🟡 Tested: Baseline Failed,1.130,fundamental2,Value of securities classified as available for sale.,,
+Fundamental,available_for_sale_securities_value_2,🟡 Tested: Baseline Failed,1.070,fundamental2,Value of securities available for sale.,,
+Fundamental,avg_grant_date_fair_value_forfeited_equity_awards,🟡 Tested: Baseline Failed,0.820,fundamental2,"Weighted average grant date fair value of forfeited equity awards, excluding options.",,
+Fundamental,benefit_obligation_interest_cost_change,🟠 Test Soon,1.550,fundamental2,Change in interest cost for defined benefit plan obligations.,,
+Fundamental,benefit_obligation_service_cost_change,🟠 Test Soon,1.430,fundamental2,Change in service cost for defined benefit plan obligations.,,
+Fundamental,benefits_paid_defined_benefit_plan,🟠 Test Soon,1.730,fundamental2,Benefits paid out under a defined benefit plan.,,
+Fundamental,benefits_paid_defined_benefit_plan_assets,🟠 Test Soon,1.700,fundamental2,Assets paid out as benefits under a defined benefit plan.,,
 Fundamental,bookvalue_ps,❌ Abandoned,,,Book Value Per Share,Distorted by share buybacks. Weaker than sales_ps.,
-Fundamental,business_acquisition_payments_net,,,fundamental2,"Payments made to acquire businesses, net of cash acquired.",,
-Fundamental,business_acquisition_total_payment,,,fundamental2,Total gross payments made to acquire businesses.,,
-Fundamental,capex,,,,Capital Expenditures,,
-Fundamental,capital_lease_liability_balance,,,fundamental2,Outstanding obligations under capital lease agreements.,,
-Fundamental,capital_lease_minimum_payment_due_thereafter,,,fundamental2,Future minimum payments due under capital leases after the specified period.,,
-Fundamental,capital_lease_minimum_payment_year_three,,,fundamental2,Minimum payments due under capital leases in the third year.,,
-Fundamental,capital_lease_obligation_total,,,fundamental2,Total obligations under capital lease agreements.,,
-Fundamental,capital_leases_min_payments_4y,,,fundamental2,Minimum payments due under capital leases in four years.,,
-Fundamental,capitalized_software_gross_value,,,fundamental2,Gross value of computer software capitalized as assets.,,
-Fundamental,cash,,,,Cash,,
-Fundamental,cash_st,,,,Cash and Short-Term Investments,,
-Fundamental,cashflow,,,,Cashflow (Annual),,
-Fundamental,cashflow_dividends,,,,Cash Dividends (Cash Flow),,
-Fundamental,cashflow_fin,,,,Financing Activities - Net Cash Flow,,
-Fundamental,cashflow_invst,,,,Investing Activities - Net Cash Flow,,
-Fundamental,cashflow_op,,,,Operating Activities - Net Cash Flow,,
-Fundamental,cogs,,,,Cost of Goods Sold,,
-Fundamental,common_shares_outstanding_total,,,fundamental2,Total number of common shares currently outstanding.,,
-Fundamental,common_stock_buyback_payments,,,fundamental2,Payments made for repurchasing common stock.,,
-Fundamental,common_stock_issuance_proceeds,,,fundamental2,Cash received from issuing common stock.,,
-Fundamental,common_stock_issuance_proceeds_2,,,fundamental2,Proceeds received from issuance of common stock.,,
-Fundamental,common_stock_repurchase_payment,,,fundamental2,Payments made for repurchasing common stock during the period.,,
-Fundamental,common_stock_shares_outstanding_count,,,fundamental2,Total number of common stock shares outstanding.,,
-Fundamental,comprehensive_income_net_tax,,,fundamental2,Comprehensive income after accounting for tax effects.,,
-Fundamental,comprehensive_income_net_tax_value,,,fundamental2,Comprehensive income value after tax adjustments.,,
-Fundamental,contingent_consideration_liability_acquisition,,,fundamental2,Liability for contingent consideration in a business combination.,,
-Fundamental,contingent_merger_liability,,,fundamental2,Liability for contingent consideration in a business combination.,,
-Fundamental,credit_facility_max_borrowing,,,fundamental2,Maximum amount that can be borrowed under a line of credit facility.,,
-Fundamental,credit_facility_max_borrowing_2,,,fundamental2,Maximum borrowing capacity under a line of credit facility.,,
-Fundamental,credit_facility_outstanding_amount,,,fundamental2,Outstanding amount under a line of credit facility.,,
-Fundamental,credit_facility_outstanding_balance,,,fundamental2,Outstanding balance under a line of credit facility.,,
-Fundamental,credit_facility_remaining_borrowing_capacity,,,fundamental2,Remaining borrowing capacity available under a line of credit facility.,,
-Fundamental,credit_facility_remaining_capacity,,,fundamental2,Amount of remaining borrowing capacity under a line of credit facility.,,
-Fundamental,credit_line_proceeds_total,,,fundamental2,Total proceeds received from lines of credit.,,
-Fundamental,cumulative_cash_flow_hedge_gain_loss_net_tax,,,fundamental2,"Total net gain or loss from cash flow hedges, after tax.",,
-Fundamental,cumulative_oci_cash_flow_hedge_net,,,fundamental2,Cumulative net gain or loss from cash flow hedges included in other comprehensive income.,,
-Fundamental,current_accrued_liabilities,,,fundamental2,Total accrued liabilities due within one year.,,
-Fundamental,current_accrued_liabilities_total,,,fundamental2,Total amount of accrued liabilities due within one year.,,
-Fundamental,current_federal_tax_expense_amount,,,fundamental2,Expense recognized for current federal taxes during the period.,,
-Fundamental,current_foreign_tax_expense_value,,,fundamental2,Current expense for foreign income taxes.,,
-Fundamental,current_income_tax_expense_amount,,,fundamental2,Expense recognized for current income taxes during the period.,,
-Fundamental,current_minimum_capital_lease_payment,,,fundamental2,Minimum payments due currently under capital lease agreements.,,
-Fundamental,current_minimum_operating_lease_payment,,,fundamental2,Minimum payments due currently under operating lease agreements.,,
+Fundamental,business_acquisition_payments_net,🟡 Tested: Baseline Failed,1.000,fundamental2,"Payments made to acquire businesses, net of cash acquired.",,
+Fundamental,business_acquisition_total_payment,🟡 Tested: Baseline Failed,0.940,fundamental2,Total gross payments made to acquire businesses.,,
+Fundamental,capex,🟠 Test Soon,1.320,,Capital Expenditures,,
+Fundamental,capital_lease_liability_balance,🟠 Test Soon,1.340,fundamental2,Outstanding obligations under capital lease agreements.,,
+Fundamental,capital_lease_minimum_payment_due_thereafter,🟠 Test Soon,1.330,fundamental2,Future minimum payments due under capital leases after the specified period.,,
+Fundamental,capital_lease_minimum_payment_year_three,🟠 Test Soon,1.430,fundamental2,Minimum payments due under capital leases in the third year.,,
+Fundamental,capital_lease_obligation_total,🟡 Tested: Baseline Failed,1.120,fundamental2,Total obligations under capital lease agreements.,,
+Fundamental,capital_leases_min_payments_4y,🟠 Test Soon,1.410,fundamental2,Minimum payments due under capital leases in four years.,,
+Fundamental,capitalized_software_gross_value,🟡 Tested: Baseline Failed,0.960,fundamental2,Gross value of computer software capitalized as assets.,,
+Fundamental,cash,🟡 Tested: Baseline Failed,1.140,,Cash,,
+Fundamental,cash_st,🟡 Tested: Baseline Failed,1.150,,Cash and Short-Term Investments,,
+Fundamental,cashflow,🟠 Test Soon,1.330,,Cashflow (Annual),,
+Fundamental,cashflow_dividends,🟡 Tested: Baseline Failed,1.280,,Cash Dividends (Cash Flow),,
+Fundamental,cashflow_fin,🟠 Test Soon,1.310,,Financing Activities - Net Cash Flow,,
+Fundamental,cashflow_invst,🟡 Tested: Baseline Failed,1.290,,Investing Activities - Net Cash Flow,,
+Fundamental,cashflow_op,🟡 Tested: Baseline Failed,1.270,,Operating Activities - Net Cash Flow,,
+Fundamental,cogs,🟡 Tested: Baseline Failed,1.210,,Cost of Goods Sold,,
+Fundamental,common_shares_outstanding_total,🟡 Tested: Baseline Failed,1.300,fundamental2,Total number of common shares currently outstanding.,,
+Fundamental,common_stock_buyback_payments,🟡 Tested: Baseline Failed,1.190,fundamental2,Payments made for repurchasing common stock.,,
+Fundamental,common_stock_issuance_proceeds,🟡 Tested: Baseline Failed,1.200,fundamental2,Cash received from issuing common stock.,,
+Fundamental,common_stock_issuance_proceeds_2,🟠 Test Soon,1.350,fundamental2,Proceeds received from issuance of common stock.,,
+Fundamental,common_stock_repurchase_payment,🟡 Tested: Baseline Failed,1.280,fundamental2,Payments made for repurchasing common stock during the period.,,
+Fundamental,common_stock_shares_outstanding_count,🟠 Test Soon,1.330,fundamental2,Total number of common stock shares outstanding.,,
+Fundamental,comprehensive_income_net_tax,🟡 Tested: Baseline Failed,1.270,fundamental2,Comprehensive income after accounting for tax effects.,,
+Fundamental,comprehensive_income_net_tax_value,🟡 Tested: Baseline Failed,0.470,fundamental2,Comprehensive income value after tax adjustments.,,
+Fundamental,contingent_consideration_liability_acquisition,🟡 Tested: Baseline Failed,0.180,fundamental2,Liability for contingent consideration in a business combination.,,
+Fundamental,contingent_merger_liability,🟡 Tested: Baseline Failed,0.160,fundamental2,Liability for contingent consideration in a business combination.,,
+Fundamental,credit_facility_max_borrowing,🟡 Tested: Baseline Failed,-0.040,fundamental2,Maximum amount that can be borrowed under a line of credit facility.,,
+Fundamental,credit_facility_max_borrowing_2,🟡 Tested: Baseline Failed,0.240,fundamental2,Maximum borrowing capacity under a line of credit facility.,,
+Fundamental,credit_facility_outstanding_amount,🟡 Tested: Baseline Failed,0.690,fundamental2,Outstanding amount under a line of credit facility.,,
+Fundamental,credit_facility_outstanding_balance,🟡 Tested: Baseline Failed,0.210,fundamental2,Outstanding balance under a line of credit facility.,,
+Fundamental,credit_facility_remaining_borrowing_capacity,🟡 Tested: Baseline Failed,0.100,fundamental2,Remaining borrowing capacity available under a line of credit facility.,,
+Fundamental,credit_facility_remaining_capacity,🟡 Tested: Baseline Failed,0.250,fundamental2,Amount of remaining borrowing capacity under a line of credit facility.,,
+Fundamental,credit_line_proceeds_total,🟡 Tested: Baseline Failed,-0.230,fundamental2,Total proceeds received from lines of credit.,,
+Fundamental,cumulative_cash_flow_hedge_gain_loss_net_tax,🟡 Tested: Baseline Failed,-0.050,fundamental2,"Total net gain or loss from cash flow hedges, after tax.",,
+Fundamental,cumulative_oci_cash_flow_hedge_net,🟡 Tested: Baseline Failed,-0.190,fundamental2,Cumulative net gain or loss from cash flow hedges included in other comprehensive income.,,
+Fundamental,current_accrued_liabilities,🟡 Tested: Baseline Failed,0.380,fundamental2,Total accrued liabilities due within one year.,,
+Fundamental,current_accrued_liabilities_total,🟡 Tested: Baseline Failed,0.400,fundamental2,Total amount of accrued liabilities due within one year.,,
+Fundamental,current_federal_tax_expense_amount,🟡 Tested: Baseline Failed,0.490,fundamental2,Expense recognized for current federal taxes during the period.,,
+Fundamental,current_foreign_tax_expense_value,🟡 Tested: Baseline Failed,-0.060,fundamental2,Current expense for foreign income taxes.,,
+Fundamental,current_income_tax_expense_amount,🟡 Tested: Baseline Failed,0.780,fundamental2,Expense recognized for current income taxes during the period.,,
+Fundamental,current_minimum_capital_lease_payment,🟡 Tested: Baseline Failed,0.260,fundamental2,Minimum payments due currently under capital lease agreements.,,
+Fundamental,current_minimum_operating_lease_payment,🟡 Tested: Baseline Failed,0.030,fundamental2,Minimum payments due currently under operating lease agreements.,,
 Fundamental,current_ratio,✅ In Use,,,Current Ratio,Liquidity-based. Works because not COVID-distorted. Delay 1 only.,
-Fundamental,current_state_local_tax_expense_amount,,,fundamental2,Expense recognized for current state and local taxes during the period.,,
-Fundamental,customer_related_intangibles_gross_value,,,fundamental2,Gross value of customer-related finite-lived intangible assets.,,
-Fundamental,db_plan_actuarial_gain_loss,,,fundamental2,Actuarial gain or loss recognized in defined benefit plans.,,
-Fundamental,db_plan_amortization_prior_service_credit,,,fundamental2,Amortization of prior service cost credit in defined benefit plans.,,
-Fundamental,db_plan_future_payments_year4,,,fundamental2,Expected future benefit payments under defined benefit plans for the fourth year.,,
-Fundamental,db_plan_periodic_benefit_cost,,,fundamental2,Net periodic cost recognized for defined benefit plans.,,
+Fundamental,current_state_local_tax_expense_amount,🟡 Tested: Baseline Failed,0.440,fundamental2,Expense recognized for current state and local taxes during the period.,,
+Fundamental,customer_related_intangibles_gross_value,🟡 Tested: Baseline Failed,-0.010,fundamental2,Gross value of customer-related finite-lived intangible assets.,,
+Fundamental,db_plan_actuarial_gain_loss,🟡 Tested: Baseline Failed,0.600,fundamental2,Actuarial gain or loss recognized in defined benefit plans.,,
+Fundamental,db_plan_amortization_prior_service_credit,🟡 Tested: Baseline Failed,0.670,fundamental2,Amortization of prior service cost credit in defined benefit plans.,,
+Fundamental,db_plan_future_payments_year4,🟡 Tested: Baseline Failed,0.340,fundamental2,Expected future benefit payments under defined benefit plans for the fourth year.,,
+Fundamental,db_plan_periodic_benefit_cost,🟡 Tested: Baseline Failed,0.670,fundamental2,Net periodic cost recognized for defined benefit plans.,,
 Fundamental,debt,❌ Abandoned,,,Debt,COVID stimulus inverted all leverage signals. Never use.,neg_sharpe
-Fundamental,debt_basis_spread_variable_rate,,,fundamental2,Basis spread applied to variable rate debt instruments.,,
-Fundamental,debt_carrying_amount_total,,,fundamental2,Total carrying amount of debt instruments.,,
-Fundamental,debt_carrying_value,,,fundamental2,Carrying value of a debt instrument on the balance sheet.,,
-Fundamental,debt_effective_interest_rate_pct,,,fundamental2,Effective interest rate percentage for a debt instrument.,,
-Fundamental,debt_effective_interest_rate_percent,,,fundamental2,"Effective interest rate, as a percentage, for a debt instrument.",,
-Fundamental,debt_extinguishment_gain_loss_total,,,fundamental2,Total gains or losses recognized on extinguishment of debt.,,
-Fundamental,debt_extinguishment_gain_loss_value,,,fundamental2,Gains or losses recognized on extinguishment of debt.,,
-Fundamental,debt_instrument_face_value,,,fundamental2,Face value of issued debt instruments.,,
-Fundamental,debt_instrument_interest_rate_percent,,,fundamental2,Stated interest rate percentage for debt instruments.,,
-Fundamental,debt_issuance_costs_expense,,,fundamental2,Costs incurred for issuing debt instruments.,,
-Fundamental,debt_issuance_costs_total,,,fundamental2,Total costs incurred for issuing debt.,,
-Fundamental,debt_issuance_proceeds,,,fundamental2,Cash received from issuing debt.,,
-Fundamental,debt_issuance_proceeds_2,,,fundamental2,Total cash received from issuing debt instruments.,,
-Fundamental,debt_lt,,,,Long-Term Debt - Total,,
-Fundamental,debt_maturities_repayments_next12m,,,fundamental2,Repayments of long-term debt principal due in the next twelve months.,,
-Fundamental,debt_maturities_repayments_year2,,,fundamental2,Repayments of long-term debt principal due in the second year.,,
-Fundamental,debt_principal_due_year_five,,,fundamental2,Principal repayments on long-term debt scheduled for the fifth year.,,
-Fundamental,debt_repayment_year_three,,,fundamental2,Repayments of long-term debt principal scheduled for the third year.,,
-Fundamental,debt_repayments_total,,,fundamental2,Total repayments made on outstanding debt.,,
-Fundamental,debt_repayments_total_2,,,fundamental2,Total repayments made on debt obligations.,,
-Fundamental,debt_securities_available_for_sale,,,fundamental2,Debt securities classified as available for sale.,,
-Fundamental,debt_st,,,,Debt in Current Liabilities,,
-Fundamental,debt_stated_interest_rate_pct,,,fundamental2,Stated interest rate percentage for a debt instrument.,,
-Fundamental,debt_unamortized_discount_premium_net_value,,,fundamental2,Net value of unamortized discount or premium on debt instruments.,,
-Fundamental,deferred_federal_income_tax_expense,,,fundamental2,Expense for deferred federal income taxes.,,
-Fundamental,deferred_foreign_tax_expense,,,fundamental2,Expense for deferred foreign income taxes.,,
-Fundamental,deferred_income_tax_expense_amount,,,fundamental2,Expense recognized for deferred income taxes during the period.,,
-Fundamental,deferred_local_income_tax_expense,,,fundamental2,Expense for deferred local income taxes.,,
-Fundamental,deferred_tax_assets_compensation_benefits,,,fundamental2,Deferred tax assets from compensation and benefits expenses.,,
-Fundamental,deferred_tax_assets_credit_carryforward,,,fundamental2,Amount of deferred tax assets from tax credit carryforwards.,,
-Fundamental,deferred_tax_assets_expense_reserves,,,fundamental2,Deferred tax assets related to reserves and accruals for expenses.,,
-Fundamental,deferred_tax_assets_loss_carryforward,,,fundamental2,Deferred tax assets arising from operating loss carryforwards.,,
-Fundamental,deferred_tax_assets_net_value,,,fundamental2,Net value of deferred tax assets.,,
-Fundamental,deferred_tax_assets_valuation_allowance_value,,,fundamental2,Valuation allowance for deferred tax assets.,,
-Fundamental,deferred_tax_liabilities_total_4,,,fundamental2,Total amount of deferred tax liabilities.,,
-Fundamental,deferred_tax_liability_goodwill_intangibles,,,fundamental2,Deferred tax liabilities related to goodwill and intangible assets.,,
-Fundamental,deferred_tax_liability_property_plant_equipment,,,fundamental2,"Deferred tax liabilities related to property, plant, and equipment.",,
-Fundamental,defined_benefit_plan_asset_fair_value,,,fundamental2,Fair value of assets held in defined benefit pension plans.,,
-Fundamental,defined_benefit_plan_interest_cost,,,fundamental2,Interest cost for defined benefit plan obligations.,,
-Fundamental,defined_benefit_plan_obligation_value,,,fundamental2,Present value of benefit obligations under defined benefit plans.,,
-Fundamental,defined_benefit_plan_service_cost,,,fundamental2,Service cost recognized for defined benefit pension plans during the period.,,
-Fundamental,depre_amort,,,,Depreciation and Amortization - Total,,
-Fundamental,derivative_asset_fair_value,,,fundamental2,Fair value of derivative assets.,,
-Fundamental,derivative_asset_fair_value_2,,,fundamental2,Fair value of derivative assets.,,
-Fundamental,derivative_contract_notional_value,,,fundamental2,Notional amount of derivative contracts outstanding.,,
-Fundamental,derivative_liability_fair_value,,,fundamental2,Fair value of liabilities arising from derivative instruments.,,
-Fundamental,diluted_shares_outstanding_adjustment,,,fundamental2,Adjustment to the weighted average number of diluted shares outstanding.,,
-Fundamental,diluted_shares_outstanding_adjustment_avg,,,fundamental2,Adjustment to the weighted average number of diluted shares outstanding.,,
-Fundamental,domestic_assets_total_value,,,fundamental2,Total value of domestic assets.,,
-Fundamental,domestic_ebit_value,,,fundamental2,Earnings before interest and taxes for domestic operations.,,
-Fundamental,domestic_revenue_amount,,,fundamental2,Revenue generated from domestic operations.,,
-Fundamental,domestic_revenue_total,,,fundamental2,Total revenue generated from domestic operations.,,
-Fundamental,doubtful_accounts_provision,,,fundamental2,Amount set aside for accounts that may not be collected.,,
-Fundamental,doubtful_accounts_provision_2,,,fundamental2,Provision set aside for accounts that may not be collected.,,
-Fundamental,doubtful_accounts_reserve_total,,,fundamental2,Total allowance set aside for doubtful accounts receivable.,,
-Fundamental,doubtful_accounts_write_offs,,,fundamental2,Amount written off for doubtful accounts receivable.,,
+Fundamental,debt_basis_spread_variable_rate,🟡 Tested: Baseline Failed,0.530,fundamental2,Basis spread applied to variable rate debt instruments.,,
+Fundamental,debt_carrying_amount_total,🟡 Tested: Baseline Failed,-0.050,fundamental2,Total carrying amount of debt instruments.,,
+Fundamental,debt_carrying_value,🟡 Tested: Baseline Failed,,fundamental2,Carrying value of a debt instrument on the balance sheet.,,
+Fundamental,debt_effective_interest_rate_pct,🟡 Tested: Baseline Failed,0.360,fundamental2,Effective interest rate percentage for a debt instrument.,,
+Fundamental,debt_effective_interest_rate_percent,🟡 Tested: Baseline Failed,0.570,fundamental2,"Effective interest rate, as a percentage, for a debt instrument.",,
+Fundamental,debt_extinguishment_gain_loss_total,🟡 Tested: Baseline Failed,-0.150,fundamental2,Total gains or losses recognized on extinguishment of debt.,,
+Fundamental,debt_extinguishment_gain_loss_value,🟡 Tested: Baseline Failed,0.050,fundamental2,Gains or losses recognized on extinguishment of debt.,,
+Fundamental,debt_instrument_face_value,🟡 Tested: Baseline Failed,0.090,fundamental2,Face value of issued debt instruments.,,
+Fundamental,debt_instrument_interest_rate_percent,🟡 Tested: Baseline Failed,0.640,fundamental2,Stated interest rate percentage for debt instruments.,,
+Fundamental,debt_issuance_costs_expense,🟡 Tested: Baseline Failed,0.450,fundamental2,Costs incurred for issuing debt instruments.,,
+Fundamental,debt_issuance_costs_total,🟡 Tested: Baseline Failed,0.100,fundamental2,Total costs incurred for issuing debt.,,
+Fundamental,debt_issuance_proceeds,🟡 Tested: Baseline Failed,0.550,fundamental2,Cash received from issuing debt.,,
+Fundamental,debt_issuance_proceeds_2,🟡 Tested: Baseline Failed,-0.160,fundamental2,Total cash received from issuing debt instruments.,,
+Fundamental,debt_lt,🟡 Tested: Baseline Failed,0.190,,Long-Term Debt - Total,,
+Fundamental,debt_maturities_repayments_next12m,🟡 Tested: Baseline Failed,0.970,fundamental2,Repayments of long-term debt principal due in the next twelve months.,,
+Fundamental,debt_maturities_repayments_year2,🟡 Tested: Baseline Failed,0.420,fundamental2,Repayments of long-term debt principal due in the second year.,,
+Fundamental,debt_principal_due_year_five,🟡 Tested: Baseline Failed,0.170,fundamental2,Principal repayments on long-term debt scheduled for the fifth year.,,
+Fundamental,debt_repayment_year_three,🟡 Tested: Baseline Failed,0.350,fundamental2,Repayments of long-term debt principal scheduled for the third year.,,
+Fundamental,debt_repayments_total,🟡 Tested: Baseline Failed,0.370,fundamental2,Total repayments made on outstanding debt.,,
+Fundamental,debt_repayments_total_2,🟡 Tested: Baseline Failed,0.400,fundamental2,Total repayments made on debt obligations.,,
+Fundamental,debt_securities_available_for_sale,🟡 Tested: Baseline Failed,0.200,fundamental2,Debt securities classified as available for sale.,,
+Fundamental,debt_st,🟡 Tested: Baseline Failed,0.170,,Debt in Current Liabilities,,
+Fundamental,debt_stated_interest_rate_pct,🟡 Tested: Baseline Failed,0.740,fundamental2,Stated interest rate percentage for a debt instrument.,,
+Fundamental,debt_unamortized_discount_premium_net_value,🟡 Tested: Baseline Failed,0.860,fundamental2,Net value of unamortized discount or premium on debt instruments.,,
+Fundamental,deferred_federal_income_tax_expense,🟡 Tested: Baseline Failed,0.800,fundamental2,Expense for deferred federal income taxes.,,
+Fundamental,deferred_foreign_tax_expense,🟡 Tested: Baseline Failed,0.500,fundamental2,Expense for deferred foreign income taxes.,,
+Fundamental,deferred_income_tax_expense_amount,🟡 Tested: Baseline Failed,0.880,fundamental2,Expense recognized for deferred income taxes during the period.,,
+Fundamental,deferred_local_income_tax_expense,🟡 Tested: Baseline Failed,0.540,fundamental2,Expense for deferred local income taxes.,,
+Fundamental,deferred_tax_assets_compensation_benefits,🟡 Tested: Baseline Failed,0.520,fundamental2,Deferred tax assets from compensation and benefits expenses.,,
+Fundamental,deferred_tax_assets_credit_carryforward,🟡 Tested: Baseline Failed,0.750,fundamental2,Amount of deferred tax assets from tax credit carryforwards.,,
+Fundamental,deferred_tax_assets_expense_reserves,🟡 Tested: Baseline Failed,0.360,fundamental2,Deferred tax assets related to reserves and accruals for expenses.,,
+Fundamental,deferred_tax_assets_loss_carryforward,🟡 Tested: Baseline Failed,0.380,fundamental2,Deferred tax assets arising from operating loss carryforwards.,,
+Fundamental,deferred_tax_assets_net_value,🟡 Tested: Baseline Failed,0.400,fundamental2,Net value of deferred tax assets.,,
+Fundamental,deferred_tax_assets_valuation_allowance_value,❌ Abandoned,1.320,fundamental2,Valuation allowance for deferred tax assets.,ts_std_dev(252) sharpe=1.32 but fitness ceiling=0.88 (TO=1.61% structural). Shorter lookbacks destroy signal.,fitness_ceiling
+Fundamental,deferred_tax_liabilities_total_4,🟡 Tested: Baseline Failed,0.420,fundamental2,Total amount of deferred tax liabilities.,,
+Fundamental,deferred_tax_liability_goodwill_intangibles,🟡 Tested: Baseline Failed,0.670,fundamental2,Deferred tax liabilities related to goodwill and intangible assets.,,
+Fundamental,deferred_tax_liability_property_plant_equipment,🟡 Tested: Baseline Failed,0.190,fundamental2,"Deferred tax liabilities related to property, plant, and equipment.",,
+Fundamental,defined_benefit_plan_asset_fair_value,🟡 Tested: Baseline Failed,0.180,fundamental2,Fair value of assets held in defined benefit pension plans.,,
+Fundamental,defined_benefit_plan_interest_cost,🟡 Tested: Baseline Failed,0.880,fundamental2,Interest cost for defined benefit plan obligations.,,
+Fundamental,defined_benefit_plan_obligation_value,🟡 Tested: Baseline Failed,-0.220,fundamental2,Present value of benefit obligations under defined benefit plans.,,
+Fundamental,defined_benefit_plan_service_cost,🟡 Tested: Baseline Failed,0.270,fundamental2,Service cost recognized for defined benefit pension plans during the period.,,
+Fundamental,depre_amort,🟡 Tested: Baseline Failed,-0.110,,Depreciation and Amortization - Total,,
+Fundamental,derivative_asset_fair_value,🟡 Tested: Baseline Failed,-0.270,fundamental2,Fair value of derivative assets.,,
+Fundamental,derivative_asset_fair_value_2,🟡 Tested: Baseline Failed,0.600,fundamental2,Fair value of derivative assets.,,
+Fundamental,derivative_contract_notional_value,🟡 Tested: Baseline Failed,0.810,fundamental2,Notional amount of derivative contracts outstanding.,,
+Fundamental,derivative_liability_fair_value,🟡 Tested: Baseline Failed,0.320,fundamental2,Fair value of liabilities arising from derivative instruments.,,
+Fundamental,diluted_shares_outstanding_adjustment,🟡 Tested: Baseline Failed,0.820,fundamental2,Adjustment to the weighted average number of diluted shares outstanding.,,
+Fundamental,diluted_shares_outstanding_adjustment_avg,🟡 Tested: Baseline Failed,0.150,fundamental2,Adjustment to the weighted average number of diluted shares outstanding.,,
+Fundamental,domestic_assets_total_value,🟡 Tested: Baseline Failed,-0.080,fundamental2,Total value of domestic assets.,,
+Fundamental,domestic_ebit_value,🟡 Tested: Baseline Failed,0.090,fundamental2,Earnings before interest and taxes for domestic operations.,,
+Fundamental,domestic_revenue_amount,🟡 Tested: Baseline Failed,-0.210,fundamental2,Revenue generated from domestic operations.,,
+Fundamental,domestic_revenue_total,🟡 Tested: Baseline Failed,0.230,fundamental2,Total revenue generated from domestic operations.,,
+Fundamental,doubtful_accounts_provision,🟡 Tested: Baseline Failed,-0.290,fundamental2,Amount set aside for accounts that may not be collected.,,
+Fundamental,doubtful_accounts_provision_2,🟡 Tested: Baseline Failed,-0.030,fundamental2,Provision set aside for accounts that may not be collected.,,
+Fundamental,doubtful_accounts_reserve_total,🟡 Tested: Baseline Failed,0.280,fundamental2,Total allowance set aside for doubtful accounts receivable.,,
+Fundamental,doubtful_accounts_write_offs,🟡 Tested: Baseline Failed,0.380,fundamental2,Amount written off for doubtful accounts receivable.,,
 Fundamental,ebit,❌ Abandoned,,,Earnings Before Interest and Taxes,Negative IS. External PDF Sharpe unverifiable.,neg_sharpe
-Fundamental,ebitda,,,,Earnings Before Interest,,
-Fundamental,effective_tax_rate_continuing_ops,,,fundamental2,Effective income tax rate for continuing operations.,,
-Fundamental,effective_tax_rate_continuing_ops_2,,,fundamental2,Effective income tax rate for continuing operations.,,
-Fundamental,effective_tax_rate_reconciliation_credits,,,fundamental2,Tax credits used in reconciliation of effective income tax rate.,,
-Fundamental,employee,,,,Employees,,
-Fundamental,employee_compensation_benefit_liabilities,,,fundamental2,Liabilities related to employee compensation and benefits.,,
-Fundamental,employee_compensation_liabilities,,,fundamental2,Liabilities related to employee compensation and benefits.,,
+Fundamental,ebitda,🟡 Tested: Baseline Failed,0.050,,Earnings Before Interest,,
+Fundamental,effective_tax_rate_continuing_ops,🟡 Tested: Baseline Failed,0.330,fundamental2,Effective income tax rate for continuing operations.,,
+Fundamental,effective_tax_rate_continuing_ops_2,🟡 Tested: Baseline Failed,0.490,fundamental2,Effective income tax rate for continuing operations.,,
+Fundamental,effective_tax_rate_reconciliation_credits,🟡 Tested: Baseline Failed,0.140,fundamental2,Tax credits used in reconciliation of effective income tax rate.,,
+Fundamental,employee,🟡 Tested: Baseline Failed,-0.110,,Employees,,
+Fundamental,employee_compensation_benefit_liabilities,🟡 Tested: Baseline Failed,0.420,fundamental2,Liabilities related to employee compensation and benefits.,,
+Fundamental,employee_compensation_liabilities,🟡 Tested: Baseline Failed,-0.240,fundamental2,Liabilities related to employee compensation and benefits.,,
 Fundamental,enterprise_value,❌ Abandoned,,,Enterprise Value,COVID killed EV/EBITDA relationship. 2021+2022 both negative.,neg_sharpe
-Fundamental,eps,,,,Earnings Per Share (Basic) - Including Extraordinary Items,,
-Fundamental,equipment_maximum_useful_life,,,fundamental2,Maximum useful life assigned to equipment assets.,,
-Fundamental,equity,,,,Common/Ordinary Equity - Total,,
-Fundamental,equity_awards_granted_non_option_period,,,fundamental2,"Number of equity awards granted during the period, excluding options.",,
-Fundamental,equity_awards_nonoption_forfeited_count,,,fundamental2,Number of equity awards other than options forfeited during the period.,,
-Fundamental,equity_awards_vested_avg_grant_fair_value,,,fundamental2,Weighted average grant date fair value of equity awards vested during the period.,,
-Fundamental,equity_awards_vested_count,,,fundamental2,Number of equity awards other than options vested during the period.,,
-Fundamental,equity_investment_ownership_percent,,,fundamental2,Percentage ownership in an equity method investment.,,
-Fundamental,equity_investment_ownership_ratio,,,fundamental2,Percentage ownership in an entity accounted for using the equity method.,,
-Fundamental,equity_method_investment_income,,,fundamental2,Income earned from investments accounted for using the equity method.,,
-Fundamental,equity_method_investment_income_total,,,fundamental2,Total income from investments accounted for using the equity method.,,
-Fundamental,equity_method_investment_total,,,fundamental2,Total value of investments accounted for using the equity method.,,
-Fundamental,excess_tax_benefit_sbp_financing,,,fundamental2,Excess tax benefit realized from share-based compensation in financing activities.,,
-Fundamental,excess_tax_benefit_share_comp_financing,,,fundamental2,Tax benefit from share-based compensation related to financing activities.,,
-Fundamental,excess_tax_benefit_share_comp_operating,,,fundamental2,Excess tax benefit realized from share-based compensation in operating activities.,,
-Fundamental,excess_tax_benefit_share_comp_operating_2,,,fundamental2,Excess tax benefit from share-based compensation recognized in operating activities.,,
-Fundamental,exchange_rate_effect_cash_equivalents,,,fundamental2,Impact of exchange rate changes on cash and cash equivalents.,,
-Fundamental,exchange_rate_effect_on_cash,,,fundamental2,Effect of exchange rate changes on cash and cash equivalents.,,
-Fundamental,exercisable_option_award_count,,,fundamental2,Number of share-based payment options currently exercisable.,,
-Fundamental,exercisable_options_avg_exercise_price,,,fundamental2,Weighted average exercise price for exercisable options.,,
-Fundamental,exercisable_options_avg_exercise_price_2,,,fundamental2,Weighted average exercise price of exercisable share-based payment options.,,
-Fundamental,exercisable_options_count,,,fundamental2,Number of share-based payment options that are exercisable.,,
-Fundamental,expected_benefit_payments_year2,,,fundamental2,Expected benefit payments in the second year under a defined benefit plan.,,
-Fundamental,expected_dividend_rate_share_award_valuation,,,fundamental2,Expected dividend rate used in valuing share-based awards.,,
-Fundamental,expected_future_benefit_payment_year_three,,,fundamental2,Expected future benefit payments for defined benefit plans in the third year.,,
-Fundamental,expected_return_on_pension_plan_assets,,,fundamental2,Expected return on assets in a defined benefit plan.,,
-Fundamental,face_value_debt_instrument,,,fundamental2,Principal amount of a debt instrument.,,
-Fundamental,fair_value_derivative_liabilities,,,fundamental2,Fair value of derivative liabilities.,,
-Fundamental,fair_value_liabilities_level_three,,,fundamental2,Fair value of liabilities measured using significant unobservable inputs (Level 3).,,
-Fundamental,federal_income_tax_rate_statutory,,,fundamental2,Statutory federal income tax rate applicable to the entity.,,
-Fundamental,federal_statutory_tax_rate,,,fundamental2,Federal statutory income tax rate applicable to the entity.,,
-Fundamental,federal_tax_rate_income_tax_reconciliation,,,fundamental2,Income tax expense or benefit at federal statutory tax rate for reconciliation.,,
-Fundamental,financing_costs_amortization,,,fundamental2,Amortization expense for financing costs.,,
-Fundamental,financing_costs_amortization_total,,,fundamental2,Total amortization expense for financing costs.,,
-Fundamental,finite_intangibles_gross_value,,,fundamental2,Gross value of finite-lived intangible assets.,,
-Fundamental,fn_accrued_liab_a,,,fundamental2,"Carrying value as of the balance sheet date of obligations incurred and payable, pertaining to costs that are statutory in nature, are incurred on contractual obligations, or accumulate over time and for which invoices have not yet been received or will not be rendered.",,
-Fundamental,fn_accrued_liab_curr_a,,,fundamental2,"Carrying value as of the balance sheet date of obligations incurred and payable, pertaining to costs that are statutory in nature, are incurred on contractual obligations, or accumulate over time and for which invoices have not yet been received or will not be rendered.",,
-Fundamental,fn_accrued_liab_curr_q,,,fundamental2,"Carrying value as of the balance sheet date of obligations incurred and payable, pertaining to costs that are statutory in nature, are incurred on contractual obligations, or accumulate over time and for which invoices have not yet been received or will not be rendered.",,
-Fundamental,fn_accrued_liab_q,,,fundamental2,"Carrying value as of the balance sheet date of obligations incurred and payable, pertaining to costs that are statutory in nature, are incurred on contractual obligations, or accumulate over time and for which invoices have not yet been received or will not be rendered.",,
-Fundamental,fn_accum_depr_depletion_and_amortization_ppne_a,,,fundamental2,"Amount of accumulated depreciation, depletion and amortization for physical assets used in the normal conduct of business to produce goods and services.",,
-Fundamental,fn_accum_depr_depletion_and_amortization_ppne_q,,,fundamental2,"Amount of accumulated depreciation, depletion and amortization for physical assets used in the normal conduct of business to produce goods and services.",,
-Fundamental,fn_accum_oth_income_loss_fx_adj_net_of_tax_a,,,fundamental2,"Accumulated adjustment, net of tax, that results from the process of translating subsidiary financial statements and foreign equity investments into the reporting currency from the functional currency of the reporting entity, net of reclassification of realized foreign currency translation gains or losses.",,
-Fundamental,fn_accum_oth_income_loss_fx_adj_net_of_tax_q,,,fundamental2,"Accumulated adjustment, net of tax, that results from the process of translating subsidiary financial statements and foreign equity investments into the reporting currency from the functional currency of the reporting entity, net of reclassification of realized foreign currency translation gains or losses.",,
-Fundamental,fn_accum_oth_income_loss_net_of_tax_a,,,fundamental2,"Accumulated change in equity from transactions and other events and circumstances from non-owner sources, net of tax effect, at period end. Excludes Net Income (Loss), and accumulated changes in equity from transactions resulting from investments by owners and distributions to owners. Includes foreign currency translation items, certain pension adjustments, unrealized gains and losses on certain investments in debt and equity securities, other than temporary impairment (OTTI) losses related to factors other than credit losses on available-for-sale and held-to-maturity debt securities that an entity does not intend to sell and it is not more likely than not that the entity will be required to sell before recovery of the amortized cost basis, as well as changes in the fair value of derivatives related to the effective portion of a designated cash flow hedge.",,
-Fundamental,fn_accum_oth_income_loss_net_of_tax_q,,,fundamental2,"Accumulated change in equity from transactions and other events and circumstances from non-owner sources, net of tax effect, at period end. Excludes Net Income (Loss), and accumulated changes in equity from transactions resulting from investments by owners and distributions to owners. Includes foreign currency translation items, certain pension adjustments, unrealized gains and losses on certain investments in debt and equity securities, other than temporary impairment (OTTI) losses related to factors other than credit losses on available-for-sale and held-to-maturity debt securities that an entity does not intend to sell and it is not more likely than not that the entity will be required to sell before recovery of the amortized cost basis, as well as changes in the fair value of derivatives related to the effective portion of a designated cash flow hedge.",,
-Fundamental,fn_allocated_share_based_compensation_expense_a,,,fundamental2,"Represents the expense recognized during the period arising from equity-based compensation arrangements (for example, shares of stock, unit, stock options or other equity instruments) with employees, directors and certain consultants qualifying for treatment as employees.",,
-Fundamental,fn_allocated_share_based_compensation_expense_q,,,fundamental2,"Represents the expense recognized during the period arising from equity-based compensation arrangements (for example, shares of stock, units, stock options, or other equity instruments) with employees, directors, and certain consultants qualifying for treatment as employees.",,
-Fundamental,fn_allowance_for_doubtful_accounts_receivable_a,,,fundamental2,"For an unclassified balance sheet, a valuation allowance for receivables due a company that are expected to be uncollectible.",,
-Fundamental,fn_allowance_for_doubtful_accounts_receivable_q,,,fundamental2,"For an unclassified balance sheet, a valuation allowance for receivables due a company that are expected to be uncollectible.",,
-Fundamental,fn_amortization_of_intangible_assets_a,,,fundamental2,"The aggregate expense charged against earnings to allocate the cost of intangible assets (nonphysical assets not used in production) in a systematic and rational manner to the periods expected to benefit from such assets. As a noncash expense, this element is added back to net income when calculating cash provided by or used in operations using the indirect method.",,
-Fundamental,fn_amortization_of_intangible_assets_q,,,fundamental2,"The aggregate expense charged against earnings to allocate the cost of intangible assets (nonphysical assets not used in production) in a systematic and rational manner to the periods expected to benefit from such assets. As a noncash expense, this element is added back to net income when calculating cash provided by or used in operations using the indirect method.",,
-Fundamental,fn_antidilutive_securities_excl_from_eps_a,,,fundamental2,Securities (including those issuable pursuant to contingent stock agreements) that could potentially dilute basic earnings per share (EPS) or earnings per unit (EPU) in the future that were not included in the computation of diluted EPS or EPU because to do so would increase EPS or EPU amounts or decrease loss per share or unit amounts for the period presented.,,
-Fundamental,fn_antidilutive_securities_excl_from_eps_q,,,fundamental2,Securities (including those issuable pursuant to contingent stock agreements) that could potentially dilute basic earnings per share (EPS) or earnings per unit (EPU) in the future that were not included in the computation of diluted EPS or EPU because to do so would increase EPS or EPU amounts or decrease loss per share or unit amounts for the period presented.,,
-Fundamental,fn_assets_fair_val_a,,,fundamental2,"Asset Fair Value, Recurring, Total",,
-Fundamental,fn_assets_fair_val_l1_a,,,fundamental2,"Asset Fair Value, Recurring, Level 1",,
-Fundamental,fn_assets_fair_val_l1_q,,,fundamental2,"Asset Fair Value, Recurring, Level 1",,
-Fundamental,fn_assets_fair_val_l2_a,,,fundamental2,"Asset Fair Value, Recurring, Level 2",,
-Fundamental,fn_assets_fair_val_l2_q,,,fundamental2,"Asset Fair Value, Recurring, Level 2",,
-Fundamental,fn_assets_fair_val_l3_a,,,fundamental2,"Asset Fair Value, Recurring, Level 3",,
-Fundamental,fn_assets_fair_val_l3_q,,,fundamental2,"Asset Fair Value, Recurring, Level 3",,
-Fundamental,fn_assets_fair_val_q,,,fundamental2,"Asset Fair Value, Recurring, Total",,
-Fundamental,fn_avg_diluted_sharesout_adj_a,,,fundamental2,The sum of dilutive potential common shares or units used in the calculation of the diluted per-share or per-unit computation.,,
-Fundamental,fn_avg_diluted_sharesout_adj_q,,,fundamental2,The sum of dilutive potential common shares or units used in the calculation of the diluted per-share or per-unit computation.,,
-Fundamental,fn_business_acq_ppne_a,,,fundamental2,"Business Combination, Assumed Property, Plant and Equipment",,
-Fundamental,fn_business_acq_ppne_q,,,fundamental2,"Business Combination, Assumed Property Plant And Equipment",,
-Fundamental,fn_business_combination_assets_aquired_goodwill_a,,,fundamental2,"Business Combination, Portion of Purchase Price Allocated to Goodwill",,
-Fundamental,fn_business_combination_assets_aquired_goodwill_q,,,fundamental2,"Business Combination, Portion of Purchase Price Allocated to Goodwill",,
-Fundamental,fn_business_combination_purchase_price_a,,,fundamental2,"Business Combination, Purchase Price",,
-Fundamental,fn_business_combination_purchase_price_q,,,fundamental2,"Business Combination, Purchase Price",,
-Fundamental,fn_comp_fair_value_assumptions_weighted_avg_vol_rate_a,,,fundamental2,Weighted average expected volatility rate of share-based compensation awards.,,
-Fundamental,fn_comp_fair_value_assumptions_weighted_avg_vol_rate_q,,,fundamental2,Weighted average expected volatility rate of share-based compensation awards.,,
-Fundamental,fn_comp_non_opt_forfeited_a,,,fundamental2,"The number of equity-based payment instruments, excluding stock (or unit) options, that were forfeited during the reporting period.",,
-Fundamental,fn_comp_non_opt_forfeited_q,,,fundamental2,"The number of equity-based payment instruments, excluding stock (or unit) options, that were forfeited during the reporting period.",,
-Fundamental,fn_comp_non_opt_grants_a,,,fundamental2,"The number of grants made during the period on other than stock (or unit) option plans (for example, phantom stock or unit plan, stock or unit appreciation rights plan, performance target plan).",,
-Fundamental,fn_comp_non_opt_grants_q,,,fundamental2,"The number of grants made during the period on other than stock (or unit) option plans (for example, phantom stock or unit plan, stock or unit appreciation rights plan, performance target plan).",,
-Fundamental,fn_comp_non_opt_nonvested_number_a,,,fundamental2,"The number of non-vested equity-based payment instruments, excluding stock (or unit) options, that validly exist and are outstanding as of the balance sheet date.",,
-Fundamental,fn_comp_non_opt_nonvested_number_q,,,fundamental2,"The number of non-vested equity-based payment instruments, excluding stock (or unit) options, that validly exist and are outstanding as of the balance sheet date.",,
-Fundamental,fn_comp_non_opt_vested_a,,,fundamental2,"The number of equity-based payment instruments, excluding stock (or unit) options, that vested during the reporting period.",,
-Fundamental,fn_comp_non_opt_vested_q,,,fundamental2,"The number of equity-based payment instruments, excluding stock (or unit) options, that vested during the reporting period.",,
-Fundamental,fn_comp_not_rec_a,,,fundamental2,Unrecognized cost of unvested share-based compensation awards.,,
-Fundamental,fn_comp_not_rec_q,,,fundamental2,Unrecognized cost of unvested share-based compensation awards.,,
-Fundamental,fn_comp_not_rec_stock_options_a,,,fundamental2,Unrecognized cost of unvested stock option awards.,,
-Fundamental,fn_comp_not_rec_stock_options_q,,,fundamental2,Unrecognized cost of unvested stock option awards.,,
-Fundamental,fn_comp_number_of_shares_authorized_a,,,fundamental2,"Count of unique IDs of industry participants. Industry stands for an aggregate view of all  equity clearance activity for the date, symbol, and transaction type in question.",,
-Fundamental,fn_comp_number_of_shares_authorized_q,,,fundamental2,"The maximum number of shares (or other type of equity) originally approved (usually by shareholders and board of directors), net of any subsequent amendments and adjustments, for awards under the equity-based compensation plan. As stock or unit options and equity instruments other than options are awarded to participants, the shares or units remain authorized and become reserved for issuance under outstanding awards (not necessarily vested).",,
-Fundamental,fn_comp_options_exercisable_number_a,,,fundamental2,The number of shares into which fully or partially vested stock options outstanding as of the balance sheet date can be currently converted under the option plan.,,
-Fundamental,fn_comp_options_exercisable_number_q,,,fundamental2,The number of shares into which fully or partially vested stock options outstanding as of the balance sheet date can be currently converted under the option plan.,,
-Fundamental,fn_comp_options_exercisable_weighted_avg_a,,,fundamental2,The weighted-average price as of the balance sheet date at which grantees can acquire the shares reserved for issuance on vested portions of options outstanding and currently exercisable under the stock option plan.,,
-Fundamental,fn_comp_options_exercisable_weighted_avg_q,,,fundamental2,The weighted-average price as of the balance sheet date at which grantees can acquire the shares reserved for issuance on vested portions of options outstanding and currently exercisable under the stock option plan.,,
-Fundamental,fn_comp_options_exercises_weighted_avg_a,,,fundamental2,"Share-Based Compensation, Options Assumed, Weighted Average Exercise Price",,
-Fundamental,fn_comp_options_exercises_weighted_avg_q,,,fundamental2,"Share-Based Compensation, Options Assumed, Weighted Average Exercise Price",,
-Fundamental,fn_comp_options_forfeitures_and_expirations_a,,,fundamental2,"For presentations that combine terminations, the number of shares under options that were canceled during the reporting period as a result of occurrence of a terminating event specified in contractual agreements pertaining to the stock option plan or that expired.",,
-Fundamental,fn_comp_options_forfeitures_and_expirations_q,,,fundamental2,"For presentations that combine terminations, the number of shares under options that were cancelled during the reporting period as a result of occurrence of a terminating event specified in contractual agreements pertaining to the stock option plan or that expired.",,
-Fundamental,fn_comp_options_grants_a,,,fundamental2,Net number of share options (or share units) granted during the period.,,
-Fundamental,fn_comp_options_grants_fair_value_a,,,fundamental2,Annual Share-Based Compensation Arrangement by Share-Based Payment Award Options Grants in Period Weighted Average Grant Date Fair Value,,
-Fundamental,fn_comp_options_grants_fair_value_q,,,fundamental2,Annual Share-Based Compensation Arrangement by Share-Based Payment Award Options Grants in Period Weighted Average Grant Date Fair Value,,
-Fundamental,fn_comp_options_grants_q,,,fundamental2,Net number of share options (or share units) granted during the period.,,
-Fundamental,fn_comp_options_grants_weighted_avg_a,,,fundamental2,Weighted average price at which grantees could have acquired the underlying shares with respect to stock options that were terminated.,,
-Fundamental,fn_comp_options_grants_weighted_avg_q,,,fundamental2,Weighted average price at which grantees could have acquired the underlying shares with respect to stock options that were terminated.,,
+Fundamental,eps,✅ In Use,,,Earnings Per Share (Basic) - Including Extraordinary Items,In old alpha book (FIELD/cap expression) — blocked to prevent self-corr,
+Fundamental,equipment_maximum_useful_life,🟡 Tested: Baseline Failed,0.180,fundamental2,Maximum useful life assigned to equipment assets.,,
+Fundamental,equity,🟡 Tested: Baseline Failed,0.040,,Common/Ordinary Equity - Total,,
+Fundamental,equity_awards_granted_non_option_period,🟡 Tested: Baseline Failed,0.440,fundamental2,"Number of equity awards granted during the period, excluding options.",,
+Fundamental,equity_awards_nonoption_forfeited_count,🟡 Tested: Baseline Failed,0.220,fundamental2,Number of equity awards other than options forfeited during the period.,,
+Fundamental,equity_awards_vested_avg_grant_fair_value,🟡 Tested: Baseline Failed,0.260,fundamental2,Weighted average grant date fair value of equity awards vested during the period.,,
+Fundamental,equity_awards_vested_count,🟡 Tested: Baseline Failed,0.110,fundamental2,Number of equity awards other than options vested during the period.,,
+Fundamental,equity_investment_ownership_percent,🟡 Tested: Baseline Failed,-0.280,fundamental2,Percentage ownership in an equity method investment.,,
+Fundamental,equity_investment_ownership_ratio,🟡 Tested: Baseline Failed,0.170,fundamental2,Percentage ownership in an entity accounted for using the equity method.,,
+Fundamental,equity_method_investment_income,🟡 Tested: Baseline Failed,0.010,fundamental2,Income earned from investments accounted for using the equity method.,,
+Fundamental,equity_method_investment_income_total,🟡 Tested: Baseline Failed,0.550,fundamental2,Total income from investments accounted for using the equity method.,,
+Fundamental,equity_method_investment_total,🟡 Tested: Baseline Failed,0.280,fundamental2,Total value of investments accounted for using the equity method.,,
+Fundamental,excess_tax_benefit_sbp_financing,🟡 Tested: Baseline Failed,0.100,fundamental2,Excess tax benefit realized from share-based compensation in financing activities.,,
+Fundamental,excess_tax_benefit_share_comp_financing,🟡 Tested: Baseline Failed,0.160,fundamental2,Tax benefit from share-based compensation related to financing activities.,,
+Fundamental,excess_tax_benefit_share_comp_operating,🟡 Tested: Baseline Failed,0.530,fundamental2,Excess tax benefit realized from share-based compensation in operating activities.,,
+Fundamental,excess_tax_benefit_share_comp_operating_2,🟡 Tested: Baseline Failed,-0.080,fundamental2,Excess tax benefit from share-based compensation recognized in operating activities.,,
+Fundamental,exchange_rate_effect_cash_equivalents,🟡 Tested: Baseline Failed,-0.040,fundamental2,Impact of exchange rate changes on cash and cash equivalents.,,
+Fundamental,exchange_rate_effect_on_cash,🟡 Tested: Baseline Failed,0.150,fundamental2,Effect of exchange rate changes on cash and cash equivalents.,,
+Fundamental,exercisable_option_award_count,🟡 Tested: Baseline Failed,-0.240,fundamental2,Number of share-based payment options currently exercisable.,,
+Fundamental,exercisable_options_avg_exercise_price,🟡 Tested: Baseline Failed,0.400,fundamental2,Weighted average exercise price for exercisable options.,,
+Fundamental,exercisable_options_avg_exercise_price_2,🟡 Tested: Baseline Failed,0.060,fundamental2,Weighted average exercise price of exercisable share-based payment options.,,
+Fundamental,exercisable_options_count,🟡 Tested: Baseline Failed,0.230,fundamental2,Number of share-based payment options that are exercisable.,,
+Fundamental,expected_benefit_payments_year2,🟡 Tested: Baseline Failed,-0.190,fundamental2,Expected benefit payments in the second year under a defined benefit plan.,,
+Fundamental,expected_dividend_rate_share_award_valuation,🟡 Tested: Baseline Failed,0.320,fundamental2,Expected dividend rate used in valuing share-based awards.,,
+Fundamental,expected_future_benefit_payment_year_three,🟡 Tested: Baseline Failed,-0.310,fundamental2,Expected future benefit payments for defined benefit plans in the third year.,,
+Fundamental,expected_return_on_pension_plan_assets,🟡 Tested: Baseline Failed,0.500,fundamental2,Expected return on assets in a defined benefit plan.,,
+Fundamental,face_value_debt_instrument,🟡 Tested: Baseline Failed,-0.270,fundamental2,Principal amount of a debt instrument.,,
+Fundamental,fair_value_derivative_liabilities,🟡 Tested: Baseline Failed,0.290,fundamental2,Fair value of derivative liabilities.,,
+Fundamental,fair_value_liabilities_level_three,🟡 Tested: Baseline Failed,,fundamental2,Fair value of liabilities measured using significant unobservable inputs (Level 3).,,
+Fundamental,federal_income_tax_rate_statutory,🟡 Tested: Baseline Failed,0.840,fundamental2,Statutory federal income tax rate applicable to the entity.,,
+Fundamental,federal_statutory_tax_rate,🟡 Tested: Baseline Failed,1.130,fundamental2,Federal statutory income tax rate applicable to the entity.,,
+Fundamental,federal_tax_rate_income_tax_reconciliation,🟡 Tested: Baseline Failed,0.510,fundamental2,Income tax expense or benefit at federal statutory tax rate for reconciliation.,,
+Fundamental,financing_costs_amortization,🟡 Tested: Baseline Failed,0.160,fundamental2,Amortization expense for financing costs.,,
+Fundamental,financing_costs_amortization_total,🟡 Tested: Baseline Failed,0.660,fundamental2,Total amortization expense for financing costs.,,
+Fundamental,finite_intangibles_gross_value,🟡 Tested: Baseline Failed,0.150,fundamental2,Gross value of finite-lived intangible assets.,,
+Fundamental,fn_accrued_liab_a,🟡 Tested: Baseline Failed,0.320,fundamental2,"Carrying value as of the balance sheet date of obligations incurred and payable, pertaining to costs that are statutory in nature, are incurred on contractual obligations, or accumulate over time and for which invoices have not yet been received or will not be rendered.",,
+Fundamental,fn_accrued_liab_curr_a,🟡 Tested: Baseline Failed,0.190,fundamental2,"Carrying value as of the balance sheet date of obligations incurred and payable, pertaining to costs that are statutory in nature, are incurred on contractual obligations, or accumulate over time and for which invoices have not yet been received or will not be rendered.",,
+Fundamental,fn_accrued_liab_curr_q,🟡 Tested: Baseline Failed,0.030,fundamental2,"Carrying value as of the balance sheet date of obligations incurred and payable, pertaining to costs that are statutory in nature, are incurred on contractual obligations, or accumulate over time and for which invoices have not yet been received or will not be rendered.",,
+Fundamental,fn_accrued_liab_q,🟡 Tested: Baseline Failed,0.090,fundamental2,"Carrying value as of the balance sheet date of obligations incurred and payable, pertaining to costs that are statutory in nature, are incurred on contractual obligations, or accumulate over time and for which invoices have not yet been received or will not be rendered.",,
+Fundamental,fn_accum_depr_depletion_and_amortization_ppne_a,🟡 Tested: Baseline Failed,0.460,fundamental2,"Amount of accumulated depreciation, depletion and amortization for physical assets used in the normal conduct of business to produce goods and services.",,
+Fundamental,fn_accum_depr_depletion_and_amortization_ppne_q,🟡 Tested: Baseline Failed,-0.180,fundamental2,"Amount of accumulated depreciation, depletion and amortization for physical assets used in the normal conduct of business to produce goods and services.",,
+Fundamental,fn_accum_oth_income_loss_fx_adj_net_of_tax_a,🟡 Tested: Baseline Failed,0.810,fundamental2,"Accumulated adjustment, net of tax, that results from the process of translating subsidiary financial statements and foreign equity investments into the reporting currency from the functional currency of the reporting entity, net of reclassification of realized foreign currency translation gains or losses.",,
+Fundamental,fn_accum_oth_income_loss_fx_adj_net_of_tax_q,🟡 Tested: Baseline Failed,0.030,fundamental2,"Accumulated adjustment, net of tax, that results from the process of translating subsidiary financial statements and foreign equity investments into the reporting currency from the functional currency of the reporting entity, net of reclassification of realized foreign currency translation gains or losses.",,
+Fundamental,fn_accum_oth_income_loss_net_of_tax_a,🟡 Tested: Baseline Failed,0.630,fundamental2,"Accumulated change in equity from transactions and other events and circumstances from non-owner sources, net of tax effect, at period end. Excludes Net Income (Loss), and accumulated changes in equity from transactions resulting from investments by owners and distributions to owners. Includes foreign currency translation items, certain pension adjustments, unrealized gains and losses on certain investments in debt and equity securities, other than temporary impairment (OTTI) losses related to factors other than credit losses on available-for-sale and held-to-maturity debt securities that an entity does not intend to sell and it is not more likely than not that the entity will be required to sell before recovery of the amortized cost basis, as well as changes in the fair value of derivatives related to the effective portion of a designated cash flow hedge.",,
+Fundamental,fn_accum_oth_income_loss_net_of_tax_q,🟡 Tested: Baseline Failed,0.380,fundamental2,"Accumulated change in equity from transactions and other events and circumstances from non-owner sources, net of tax effect, at period end. Excludes Net Income (Loss), and accumulated changes in equity from transactions resulting from investments by owners and distributions to owners. Includes foreign currency translation items, certain pension adjustments, unrealized gains and losses on certain investments in debt and equity securities, other than temporary impairment (OTTI) losses related to factors other than credit losses on available-for-sale and held-to-maturity debt securities that an entity does not intend to sell and it is not more likely than not that the entity will be required to sell before recovery of the amortized cost basis, as well as changes in the fair value of derivatives related to the effective portion of a designated cash flow hedge.",,
+Fundamental,fn_allocated_share_based_compensation_expense_a,🟡 Tested: Baseline Failed,0.530,fundamental2,"Represents the expense recognized during the period arising from equity-based compensation arrangements (for example, shares of stock, unit, stock options or other equity instruments) with employees, directors and certain consultants qualifying for treatment as employees.",,
+Fundamental,fn_allocated_share_based_compensation_expense_q,🟡 Tested: Baseline Failed,0.150,fundamental2,"Represents the expense recognized during the period arising from equity-based compensation arrangements (for example, shares of stock, units, stock options, or other equity instruments) with employees, directors, and certain consultants qualifying for treatment as employees.",,
+Fundamental,fn_allowance_for_doubtful_accounts_receivable_a,🟡 Tested: Baseline Failed,0.300,fundamental2,"For an unclassified balance sheet, a valuation allowance for receivables due a company that are expected to be uncollectible.",,
+Fundamental,fn_allowance_for_doubtful_accounts_receivable_q,🟡 Tested: Baseline Failed,0.340,fundamental2,"For an unclassified balance sheet, a valuation allowance for receivables due a company that are expected to be uncollectible.",,
+Fundamental,fn_amortization_of_intangible_assets_a,🟡 Tested: Baseline Failed,0.570,fundamental2,"The aggregate expense charged against earnings to allocate the cost of intangible assets (nonphysical assets not used in production) in a systematic and rational manner to the periods expected to benefit from such assets. As a noncash expense, this element is added back to net income when calculating cash provided by or used in operations using the indirect method.",,
+Fundamental,fn_amortization_of_intangible_assets_q,🟡 Tested: Baseline Failed,0.070,fundamental2,"The aggregate expense charged against earnings to allocate the cost of intangible assets (nonphysical assets not used in production) in a systematic and rational manner to the periods expected to benefit from such assets. As a noncash expense, this element is added back to net income when calculating cash provided by or used in operations using the indirect method.",,
+Fundamental,fn_antidilutive_securities_excl_from_eps_a,🟡 Tested: Baseline Failed,0.030,fundamental2,Securities (including those issuable pursuant to contingent stock agreements) that could potentially dilute basic earnings per share (EPS) or earnings per unit (EPU) in the future that were not included in the computation of diluted EPS or EPU because to do so would increase EPS or EPU amounts or decrease loss per share or unit amounts for the period presented.,,
+Fundamental,fn_antidilutive_securities_excl_from_eps_q,🟡 Tested: Baseline Failed,0.010,fundamental2,Securities (including those issuable pursuant to contingent stock agreements) that could potentially dilute basic earnings per share (EPS) or earnings per unit (EPU) in the future that were not included in the computation of diluted EPS or EPU because to do so would increase EPS or EPU amounts or decrease loss per share or unit amounts for the period presented.,,
+Fundamental,fn_assets_fair_val_a,🟡 Tested: Baseline Failed,0.450,fundamental2,"Asset Fair Value, Recurring, Total",,
+Fundamental,fn_assets_fair_val_l1_a,🟡 Tested: Baseline Failed,-0.190,fundamental2,"Asset Fair Value, Recurring, Level 1",,
+Fundamental,fn_assets_fair_val_l1_q,🟡 Tested: Baseline Failed,0.320,fundamental2,"Asset Fair Value, Recurring, Level 1",,
+Fundamental,fn_assets_fair_val_l2_a,🟡 Tested: Baseline Failed,0.360,fundamental2,"Asset Fair Value, Recurring, Level 2",,
+Fundamental,fn_assets_fair_val_l2_q,🟡 Tested: Baseline Failed,-0.090,fundamental2,"Asset Fair Value, Recurring, Level 2",,
+Fundamental,fn_assets_fair_val_l3_a,🟡 Tested: Baseline Failed,0.170,fundamental2,"Asset Fair Value, Recurring, Level 3",,
+Fundamental,fn_assets_fair_val_l3_q,🟡 Tested: Baseline Failed,0.710,fundamental2,"Asset Fair Value, Recurring, Level 3",,
+Fundamental,fn_assets_fair_val_q,🟡 Tested: Baseline Failed,0.490,fundamental2,"Asset Fair Value, Recurring, Total",,
+Fundamental,fn_avg_diluted_sharesout_adj_a,🟡 Tested: Baseline Failed,0.250,fundamental2,The sum of dilutive potential common shares or units used in the calculation of the diluted per-share or per-unit computation.,,
+Fundamental,fn_avg_diluted_sharesout_adj_q,🟡 Tested: Baseline Failed,0.520,fundamental2,The sum of dilutive potential common shares or units used in the calculation of the diluted per-share or per-unit computation.,,
+Fundamental,fn_business_acq_ppne_a,🟡 Tested: Baseline Failed,0.370,fundamental2,"Business Combination, Assumed Property, Plant and Equipment",,
+Fundamental,fn_business_acq_ppne_q,🟡 Tested: Baseline Failed,0.570,fundamental2,"Business Combination, Assumed Property Plant And Equipment",,
+Fundamental,fn_business_combination_assets_aquired_goodwill_a,🟡 Tested: Baseline Failed,0.300,fundamental2,"Business Combination, Portion of Purchase Price Allocated to Goodwill",,
+Fundamental,fn_business_combination_assets_aquired_goodwill_q,🟡 Tested: Baseline Failed,0.170,fundamental2,"Business Combination, Portion of Purchase Price Allocated to Goodwill",,
+Fundamental,fn_business_combination_purchase_price_a,🟡 Tested: Baseline Failed,0.240,fundamental2,"Business Combination, Purchase Price",,
+Fundamental,fn_business_combination_purchase_price_q,🟡 Tested: Baseline Failed,0.340,fundamental2,"Business Combination, Purchase Price",,
+Fundamental,fn_comp_fair_value_assumptions_weighted_avg_vol_rate_a,🟡 Tested: Baseline Failed,0.800,fundamental2,Weighted average expected volatility rate of share-based compensation awards.,,
+Fundamental,fn_comp_fair_value_assumptions_weighted_avg_vol_rate_q,🟡 Tested: Baseline Failed,0.210,fundamental2,Weighted average expected volatility rate of share-based compensation awards.,,
+Fundamental,fn_comp_non_opt_forfeited_a,🟡 Tested: Baseline Failed,0.660,fundamental2,"The number of equity-based payment instruments, excluding stock (or unit) options, that were forfeited during the reporting period.",,
+Fundamental,fn_comp_non_opt_forfeited_q,🟡 Tested: Baseline Failed,0.220,fundamental2,"The number of equity-based payment instruments, excluding stock (or unit) options, that were forfeited during the reporting period.",,
+Fundamental,fn_comp_non_opt_grants_a,🟡 Tested: Baseline Failed,0.540,fundamental2,"The number of grants made during the period on other than stock (or unit) option plans (for example, phantom stock or unit plan, stock or unit appreciation rights plan, performance target plan).",,
+Fundamental,fn_comp_non_opt_grants_q,🟡 Tested: Baseline Failed,0.440,fundamental2,"The number of grants made during the period on other than stock (or unit) option plans (for example, phantom stock or unit plan, stock or unit appreciation rights plan, performance target plan).",,
+Fundamental,fn_comp_non_opt_nonvested_number_a,🟡 Tested: Baseline Failed,0.420,fundamental2,"The number of non-vested equity-based payment instruments, excluding stock (or unit) options, that validly exist and are outstanding as of the balance sheet date.",,
+Fundamental,fn_comp_non_opt_nonvested_number_q,🟡 Tested: Baseline Failed,0.430,fundamental2,"The number of non-vested equity-based payment instruments, excluding stock (or unit) options, that validly exist and are outstanding as of the balance sheet date.",,
+Fundamental,fn_comp_non_opt_vested_a,🟡 Tested: Baseline Failed,0.850,fundamental2,"The number of equity-based payment instruments, excluding stock (or unit) options, that vested during the reporting period.",,
+Fundamental,fn_comp_non_opt_vested_q,🟡 Tested: Baseline Failed,0.220,fundamental2,"The number of equity-based payment instruments, excluding stock (or unit) options, that vested during the reporting period.",,
+Fundamental,fn_comp_not_rec_a,🟡 Tested: Baseline Failed,0.140,fundamental2,Unrecognized cost of unvested share-based compensation awards.,,
+Fundamental,fn_comp_not_rec_q,🟡 Tested: Baseline Failed,-0.230,fundamental2,Unrecognized cost of unvested share-based compensation awards.,,
+Fundamental,fn_comp_not_rec_stock_options_a,🟡 Tested: Baseline Failed,0.170,fundamental2,Unrecognized cost of unvested stock option awards.,,
+Fundamental,fn_comp_not_rec_stock_options_q,🟡 Tested: Baseline Failed,-0.170,fundamental2,Unrecognized cost of unvested stock option awards.,,
+Fundamental,fn_comp_number_of_shares_authorized_a,🟡 Tested: Baseline Failed,0.310,fundamental2,"Count of unique IDs of industry participants. Industry stands for an aggregate view of all  equity clearance activity for the date, symbol, and transaction type in question.",,
+Fundamental,fn_comp_number_of_shares_authorized_q,🟠 Test Soon,-1.050,fundamental2,"The maximum number of shares (or other type of equity) originally approved (usually by shareholders and board of directors), net of any subsequent amendments and adjustments, for awards under the equity-based compensation plan. As stock or unit options and equity instruments other than options are awarded to participants, the shares or units remain authorized and become reserved for issuance under outstanding awards (not necessarily vested).",,
+Fundamental,fn_comp_options_exercisable_number_a,🟡 Tested: Baseline Failed,0.130,fundamental2,The number of shares into which fully or partially vested stock options outstanding as of the balance sheet date can be currently converted under the option plan.,,
+Fundamental,fn_comp_options_exercisable_number_q,🟡 Tested: Baseline Failed,-0.260,fundamental2,The number of shares into which fully or partially vested stock options outstanding as of the balance sheet date can be currently converted under the option plan.,,
+Fundamental,fn_comp_options_exercisable_weighted_avg_a,🟡 Tested: Baseline Failed,0.060,fundamental2,The weighted-average price as of the balance sheet date at which grantees can acquire the shares reserved for issuance on vested portions of options outstanding and currently exercisable under the stock option plan.,,
+Fundamental,fn_comp_options_exercisable_weighted_avg_q,🟡 Tested: Baseline Failed,0.400,fundamental2,The weighted-average price as of the balance sheet date at which grantees can acquire the shares reserved for issuance on vested portions of options outstanding and currently exercisable under the stock option plan.,,
+Fundamental,fn_comp_options_exercises_weighted_avg_a,🟡 Tested: Baseline Failed,0.260,fundamental2,"Share-Based Compensation, Options Assumed, Weighted Average Exercise Price",,
+Fundamental,fn_comp_options_exercises_weighted_avg_q,🟡 Tested: Baseline Failed,-0.060,fundamental2,"Share-Based Compensation, Options Assumed, Weighted Average Exercise Price",,
+Fundamental,fn_comp_options_forfeitures_and_expirations_a,🟡 Tested: Baseline Failed,0.370,fundamental2,"For presentations that combine terminations, the number of shares under options that were canceled during the reporting period as a result of occurrence of a terminating event specified in contractual agreements pertaining to the stock option plan or that expired.",,
+Fundamental,fn_comp_options_forfeitures_and_expirations_q,🟡 Tested: Baseline Failed,0.500,fundamental2,"For presentations that combine terminations, the number of shares under options that were cancelled during the reporting period as a result of occurrence of a terminating event specified in contractual agreements pertaining to the stock option plan or that expired.",,
+Fundamental,fn_comp_options_grants_a,🟡 Tested: Baseline Failed,0.550,fundamental2,Net number of share options (or share units) granted during the period.,,
+Fundamental,fn_comp_options_grants_fair_value_a,🟡 Tested: Baseline Failed,-0.020,fundamental2,Annual Share-Based Compensation Arrangement by Share-Based Payment Award Options Grants in Period Weighted Average Grant Date Fair Value,,
+Fundamental,fn_comp_options_grants_fair_value_q,🟡 Tested: Baseline Failed,,fundamental2,Annual Share-Based Compensation Arrangement by Share-Based Payment Award Options Grants in Period Weighted Average Grant Date Fair Value,,
+Fundamental,fn_comp_options_grants_q,🟡 Tested: Baseline Failed,0.240,fundamental2,Net number of share options (or share units) granted during the period.,,
+Fundamental,fn_comp_options_grants_weighted_avg_a,🟡 Tested: Baseline Failed,-0.200,fundamental2,Weighted average price at which grantees could have acquired the underlying shares with respect to stock options that were terminated.,,
+Fundamental,fn_comp_options_grants_weighted_avg_q,🟡 Tested: Baseline Failed,-0.190,fundamental2,Weighted average price at which grantees could have acquired the underlying shares with respect to stock options that were terminated.,,
 Fundamental,fn_comp_options_out_intrinsic_value_a,,,fundamental2,The intrinsic value of a stock option is the amount by which the market value of the underlying stock exceeds the exercise price of the option.,,
 Fundamental,fn_comp_options_out_intrinsic_value_q,,,fundamental2,The intrinsic value of a stock option is the amount by which the market value of the underlying stock exceeds the exercise price of the option.,,
 Fundamental,fn_comp_options_out_number_a,,,fundamental2,"Number of options outstanding, including both vested and non-vested options.",,
@@ -2745,7 +2745,7 @@ Fundamental,intangible_assets_gross_value,,,fundamental2,Gross value of finite-l
 Fundamental,intangible_assets_net_carrying_value,,,fundamental2,Net carrying value of finite-lived intangible assets after amortization.,,
 Fundamental,intangible_assets_total_amortization,,,fundamental2,Total amortization recorded for finite-lived intangible assets.,,
 Fundamental,interest_due_liabilities,,,fundamental2,Amount of interest payable as a liability.,,
-Fundamental,interest_expense,,,,Interest and Related Expense - Total,,
+Fundamental,interest_expense,✅ In Use,,,Interest and Related Expense - Total,In old alpha book (FIELD/cap expression) — blocked to prevent self-corr,
 Fundamental,interest_payable_amount_3,,,fundamental2,Total amount of interest owed but not yet paid.,,
 Fundamental,inventory,,,,Inventories - Total,,
 Fundamental,inventory_finished_goods_value,,,fundamental2,Value of inventory classified as finished goods.,,
@@ -2876,7 +2876,7 @@ Fundamental,plan_assets_fair_value_lvl3_rollforward,,,fundamental2,Rollforward o
 Fundamental,ppande_accumulated_depreciation,,,fundamental2,"Total accumulated depreciation, depletion, and amortization for property, plant, and equipment.",,
 Fundamental,ppande_gross_value_total,,,fundamental2,"Total gross value of property, plant, and equipment.",,
 Fundamental,ppe_gross_value,,,fundamental2,"Total gross value of property, plant, and equipment before depreciation.",,
-Fundamental,ppent,,,,Property Plant and Equipment - Total (Net),,
+Fundamental,ppent,✅ In Use,,,Property Plant and Equipment - Total (Net),In old alpha book (FIELD/cap expression) — blocked to prevent self-corr,
 Fundamental,prepaid_expense_total,,,fundamental2,Total amount of expenses paid in advance.,,
 Fundamental,prepaid_expense_total_2,,,fundamental2,Total amount of expenses paid in advance and recorded as assets.,,
 Fundamental,pretax_income,,,,Pretax Income,,
@@ -2906,7 +2906,7 @@ Fundamental,restructuring_reserve_total_value,,,fundamental2,Total value of rest
 Fundamental,retained_earnings,,,,Retained Earnings,,
 Fundamental,return_assets,❌ Abandoned,,,Return on Assets,COVID-distorted. Negative IS Sharpe.,neg_sharpe
 Fundamental,return_equity,,,,Return on Equity,,
-Fundamental,revenue,,,,Revenue - Total,,
+Fundamental,revenue,✅ In Use,,,Revenue - Total,In old alpha book (FIELD/cap expression) — blocked to prevent self-corr,
 Fundamental,rsu_award_expense_total,,,fundamental2,Total allocated expense for restricted stock unit awards.,,
 Fundamental,sales,,,,Sales/Turnover (Net),,
 Fundamental,sales_growth,,,,Growth in Sales (Quarterly),,
@@ -2981,54 +2981,54 @@ Fundamental,working_capital,,,,Working Capital (Balance Sheet),,
 Fundamental,year5_intangible_amortization_expense,,,fundamental2,Amortization expense for finite-lived intangible assets in year five.,,
 Fundamental,year_four_amortization_expense_intangibles,,,fundamental2,Amortization expense for finite-lived intangible assets in the fourth year.,,
 Fundamental,year_three_amortization_expense_intangibles,,,fundamental2,Amortization expense for finite-lived intangible assets in the third year.,,
-Model,abnormal_return_earnings_release,,,model77,Abnormal stock return around quarterly earnings release event,,
-Model,asia_pacific_sales_exposure,,,model77,Proportion of company sales from the Asia-Pacific region,,
-Model,asset_growth_rate,,,model77,Aggregate Gamma,,
-Model,asset_growth_rate_sensitivityfactor,,,model77,Aggregate gamma from the options market; measures overall options positioning impact on returns,,
-Model,book_leverage_ratio_3,,,model77,Book leverage ratio; total assets divided by book equity,,
-Model,capex_to_depreciation_linkage,,,model77,Linkage or ratio between capital expenditures and depreciation expense; may indicate asset reinvestment,,
-Model,capex_to_total_assets,,,model77,TTM capital expenditure divided by total assets; measure of investment intensity,,
-Model,cash_burn_rate,,,model77,Cash Burn Rate,,
-Model,cash_burn_rate_v1,,,model77,Rate at which a company uses up its cash resources; lower value indicates better cash generation ability,,
-Model,cash_earnings_return_on_equity,,,model77,Cash Earnings Return On Equity: a profitability metric measuring cash earnings as a proportion of shareholder equity,,
-Model,cash_flow_return_on_invested_capital,,,model77,Cash Flow Return on Invested Capital; trailing 12-month cash flow divided by average invested capital,,
-Model,change_in_eps_surprise,,,model77,Change in earnings per share (EPS) surprise compared to the previous earnings period,,
-Model,coefficient_variation_fy1_eps,,,model77,Coefficient of variation (dispersion) of EPS estimates for fiscal year 1; analyst disagreement,,
-Model,coefficient_variation_fy2_eps,,,model77,"Dispersion of FY2 EPS analyst forecasts, calculated as standard deviation divided by the mean of FY2 estimates",,
-Model,consensus_analyst_rating,,,model77,Street Consensus Rating,,
-Model,credit_risk_premium_indicator,,,model77,Sensitivity of the company’s stock to changes in the credit risk premium (spread between BAA and AAA bond yields),,
-Model,current_liabilities_to_price_v1,,,model77,Current liabilities divided by price; indicator of short-term balance sheet risk,,
-Model,current_ratio_2,,,model77,Current Ratio; current assets divided by current liabilities,,
-Model,distress_risk_measure,,,model77,Distress measure score (quantifies financial distress or bankruptcy risk),,
-Model,dividends_to_gross_profit,,,model77,Total dividends paid divided by gross profit.,,
-Model,earnings_expectation_module_score,,,model77,Earnings Expectations (submodule of Momentum Analyst II),,
-Model,earnings_momentum_analyst_score,,,model77,Reported Earnings Momentum (submodule of Momentum Analyst II),,
-Model,earnings_momentum_composite_score,,,model77,"Composite score reflecting overall earnings momentum, calculated from related earnings momentum signals",,
-Model,earnings_momentum_composite_score_2,,,model77,Composite score summarizing multiple earnings momentum signals into a single metric,,
-Model,earnings_revision_magnitude,,,model77,"Magnitude of analyst EPS forecast revisions; three-month change in median FY1 estimate, scaled",,
-Model,earnings_shortfall_metric,,,model77,Measure of earnings shortfall (actual earnings below consensus expectations),,
-Model,earnings_torpedo_indicator,,,model77,Next four quarter EPS estimate plus trailing twelve-month real earnings surprise divided by trailing EPS.,,
-Model,emea_sales_exposure,,,model77,"Proportion of company’s sales coming from the Europe, Middle East, and Africa (EMEA) region",,
-Model,enterprise_value_weighted_value_score,,,model77,Earnings Valuation (submodule of Value Analyst II),,
-Model,equity_value_score,,,model77,Earnings Quality (submodule of Value Analyst II),,
-Model,fcf_yield_multiplied_forward_roe,,,model77,"Product of trailing twelve-month free cash flow yield and forward return on equity (ROE), typically calculated by multiplying TTM FCF per share with next period’s ROE, scaled by price",,
-Model,fcf_yield_times_forward_roe,,,model77,Product of trailing twelve-month free cash flow yield and next four-quarter forward return on equity,,
-Model,fcf_yield_times_forward_roe_2,,,model77,"Product of trailing twelve-month free cash flow yield and forward one-year return on equity, scaled by price",,
-Model,fifteen_to_thirtysix_week_price_ratio,,,model77,Stock price ratio measured over past 15-36 weeks; price momentum indicator,,
-Model,fifty_to_two_hundred_day_price_ratio,,,model77,50-day moving average price divided by 200-day moving average price; medium-term momentum indicator,,
-Model,financial_statement_value_score,,,model77,Financial Statement Valuation (submodule of Value Analyst II),,
-Model,five_year_dividend_growth_rate_2,,,model77,Five-year dividend growth rate,,
-Model,five_year_eps_stability,,,model77,Standard deviation of last five years’ trailing twelve-month EPS divided by their mean.,,
-Model,five_year_eps_trend_r_squared_2,,,model77,"R-squared of the five-year trailing twelve-month EPS trend line, indicating earnings trend fit.",,
-Model,five_year_eps_trend_slope_2,,,model77,Slope coefficient of the five-year trailing twelve-month EPS trend line.,,
-Model,fixed_cash_to_current_liabilities_ratio,,,model77,"Ratio of cash and equivalents to current liabilities, using a fixed calculation method.",,
-Model,forward_book_value_to_price,,,model77,Forward-looking book value per share divided by closing price.,,
-Model,forward_cash_flow_to_price,,,model77,Forward-looking cash flows per share divided by price.,,
-Model,forward_ebitda_to_enterprise_value_2,,,model77,Forward-looking EBITDA divided by enterprise value.,,
-Model,forward_median_earnings_yield,,,model77,Leading 12-Month Median Earnings Yield,,
-Model,forward_median_earnings_yield_globaldividend,,,model77,Leading 12-Month Median Earnings Yield; estimated future earnings divided by price,,
-Model,forward_sales_to_price,,,model77,Forward-looking sales per share divided by trading price.,,
-Model,forward_two_year_eps_growth,,,model77,"2-Year Ahead EPS Growth; forecasted EPS for fiscal year 2 minus year 1, scaled by price",,
+Model,abnormal_return_earnings_release,🟡 Tested: Baseline Failed,-0.350,model77,Abnormal stock return around quarterly earnings release event,,
+Model,asia_pacific_sales_exposure,🟡 Tested: Baseline Failed,0.130,model77,Proportion of company sales from the Asia-Pacific region,,
+Model,asset_growth_rate,🟡 Tested: Baseline Failed,0.190,model77,Aggregate Gamma,,
+Model,asset_growth_rate_sensitivityfactor,🟡 Tested: Baseline Failed,0.190,model77,Aggregate gamma from the options market; measures overall options positioning impact on returns,,
+Model,book_leverage_ratio_3,🟡 Tested: Baseline Failed,0.250,model77,Book leverage ratio; total assets divided by book equity,,
+Model,capex_to_depreciation_linkage,🟡 Tested: Baseline Failed,-0.180,model77,Linkage or ratio between capital expenditures and depreciation expense; may indicate asset reinvestment,,
+Model,capex_to_total_assets,🟡 Tested: Baseline Failed,-0.270,model77,TTM capital expenditure divided by total assets; measure of investment intensity,,
+Model,cash_burn_rate,🟡 Tested: Baseline Failed,-0.140,model77,Cash Burn Rate,,
+Model,cash_burn_rate_v1,🟡 Tested: Baseline Failed,-0.140,model77,Rate at which a company uses up its cash resources; lower value indicates better cash generation ability,,
+Model,cash_earnings_return_on_equity,🟡 Tested: Baseline Failed,0.260,model77,Cash Earnings Return On Equity: a profitability metric measuring cash earnings as a proportion of shareholder equity,,
+Model,cash_flow_return_on_invested_capital,🟡 Tested: Baseline Failed,0.160,model77,Cash Flow Return on Invested Capital; trailing 12-month cash flow divided by average invested capital,,
+Model,change_in_eps_surprise,🟡 Tested: Baseline Failed,-0.320,model77,Change in earnings per share (EPS) surprise compared to the previous earnings period,,
+Model,coefficient_variation_fy1_eps,🟡 Tested: Baseline Failed,-0.310,model77,Coefficient of variation (dispersion) of EPS estimates for fiscal year 1; analyst disagreement,,
+Model,coefficient_variation_fy2_eps,🟡 Tested: Baseline Failed,0.150,model77,"Dispersion of FY2 EPS analyst forecasts, calculated as standard deviation divided by the mean of FY2 estimates",,
+Model,consensus_analyst_rating,🟡 Tested: Baseline Failed,0.270,model77,Street Consensus Rating,,
+Model,credit_risk_premium_indicator,🟡 Tested: Baseline Failed,-0.040,model77,Sensitivity of the company’s stock to changes in the credit risk premium (spread between BAA and AAA bond yields),,
+Model,current_liabilities_to_price_v1,🟡 Tested: Baseline Failed,0.300,model77,Current liabilities divided by price; indicator of short-term balance sheet risk,,
+Model,current_ratio_2,🟡 Tested: Baseline Failed,0.550,model77,Current Ratio; current assets divided by current liabilities,,
+Model,distress_risk_measure,🟡 Tested: Baseline Failed,0.020,model77,Distress measure score (quantifies financial distress or bankruptcy risk),,
+Model,dividends_to_gross_profit,🟡 Tested: Baseline Failed,-0.510,model77,Total dividends paid divided by gross profit.,,
+Model,earnings_expectation_module_score,🟡 Tested: Baseline Failed,-0.070,model77,Earnings Expectations (submodule of Momentum Analyst II),,
+Model,earnings_momentum_analyst_score,🟡 Tested: Baseline Failed,-0.190,model77,Reported Earnings Momentum (submodule of Momentum Analyst II),,
+Model,earnings_momentum_composite_score,🟡 Tested: Baseline Failed,-0.050,model77,"Composite score reflecting overall earnings momentum, calculated from related earnings momentum signals",,
+Model,earnings_momentum_composite_score_2,🟡 Tested: Baseline Failed,-0.050,model77,Composite score summarizing multiple earnings momentum signals into a single metric,,
+Model,earnings_revision_magnitude,🟡 Tested: Baseline Failed,0.110,model77,"Magnitude of analyst EPS forecast revisions; three-month change in median FY1 estimate, scaled",,
+Model,earnings_shortfall_metric,🟡 Tested: Baseline Failed,0.710,model77,Measure of earnings shortfall (actual earnings below consensus expectations),,
+Model,earnings_torpedo_indicator,🟡 Tested: Baseline Failed,-0.510,model77,Next four quarter EPS estimate plus trailing twelve-month real earnings surprise divided by trailing EPS.,,
+Model,emea_sales_exposure,🟡 Tested: Baseline Failed,-0.470,model77,"Proportion of company’s sales coming from the Europe, Middle East, and Africa (EMEA) region",,
+Model,enterprise_value_weighted_value_score,🟡 Tested: Baseline Failed,0.810,model77,Earnings Valuation (submodule of Value Analyst II),,
+Model,equity_value_score,🟡 Tested: Baseline Failed,0.780,model77,Earnings Quality (submodule of Value Analyst II),,
+Model,fcf_yield_multiplied_forward_roe,🟡 Tested: Baseline Failed,0.180,model77,"Product of trailing twelve-month free cash flow yield and forward return on equity (ROE), typically calculated by multiplying TTM FCF per share with next period’s ROE, scaled by price",,
+Model,fcf_yield_times_forward_roe,🟡 Tested: Baseline Failed,0.390,model77,Product of trailing twelve-month free cash flow yield and next four-quarter forward return on equity,,
+Model,fcf_yield_times_forward_roe_2,🟡 Tested: Baseline Failed,0.490,model77,"Product of trailing twelve-month free cash flow yield and forward one-year return on equity, scaled by price",,
+Model,fifteen_to_thirtysix_week_price_ratio,🟡 Tested: Baseline Failed,-0.160,model77,Stock price ratio measured over past 15-36 weeks; price momentum indicator,,
+Model,fifty_to_two_hundred_day_price_ratio,🟡 Tested: Baseline Failed,-0.170,model77,50-day moving average price divided by 200-day moving average price; medium-term momentum indicator,,
+Model,financial_statement_value_score,🟡 Tested: Baseline Failed,0.960,model77,Financial Statement Valuation (submodule of Value Analyst II),,
+Model,five_year_dividend_growth_rate_2,🟡 Tested: Baseline Failed,-0.810,model77,Five-year dividend growth rate,,
+Model,five_year_eps_stability,🟡 Tested: Baseline Failed,-0.510,model77,Standard deviation of last five years’ trailing twelve-month EPS divided by their mean.,,
+Model,five_year_eps_trend_r_squared_2,🟡 Tested: Baseline Failed,-0.510,model77,"R-squared of the five-year trailing twelve-month EPS trend line, indicating earnings trend fit.",,
+Model,five_year_eps_trend_slope_2,🟡 Tested: Baseline Failed,-0.510,model77,Slope coefficient of the five-year trailing twelve-month EPS trend line.,,
+Model,fixed_cash_to_current_liabilities_ratio,🟡 Tested: Baseline Failed,0.410,model77,"Ratio of cash and equivalents to current liabilities, using a fixed calculation method.",,
+Model,forward_book_value_to_price,🟠 Test Soon,-0.950,model77,Forward-looking book value per share divided by closing price.,,
+Model,forward_cash_flow_to_price,🟠 Test Soon,0.420,model77,Forward-looking cash flows per share divided by price.,,
+Model,forward_ebitda_to_enterprise_value_2,🟡 Tested: Baseline Failed,-0.510,model77,Forward-looking EBITDA divided by enterprise value.,,
+Model,forward_median_earnings_yield,🟡 Tested: Baseline Failed,0.330,model77,Leading 12-Month Median Earnings Yield,,
+Model,forward_median_earnings_yield_globaldividend,🟡 Tested: Baseline Failed,0.330,model77,Leading 12-Month Median Earnings Yield; estimated future earnings divided by price,,
+Model,forward_sales_to_price,🟠 Test Soon,-0.950,model77,Forward-looking sales per share divided by trading price.,,
+Model,forward_two_year_eps_growth,🟡 Tested: Baseline Failed,0.320,model77,"2-Year Ahead EPS Growth; forecasted EPS for fiscal year 2 minus year 1, scaled by price",,
 Model,forward_two_year_eps_growth_rate,,,model77,"Projected two-year-ahead EPS growth, defined as the difference between FY2 and FY1 forecasted earnings scaled by price",,
 Model,fundamental_growth_module_score,,,model77,Fundamental Growth (submodule of Momentum Analyst II),,
 Model,fy1_eps_estimate_dispersion_2,,,model77,FY1 EPS Estimates Dispersion,,

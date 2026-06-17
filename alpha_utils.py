@@ -23,6 +23,12 @@ _FIELD_PATTERNS = [
     r'ts_regression\(([^,)]+)',
     # ts_corr — field is first arg
     r'ts_corr\(([^,)]+)',
+    # hump wrapping a ts operator — e.g. -rank(hump(ts_rank(field, 252)))
+    # Must come before the generic hump pattern below or hump( captures ts_rank(field
+    r'hump\((?:ts_rank|ts_zscore|ts_decay_linear|ts_std_dev|ts_mean)\(([^,)]+)',
+    # ts_rank/ts_zscore wrapping ts_delta/ts_backfill — revision-rate template
+    # e.g. -rank(ts_rank(ts_delta(field, 63), 252))
+    r'(?:ts_rank|ts_zscore)\((?:ts_delta|ts_backfill|ts_mean|ts_std_dev|ts_sum)\(([^,)]+)',
     # Standard time-series operators
     r'(?:ts_rank|ts_zscore|ts_decay_linear|ts_std_dev|ts_mean|ts_delta|ts_backfill|hump)\(([^,)]+)',
     # Fallback: rank(FIELD) or -rank(FIELD)
@@ -154,7 +160,7 @@ def load_passing_expressions(data_dir: Path) -> list[dict]:
                         code = row.get('code', '').strip()
                         if not code or code in seen_codes:
                             continue
-                        if sharpe >= 1.25 and fitness >= 1.0 and passed >= 6:
+                        if abs(sharpe) >= 1.25 and abs(fitness) >= 1.0 and passed >= 6:
                             seen_codes.add(code)
                             passes.append({
                                 'field': extract_field(code) or '?',

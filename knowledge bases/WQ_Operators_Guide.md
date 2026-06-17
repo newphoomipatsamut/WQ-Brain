@@ -118,8 +118,7 @@ A complete, clean reference guide for WorldQuant BRAIN Alpha operators, includin
   Covariance between `x` and `y` over `d` days.
 
 - **`ts_decay_linear(x, d, dense=false)`**
-  Averages recent values giving linear higher weight to recent days. Smooths data and reduces turnover. 
-  > *Pro-Tip:* Best used in intermediate steps, e.g., `rank(ts_decay_linear(x, 5))`.
+  ⛔ **BANNED — do not use.** Alphas using ts_decay_linear always fail Performance Comparison (negative score change) because they correlate with a submitted alpha in the existing book. Use `hump()` to dampen excess turnover, or increase the `Decay` simulation setting instead.
 
 - **`ts_delay(x, d)`**
   Returns the value of `x` from exactly `d` days ago.

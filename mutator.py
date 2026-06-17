@@ -149,15 +149,9 @@ def _add_momentum_factor(code: str) -> list[str]:
 
 
 def _to_decay_linear(code: str) -> list[str]:
-    """Convert ts_rank(field, N) to ts_decay_linear(field, N) * rank(ts_delta(close, 5))."""
-    variants = []
-    m = re.search(r'ts_rank\((\w+),\s*(\d+)\)', code)
-    if m:
-        field, lb = m.group(1), m.group(2)
-        for decay_lb in [21, 42, 63]:
-            new_expr = f'-rank(ts_decay_linear({field}, {decay_lb}) * rank(ts_delta(close, 5)))'
-            variants.append(new_expr)
-    return variants
+    """DISABLED — ts_decay_linear is banned: too correlated with submitted
+    Alpha 10, Performance Comparison score change consistently negative."""
+    return []
 
 
 def mutate_expression(code: str, max_variants: int = 10) -> list[str]:

@@ -29,13 +29,17 @@ TRACKER_CSV = BASE_DIR / 'fields_tracker.csv'
 
 TEMPLATE_PATTERNS = [
     ('ts_regression',   r'ts_regression\('),
+    # group_neutralize must precede group_rank — double-neutral contains both
+    ('group_neutralize',r'group_neutralize\('),
     ('group_rank',      r'group_rank\('),
     ('group_zscore',    r'group_zscore\('),
-    ('group_neutralize',r'group_neutralize\('),
     ('ts_std_dev',      r'ts_std_dev\('),
     ('ts_corr',         r'ts_corr\('),
     ('hump_ts_rank',    r'hump\(ts_rank\('),
     ('ts_decay_linear', r'ts_decay_linear\('),
+    # New templates — must precede generic ts_rank to get their own RL buckets
+    ('ts_rank_confirm', r'\*\s*rank\(ts_delta\('),   # -rank(ts_rank(f,N) * rank(ts_delta(close,M)))
+    ('revision_rate',   r'ts_rank\(ts_delta\('),      # -rank(ts_rank(ts_delta(f, N), M))
     ('ts_zscore',       r'ts_zscore\('),
     ('ts_rank',         r'ts_rank\('),
 ]
@@ -62,6 +66,12 @@ FREQUENCY_MAP = {
 
 # Minimum runs before a template is considered statistically reliable
 MIN_RUNS_FOR_RECOMMENDATION = 10
+
+# Templates banned from recommendations regardless of stats.
+# ts_decay_linear: correlated with Alpha 10 (score change consistently negative)
+# ts_rank_confirm / ts_rank_confirm_med: use rank(ts_delta(close,N)) as price-momentum
+#   leg — all expressions correlated with Alpha 9
+BANNED_TEMPLATES = {'ts_decay_linear', 'ts_rank_confirm', 'ts_rank_confirm_med'}
 
 
 # ─── Core helpers ─────────────────────────────────────────────────────────────
@@ -144,9 +154,9 @@ def update_from_results(results_csv: Path, tracker_csv: Path = TRACKER_CSV):
 
                     perf[key]['runs']      += 1
                     perf[key]['sharpe_sum'] += sharpe
-                    if sharpe >= 1.25 and fitness >= 1.0 and passed >= 6:
+                    if abs(sharpe) >= 1.25 and abs(fitness) >= 1.0 and passed >= 6:
                         perf[key]['passes'] += 1
-                    elif sharpe >= 0.90 and fitness >= 0.70 and passed >= 5:
+                    elif abs(sharpe) >= 0.90 and abs(fitness) >= 0.70 and passed >= 5:
                         perf[key]['near_misses'] += 1
                     count += 1
                 except Exception:
@@ -165,6 +175,29 @@ def update_from_results(results_csv: Path, tracker_csv: Path = TRACKER_CSV):
     _print_summary(perf)
 
 
+def record_corr_fail(code: str, tracker_csv: Path = TRACKER_CSV):
+    """A pass failed self-correlation (≥0.70) — it can never be submitted.
+    Penalize its (template × frequency) bucket so the RL stops favoring it.
+    This is how ts_decay_linear-style traps get caught automatically."""
+    field_freq = _load_field_frequencies(tracker_csv)
+    field = _extract_field(code)
+    freq = field_freq.get(field, 'QUARTERLY') if field else 'QUARTERLY'
+    key = f'{extract_template_type(code)}_{freq}'
+    perf = load_performance()
+    perf.setdefault(key, {'runs': 0, 'sharpe_sum': 0.0,
+                          'passes': 0, 'near_misses': 0})
+    perf[key]['corr_fails'] = perf[key].get('corr_fails', 0) + 1
+    save_performance(perf)
+    print(f'[rl] Recorded corr-fail for {key} '
+          f'(total: {perf[key]["corr_fails"]})')
+
+
+def effective_passes(v: dict) -> int:
+    """Passes that actually count — corr-fails subtract, since an
+    unsubmittable pass is worth nothing."""
+    return max(v.get('passes', 0) - v.get('corr_fails', 0), 0)
+
+
 def _print_summary(perf: dict):
     """Print a quick leaderboard to terminal."""
     qualified = {k: v for k, v in perf.items() if v.get('runs', 0) >= MIN_RUNS_FOR_RECOMMENDATION}
@@ -173,8 +206,8 @@ def _print_summary(perf: dict):
     def _score(item):
         v = item[1]
         runs = v.get('runs', 1)
-        pass_rate = v.get('passes', 0) / runs
-        near_miss_rate = (v.get('passes', 0) + v.get('near_misses', 0)) / runs
+        pass_rate = effective_passes(v) / runs
+        near_miss_rate = (effective_passes(v) + v.get('near_misses', 0)) / runs
         return (pass_rate, near_miss_rate, v.get('avg_sharpe', 0))
     ranked = sorted(qualified.items(), key=_score, reverse=True)
     print('[rl] Template leaderboard (≥10 runs, ranked by pass rate):')
@@ -195,16 +228,18 @@ def get_recommendations(frequency: str) -> str:
     relevant = {
         k: v for k, v in perf.items()
         if k.endswith(f'_{frequency}') and v.get('runs', 0) >= MIN_RUNS_FOR_RECOMMENDATION
+        and k[: -len(frequency) - 1] not in BANNED_TEMPLATES
     }
     if not relevant:
         return ''
 
-    # Rank by pass_rate (primary), then near_miss_rate, then avg_sharpe as tiebreaker
+    # Rank by EFFECTIVE pass_rate (passes minus corr-fails), then near_miss_rate,
+    # then avg_sharpe as tiebreaker
     def _score(item):
         v = item[1]
         runs = v.get('runs', 1)
-        pass_rate = v.get('passes', 0) / runs
-        near_miss_rate = (v.get('passes', 0) + v.get('near_misses', 0)) / runs
+        pass_rate = effective_passes(v) / runs
+        near_miss_rate = (effective_passes(v) + v.get('near_misses', 0)) / runs
         return (pass_rate, near_miss_rate, v.get('avg_sharpe', 0))
 
     ranked = sorted(relevant.items(), key=_score, reverse=True)

@@ -62,9 +62,11 @@ CATEGORY_PRIORITY = [
 
 FIELDS_PER_BATCH = 20
 MAX_TUNE_EXPRESSIONS = 50  # Cap tuning batch — fitness tuning generates more variants
-TRACKER_CSV = BASE_DIR / 'fields_tracker.csv'
-PASSES_LOG  = BASE_DIR / 'passes_to_review.txt'
-SESSION_LOG = BASE_DIR / 'orchestrator_log.txt'
+TRACKER_CSV       = BASE_DIR / 'fields_tracker.csv'
+PASSES_LOG        = BASE_DIR / 'passes_to_review.txt'
+SESSION_LOG       = BASE_DIR / 'orchestrator_log.txt'
+CORR_FAILS_FILE   = BASE_DIR / 'corr_failed_fields.json'
+AUTO_KB_FILE      = BASE_DIR / 'knowledge bases' / 'auto_findings.md'
 
 # IS thresholds
 SHARPE_PASS      = 1.25
@@ -73,6 +75,12 @@ CHECKS_PASS      = 6
 SHARPE_NEAR      = 0.90
 FITNESS_NEAR     = 0.70
 CHECKS_NEAR      = 5
+
+# Self-correlation ceiling — passes at/above this can't be submitted
+CORR_MAX         = 0.70
+# Sweep robustness: a pass needs ≥1 sibling variant with |sharpe| ≥ this,
+# otherwise it's likely a multiple-comparisons fluke
+ROBUST_SHARPE    = 1.00
 
 # ─── Logging ─────────────────────────────────────────────────────────────────
 
@@ -99,13 +107,47 @@ def count_untested(category: str) -> int:
         )
 
 
+# Bayesian prior for category yield: assume ~3% pass rate until proven otherwise.
+# Untested categories score the prior mean (exploration); proven losers (e.g.
+# Analyst: 0 passes / 936 tested) sink to the bottom; proven winners rise.
+PRIOR_PASSES = 1.0
+PRIOR_TESTS  = 30.0
+
+
+def category_scores() -> dict[str, dict]:
+    """Per-category yield stats from the tracker, single pass.
+    score = smoothed (passes + 0.5*near_misses) / tested."""
+    stats = {cat: {'untested': 0, 'tested': 0, 'passes': 0, 'near': 0}
+             for cat in CATEGORY_PRIORITY}
+    with open(TRACKER_CSV) as f:
+        for r in csv.DictReader(f):
+            cat = r.get('category', '')
+            if cat not in stats:
+                continue
+            s = r.get('status', '').strip()
+            if not s:
+                stats[cat]['untested'] += 1
+            else:
+                stats[cat]['tested'] += 1
+                if s in ('✅ In Use', 'pass'):
+                    stats[cat]['passes'] += 1
+                elif s in ('🟠 Test Soon', 'near_miss'):
+                    stats[cat]['near'] += 1
+    for v in stats.values():
+        v['score'] = (v['passes'] + 0.5 * v['near'] + PRIOR_PASSES) / \
+                     (v['tested'] + PRIOR_TESTS)
+    return stats
+
+
 def get_next_category() -> str | None:
-    """Return the first category in priority order that still has untested fields."""
-    for cat in CATEGORY_PRIORITY:
-        n = count_untested(cat)
-        if n > 0:
-            return cat
-    return None
+    """Return the eligible category with the highest historical yield score
+    that still has untested fields."""
+    stats = category_scores()
+    candidates = [(v['score'], cat) for cat, v in stats.items()
+                  if v['untested'] > 0 and cat in CATEGORY_PRIORITY]
+    if not candidates:
+        return None
+    return max(candidates)[1]
 
 
 def update_tracker_from_csv(results_csv: Path):
@@ -122,9 +164,9 @@ def update_tracker_from_csv(results_csv: Path):
             return None, None
         if not re.search(r'worldquantbrain\.com/alpha/\w+', link):
             return 'dead', None
-        if sharpe >= SHARPE_PASS and fitness >= FITNESS_PASS and passed >= CHECKS_PASS:
+        if abs(sharpe) >= SHARPE_PASS and abs(fitness) >= FITNESS_PASS and passed >= CHECKS_PASS:
             return 'pass', sharpe
-        if sharpe >= SHARPE_NEAR and fitness >= FITNESS_NEAR and passed >= CHECKS_NEAR:
+        if abs(sharpe) >= SHARPE_NEAR and abs(fitness) >= FITNESS_NEAR and passed >= CHECKS_NEAR:
             return 'near_miss', sharpe
         return 'tested', sharpe
 
@@ -197,18 +239,400 @@ def parse_passes_and_near_misses(field_best: dict) -> tuple[list, list]:
     return passes, near_misses
 
 
+def parse_all_passes_from_csv(results_csv: Path) -> list:
+    """Return ALL passing expressions from a CSV, keyed by unique code.
+    Unlike update_tracker_from_csv, does NOT deduplicate by extracted field —
+    needed for combination batches where multiple different expressions share
+    the same primary field but have distinct second fields and correlations."""
+    from alpha_utils import extract_field
+    passes = []
+    seen_links = set()
+    try:
+        with open(results_csv, newline='', encoding='utf-8') as f:
+            for row in csv.DictReader(f):
+                try:
+                    sharpe  = float(row.get('sharpe', 0) or 0)
+                    fitness = float(row.get('fitness', 0) or 0)
+                    passed  = int(row.get('passed', 0) or 0)
+                    link    = str(row.get('link', ''))
+                except (ValueError, TypeError):
+                    continue
+                if not re.search(r'worldquantbrain\.com/alpha/\w+', link):
+                    continue
+                if link in seen_links:
+                    continue
+                if abs(sharpe) >= SHARPE_PASS and abs(fitness) >= FITNESS_PASS and passed >= CHECKS_PASS:
+                    seen_links.add(link)
+                    code = row.get('code', '').strip()
+                    field = extract_field(code) or '?'
+                    # Key by code (truncated) so same-field combos aren't collapsed
+                    key = code[:80] if code else link
+                    passes.append((key, {'status': 'pass', 'sharpe': sharpe, 'row': row,
+                                         '_display_field': field}))
+    except Exception:
+        pass
+    return passes
+
+
+# ─── Near-miss failure analysis ──────────────────────────────────────────────
+
+NEAR_MISS_LOG = BASE_DIR / 'near_miss_log.csv'
+
+
+def fail_reasons(row: dict) -> list[str]:
+    """Which pass thresholds does this row fail? Returns e.g. ['fitness 0.84<1.0']."""
+    try:
+        sharpe  = float(row.get('sharpe', 0) or 0)
+        fitness = float(row.get('fitness', 0) or 0)
+        passed  = int(row.get('passed', 0) or 0)
+    except (ValueError, TypeError):
+        return ['unparseable']
+    reasons = []
+    if abs(sharpe) < SHARPE_PASS:
+        reasons.append(f'sharpe {sharpe:.2f}<{SHARPE_PASS}')
+    if abs(fitness) < FITNESS_PASS:
+        reasons.append(f'fitness {fitness:.2f}<{FITNESS_PASS}')
+    if passed < CHECKS_PASS:
+        reasons.append(f'checks {passed}<{CHECKS_PASS}')
+    return reasons
+
+
+def log_near_miss_failures(near_misses: list, category: str):
+    """Log WHICH metric blocks each near-miss and append to near_miss_log.csv
+    so unconverting patterns become visible over time."""
+    if not near_misses:
+        return
+    write_header = not NEAR_MISS_LOG.exists()
+    with open(NEAR_MISS_LOG, 'a', newline='') as f:
+        w = csv.writer(f)
+        if write_header:
+            w.writerow(['timestamp', 'category', 'field', 'sharpe', 'fitness',
+                        'checks', 'turnover', 'fail_reasons', 'code'])
+        for field, info in near_misses:
+            row = info.get('row', {})
+            reasons = fail_reasons(row)
+            log(f"    near-miss {field}: blocked by [{'; '.join(reasons)}]")
+            w.writerow([
+                datetime.now().strftime('%Y-%m-%d %H:%M'),
+                category, field,
+                row.get('sharpe', ''), row.get('fitness', ''),
+                row.get('passed', ''), row.get('turnover', ''),
+                '; '.join(reasons),
+                row.get('code', ''),
+            ])
+
+
+# ─── Triage pass ─────────────────────────────────────────────────────────────
+# Cheap first-pass: 2 best-template expressions per untested field. Only fields
+# that show signal (|sharpe| >= TRIAGE_SHARPE) get the expensive full LLM batch.
+# 40 fields × 2 sims = 80 sims, vs 20 fields × 10 sims = 200 sims previously.
+
+TRIAGE_FIELDS = 40
+TRIAGE_SHARPE = 0.50
+
+# ts_decay_linear is BANNED from generation: too correlated with submitted
+# Alpha 10, Performance Comparison score change consistently negative.
+# ts_decay_linear: too correlated with submitted Alpha 10
+# ts_delta(close: ts_rank_confirm/med templates use rank(ts_delta(close,N)) as the
+#   price-momentum leg — all such expressions are highly correlated with Alpha 9
+BANNED_OPS = ('ts_decay_linear', 'ts_delta(close')
+
+TRIAGE_SHAPES = {
+    'ts_rank':             '-rank(ts_rank({f}, 252))',
+    'hump_ts_rank':        '-rank(hump(ts_rank({f}, 252)))',
+    'ts_zscore':           '-rank(ts_zscore({f}, 252))',
+    'ts_delta_momentum':   '-rank(ts_rank(ts_delta({f}, 21), 252))',
+    'group_rank':          'group_rank({f}, subindustry)',
+    'group_zscore':        'group_zscore({f}, subindustry)',
+    # ts_rank_confirm / ts_rank_confirm_med REMOVED — both use rank(ts_delta(close,N))
+    # which is correlated with Alpha 9 (price momentum). Banned via BANNED_OPS.
+    # Double neutralization: strips both industry and market effects → very low self-corr
+    'double_neutral':      '-rank(group_neutralize(group_rank(ts_rank({f}, 252), subindustry), sector))',
+    # Revision rate: rate of change of the fundamental over 63/126 days
+    'revision_rate':       '-rank(ts_rank(ts_delta({f}, 63), 252))',
+    'revision_rate_slow':  '-rank(ts_rank(ts_delta({f}, 126), 252))',
+}
+DEFAULT_TRIAGE = {
+    'DAILY':     ['ts_rank', 'ts_delta_momentum'],
+    'WEEKLY':    ['ts_rank', 'double_neutral'],
+    'QUARTERLY': ['ts_rank', 'revision_rate'],
+    'ANNUAL':    ['revision_rate_slow', 'double_neutral'],
+    'SLOW':      ['ts_rank', 'double_neutral'],
+}
+
+
+def _best_triage_templates(frequency: str) -> list[str]:
+    """Top-2 template shapes for this frequency by historical pass rate (≥10 runs),
+    falling back to sensible defaults. Also rotates in unexplored templates once
+    established templates are saturated (≥50 runs), so new shapes get bootstrapped."""
+    try:
+        from template_rl import load_performance, effective_passes, MIN_RUNS_FOR_RECOMMENDATION
+        perf = load_performance()
+    except Exception:
+        perf = {}
+        MIN_RUNS_FOR_RECOMMENDATION = 10
+    ranked = []
+    for key, v in perf.items():
+        if not key.endswith(f'_{frequency}') or v.get('runs', 0) < MIN_RUNS_FOR_RECOMMENDATION:
+            continue
+        tmpl = key[: -len(frequency) - 1]
+        if tmpl not in TRIAGE_SHAPES:
+            continue
+        runs = v['runs']
+        eff = effective_passes(v)
+        score = (eff / runs,
+                 (eff + v.get('near_misses', 0)) / runs,
+                 v.get('avg_sharpe', 0))
+        ranked.append((score, tmpl))
+    ranked.sort(reverse=True)
+    templates = [t for _, t in ranked[:2]]
+
+    # Fill remaining slots from DEFAULT_TRIAGE defaults
+    for t in DEFAULT_TRIAGE.get(frequency, ['ts_rank', 'double_neutral']):
+        if len(templates) >= 2:
+            break
+        if t not in templates:
+            templates.append(t)
+
+    # Exploration: if the 2nd slot is saturated (≥50 runs) and there are shapes
+    # with no RL history yet, rotate the 2nd slot to bootstrap the least-tested one.
+    # This ensures new templates (ts_rank_confirm, revision_rate, etc.) eventually
+    # accumulate enough runs to be fairly evaluated by the RL system.
+    if len(templates) == 2:
+        second_runs = perf.get(f'{templates[1]}_{frequency}', {}).get('runs', 0)
+        if second_runs >= 50:
+            preferred = DEFAULT_TRIAGE.get(frequency, [])
+            unexplored = sorted(
+                (t for t in TRIAGE_SHAPES
+                 if t not in templates
+                 and t not in BANNED_OPS
+                 and perf.get(f'{t}_{frequency}', {}).get('runs', 0) < MIN_RUNS_FOR_RECOMMENDATION),
+                key=lambda t: (
+                    perf.get(f'{t}_{frequency}', {}).get('runs', 0),
+                    0 if t in preferred else 1,  # prefer DEFAULT_TRIAGE picks first
+                )
+            )
+            if unexplored:
+                templates[1] = unexplored[0]
+
+    return templates[:2]
+
+
+def build_triage_batch(category: str, n_fields: int = TRIAGE_FIELDS
+                       ) -> tuple[Path | None, list[str]]:
+    """Write a triage parameters file. Returns (params_file, field_names)."""
+    sys.path.insert(0, str(BASE_DIR))
+    from llm_alpha_generator import load_untested_fields
+    from template_rl import FREQUENCY_MAP
+
+    fields = load_untested_fields(TRACKER_CSV, category, n_fields)
+    if not fields:
+        return None, []
+
+    freq = FREQUENCY_MAP.get(category, 'QUARTERLY')
+    templates = _best_triage_templates(freq)
+    log(f"  Triage templates for {category} ({freq}): {', '.join(templates)}")
+
+    ts = datetime.now().strftime('%m%d_%H%M')
+    slug = category.lower().replace(' ', '_').replace('-', '_').replace('/', '_')
+    filename = BASE_DIR / f'parameters_triage_{slug}_{ts}.py'
+
+    # Fundamental and Analyst fields compare best within industry peers — use INDUSTRY.
+    # All other categories default to SUBINDUSTRY.
+    neut = 'INDUSTRY' if category in ('Fundamental', 'Analyst') else 'SUBINDUSTRY'
+
+    lines = [
+        f'# parameters_triage_{slug}_{ts}.py',
+        f'# Auto-generated TRIAGE batch — {datetime.now().strftime("%Y-%m-%d %H:%M")}',
+        f'# {len(fields)} fields × {len(templates)} templates ({", ".join(templates)})',
+        f'# Neutralization: {neut} (set by category={category!r})',
+        '',
+        'from commands import *',
+        f"BATCH_NAME = 'triage_{slug}_{ts}'",
+        '',
+        f"BASE = {{'neutralization': '{neut}', 'decay': 6, 'truncation': 0.08, "
+        f"'delay': 1, 'region': 'USA', 'universe': 'TOP3000'}}",
+        '',
+        'DATA = [',
+    ]
+    for fd in fields:
+        f = fd['field']
+        for tmpl in templates:
+            code = TRIAGE_SHAPES[tmpl].format(f=f)
+            lines.append(f"    # Triage {tmpl}: {f}")
+            lines.append(f"    {{**BASE, 'code': {repr(code)}}},")
+    lines += [
+        ']',
+        '',
+        'print(f"Total expressions queued: {len(DATA)}")',
+        '',
+    ]
+    with open(filename, 'w') as fh:
+        fh.write('\n'.join(lines))
+
+    field_names = [fd['field'] for fd in fields]
+    log(f"Triage batch written: {filename.name} "
+        f"({len(field_names)} fields, {len(field_names) * len(templates)} expressions)")
+    return filename, field_names
+
+
+def triage_promising(results_csv: Path, field_names: list[str]) -> list[str]:
+    """Fields whose best triage expression shows |sharpe| >= TRIAGE_SHARPE."""
+    from alpha_utils import extract_field
+    wanted = set(field_names)
+    best = {}
+    with open(results_csv) as f:
+        for row in csv.DictReader(f):
+            field = extract_field(row.get('code', ''))
+            if not field or field not in wanted:
+                continue
+            if not re.search(r'worldquantbrain\.com/alpha/\w+', str(row.get('link', ''))):
+                continue
+            try:
+                sharpe = abs(float(row.get('sharpe', 0) or 0))
+            except (ValueError, TypeError):
+                continue
+            best[field] = max(best.get(field, 0.0), sharpe)
+    return sorted((f for f, s in best.items() if s >= TRIAGE_SHARPE),
+                  key=lambda f: -best[f])
+
+
+# ─── Exploit mode: mine clusters that already produced winners ───────────────
+# Confirmed-signal datasets (e.g. the mdl177 Model-Analyst cluster: 10 passes
+# from 261 tests) are far higher-prior than cold exploration. Exploit mode
+# tests ONLY untested fields belonging to winner datasets/prefixes.
+
+GENERIC_PREFIXES = {'close', 'open', 'high', 'low', 'volume', 'returns',
+                    'vwap', 'adv20', 'cap', 'sharesout', 'split', 'dividend'}
+
+
+def winner_clusters() -> tuple[dict, dict]:
+    """Identify clusters of In Use / Test Soon fields, weighted by winner count.
+    Returns (datasets, prefixes) as dicts cluster → n_winners. Prefixes qualify
+    if they look like dataset codes (contain a digit, e.g. 'mdl177') or are
+    shared by ≥2 winners."""
+    datasets, prefix_counts = Counter(), Counter()
+    with open(TRACKER_CSV) as f:
+        for r in csv.DictReader(f):
+            if r.get('status', '').strip() not in ('✅ In Use', '🟠 Test Soon'):
+                continue
+            ds = r.get('dataset', '').strip().lower()
+            if ds:
+                datasets[ds] += 1
+            pre = r.get('field', '').strip().split('_')[0].lower()
+            if pre and pre not in GENERIC_PREFIXES:
+                prefix_counts[pre] += 1
+    prefixes = {p: n for p, n in prefix_counts.items()
+                if any(ch.isdigit() for ch in p) or n >= 2}
+    return dict(datasets), prefixes
+
+
+def untested_fields_in_clusters(datasets: dict, prefixes: dict) -> list[str]:
+    """Untested numeric fields in winner clusters, hottest cluster first —
+    the mdl177 cluster (10 winners) gets mined before a 1-winner dataset."""
+    try:
+        from llm_alpha_generator import _is_categorical_field
+    except Exception:
+        _is_categorical_field = lambda f, d: False
+    weighted = []
+    with open(TRACKER_CSV) as f:
+        for r in csv.DictReader(f):
+            if r.get('status', '').strip():
+                continue
+            field = r.get('field', '').strip()
+            if not field:
+                continue
+            if _is_categorical_field(field, r.get('description', '')):
+                continue
+            ds = r.get('dataset', '').strip().lower()
+            pre = field.split('_')[0].lower()
+            weight = max(datasets.get(ds, 0), prefixes.get(pre, 0))
+            if weight > 0:
+                weighted.append((weight, field))
+    weighted.sort(key=lambda x: -x[0])
+    return [f for _, f in weighted]
+
+
+def run_exploit(api_key: str, groq_key: str = None, max_batches: int = 10):
+    """Deep-test untested fields in datasets that already produced winners.
+    No triage — these fields are high-prior, they get full LLM batches."""
+    separator()
+    log("  WQ Brain — Exploit Mode: mining winner clusters")
+    separator()
+    datasets, prefixes = winner_clusters()
+    log(f"  Winner datasets: {sorted(datasets) or '—'}")
+    log(f"  Winner prefixes: {sorted(prefixes) or '—'}")
+    pool = untested_fields_in_clusters(datasets, prefixes)
+    log(f"  Untested fields in winner clusters: {len(pool)}")
+    if not pool:
+        log("  Nothing to exploit — all winner-cluster fields are tested.")
+        return
+
+    batch_num = 0
+    try:
+        while pool and batch_num < max_batches:
+            batch_num += 1
+            chunk, pool = pool[:FIELDS_PER_BATCH], pool[FIELDS_PER_BATCH:]
+            separator('─')
+            log(f"  Exploit batch #{batch_num}/{max_batches} | {len(chunk)} fields "
+                f"| {len(pool)} remaining in pool")
+            separator('─')
+
+            params_file = generate_batch(api_key, None, len(chunk),
+                                         groq_key=groq_key, fields=chunk)
+            if not params_file:
+                log("  Generation failed — stopping exploit run.")
+                break
+            results_csv = run_simulation(params_file)
+            if not results_csv:
+                continue
+            field_best = update_tracker_from_csv(results_csv)
+            try:
+                from template_rl import update_from_results
+                update_from_results(results_csv, TRACKER_CSV)
+            except Exception as e:
+                log(f'  [rl] Could not update template performance: {e}')
+            passes, near_misses = parse_passes_and_near_misses(field_best)
+            status_counts = Counter(v['status'] for v in field_best.values())
+            log(f"  Results: {status_counts.get('pass',0)} pass | "
+                f"{status_counts.get('near_miss',0)} near-miss | "
+                f"{status_counts.get('tested',0)} tested | "
+                f"{status_counts.get('dead',0)} dead")
+            log_near_miss_failures(near_misses, 'Exploit')
+
+            if passes:
+                clean = handle_passes(passes, results_csv)
+                tune_file = build_tuning_batch(passes, near_misses)
+                if tune_file:
+                    tune_csv = run_simulation(tune_file)
+                    if tune_csv:
+                        tune_best = update_tracker_from_csv(tune_csv)
+                        tune_passes, _ = parse_passes_and_near_misses(tune_best)
+                        clean += handle_passes(tune_passes, tune_csv)
+                if clean:
+                    wait_for_user_confirmation()
+            log("")
+    except KeyboardInterrupt:
+        log("\n  ⏹ Exploit run stopped by user. Tracker has been updated.")
+    log("  Exploit run complete.")
+
+
 # ─── Batch generation ────────────────────────────────────────────────────────
 
 def generate_batch(api_key: str, category: str, count: int = FIELDS_PER_BATCH,
-                    groq_key: str = None) -> Path | None:
+                    groq_key: str = None, fields: list[str] = None) -> Path | None:
     """Call llm_alpha_generator.py and return the generated parameters file path."""
-    log(f"Generating LLM batch: category='{category}', count={count}")
+    log(f"Generating LLM batch: category='{category or 'exploit/mixed'}', count={count}"
+        + (f", restricted to {len(fields)} specified fields" if fields else ""))
     cmd = [
         sys.executable, str(BASE_DIR / 'llm_alpha_generator.py'),
         '--api-key', api_key,
-        '--category', category,
         '--count', str(count),
     ]
+    if category:
+        cmd.extend(['--category', category])
+    if fields:
+        cmd.extend(['--fields', ','.join(fields)])
     if groq_key:
         cmd.extend(['--groq-key', groq_key])
     result = subprocess.run(cmd, capture_output=True, text=True, cwd=BASE_DIR)
@@ -247,16 +671,14 @@ def _tune_expression(code: str, univ: str, field: str) -> list[tuple[str, str, s
             entries.append((other_univ, code, f'# Tune universe {other_univ}: {fname}'))
             break
 
-    # ── ts_decay_linear — tune decay period ──────────────────────────────
+    # ── ts_decay_linear — BANNED family: convert to ts_rank instead ──────
+    # (too correlated with submitted Alpha 10, score change always negative)
     m = re.search(r'ts_decay_linear\((\w+),\s*(\d+)\)', code)
     if m and not entries:
-        fname, decay = m.group(1), int(m.group(2))
-        for new_d in [10, 15, 21, 30, 40, 60]:
-            if new_d != decay:
-                new_code = re.sub(rf'ts_decay_linear\({re.escape(fname)},\s*{decay}\)',
-                                  f'ts_decay_linear({fname}, {new_d})', code)
-                entries.append((univ, new_code, f'# Tune decay={new_d}: {fname}'))
-        entries.append((other_univ, code, f'# Tune universe {other_univ}: {fname}'))
+        fname = m.group(1)
+        for lb in [126, 252, 504]:
+            entries.append((univ, f'-rank(ts_rank({fname}, {lb}))',
+                           f'# Convert banned decay → ts_rank lb={lb}: {fname}'))
 
     # ── ts_regression — tune lookback + rettype ───────────────────────────
     m = re.search(r'ts_regression\((\w+),\s*ts_step\(1\),\s*(\d+)', code)
@@ -285,7 +707,7 @@ def _tune_expression(code: str, univ: str, field: str) -> list[tuple[str, str, s
         entries.append((other_univ, code, f'# Tune universe {other_univ}: {field}'))
         # Also try with hump wrapper
         if 'hump' not in code:
-            inner = code[7:] if code.startswith('-rank(') else code
+            inner = code[6:] if code.startswith('-rank(') else code
             entries.append((univ, f'-rank(hump({inner})', f'# Tune hump: {field}'))
 
     # ── ts_corr — tune lookback and second field ──────────────────────────
@@ -330,15 +752,7 @@ def _fitness_tune(code: str, univ: str, field: str, fitness: float) -> list[tupl
         if univ != 'TOP200':
             entries.append(('TOP200', f'-rank(hump({code[6:]})', f'# Fitness fix hump+TOP200: {field}'))
 
-    # Strategy 3: If using ts_decay_linear, try longer decay periods
-    m = re.search(r'ts_decay_linear\((.+?),\s*(\d+)\)', code)
-    if m:
-        current_decay = int(m.group(2))
-        for new_d in [30, 40, 60]:
-            if new_d > current_decay:
-                new_code = re.sub(r'ts_decay_linear\((.+?),\s*\d+\)',
-                                  rf'ts_decay_linear(\1, {new_d})', code)
-                entries.append((univ, new_code, f'# Fitness fix decay={new_d}: {field}'))
+    # Strategy 3 (longer ts_decay_linear periods) removed — family is BANNED.
 
     # Strategy 4: If using ts_decay_linear template, try pure ts_rank instead
     # ts_rank has structurally lower turnover than ts_decay_linear * momentum
@@ -362,6 +776,75 @@ def _fitness_tune(code: str, univ: str, field: str, fitness: float) -> list[tupl
     return entries
 
 
+def build_sign_flip_batch(results_csv: Path) -> Path | None:
+    """Detect expressions with good abs(sharpe/fitness) but negative sharpe,
+    which the platform scores as FAIL on LOW_SHARPE/LOW_FITNESS checks.
+    Flipping -rank(...) → rank(...) inverts the signal and should resolve both
+    failing checks, pushing passed count from ~4 to ~6.
+    Returns a params file path, or None if nothing to flip."""
+    flippable = []
+    seen_codes = set()
+    try:
+        with open(results_csv, newline='', encoding='utf-8') as f:
+            for row in csv.DictReader(f):
+                try:
+                    sharpe  = float(row.get('sharpe', 0) or 0)
+                    fitness = float(row.get('fitness', 0) or 0)
+                    code    = row.get('code', '').strip()
+                except (ValueError, TypeError):
+                    continue
+                if (sharpe < 0
+                        and abs(sharpe) >= SHARPE_PASS
+                        and abs(fitness) >= FITNESS_PASS
+                        and code.startswith('-rank(')
+                        and code not in seen_codes):
+                    seen_codes.add(code)
+                    flipped = code[1:]  # drop leading '-'
+                    flippable.append({
+                        'original': code,
+                        'flipped':  flipped,
+                        'sharpe':   sharpe,
+                        'fitness':  fitness,
+                        'universe': row.get('universe', 'TOP3000'),
+                    })
+    except Exception as e:
+        log(f"  [flip] Could not read {results_csv.name}: {e}")
+        return None
+
+    if not flippable:
+        return None
+
+    log(f"  [flip] {len(flippable)} negative-sharpe expression(s) to flip:")
+    for e in flippable:
+        log(f"    sharpe={e['sharpe']:.2f} fit={e['fitness']:.2f}  {e['original'][:70]}")
+
+    ts = datetime.now().strftime('%m%d_%H%M')
+    filename = BASE_DIR / f'parameters_flip_{ts}.py'
+    base_settings = "{'neutralization':'SUBINDUSTRY','decay':6,'truncation':0.08,'delay':1,'region':'USA'}"
+
+    lines = [
+        f"# parameters_flip_{ts}.py — sign-flipped expressions (rank vs -rank)",
+        f"BATCH_NAME = 'flip_{ts}'",
+        "",
+        "from commands import *",
+        "",
+        f"_BASE = {base_settings}",
+        "",
+        "DATA = [",
+    ]
+    for e in flippable:
+        univ = e['universe']
+        lines.append(f"    # original sharpe={e['sharpe']:.2f} fit={e['fitness']:.2f}")
+        lines.append(f"    {{**_BASE, 'universe': {repr(univ)}, 'code': {repr(e['flipped'])}}},")
+    lines += ["]", "", f'print(f"Sign-flip batch: {{len(DATA)}} expressions")', ""]
+
+    with open(filename, 'w') as f:
+        f.write('\n'.join(lines))
+
+    log(f"  [flip] Batch written → {filename.name} ({len(flippable)} expressions)")
+    return filename
+
+
 def build_tuning_batch(passes: list, near_misses: list) -> Path | None:
     """Build a tuning batch for passes and near-misses, handling all template types.
     Now separates fitness-blocked vs sharpe-blocked near-misses for targeted tuning."""
@@ -380,11 +863,38 @@ def build_tuning_batch(passes: list, near_misses: list) -> Path | None:
         new_entries = _tune_expression(code, univ, field)
         entries.extend(new_entries)
 
+    # Data-driven sweep skip: (template × frequency) buckets with ≥20 historical
+    # near-misses and 0 passes don't convert — don't waste sims sweeping them.
+    # (e.g. ts_decay_linear_QUARTERLY: 39 near-misses, 0 passes in 303 runs)
+    try:
+        from template_rl import (extract_template_type, _load_field_frequencies,
+                                 load_performance)
+        _perf = load_performance()
+        _field_freq = _load_field_frequencies(TRACKER_CSV)
+    except Exception:
+        _perf, _field_freq = {}, {}
+
+    def _unproductive_bucket(code: str, field: str) -> str | None:
+        if not _perf:
+            return None
+        key = f"{extract_template_type(code)}_{_field_freq.get(field, 'QUARTERLY')}"
+        v = _perf.get(key, {})
+        if v.get('near_misses', 0) >= 20 and v.get('passes', 0) == 0:
+            return key
+        return None
+
     for field, info in near_misses[:5]:
         row = info.get('row', {})
         code, univ = row.get('code', '').strip(), row.get('universe', 'TOP200')
         if not code:
             continue
+
+        bucket = _unproductive_bucket(code, field)
+        if bucket:
+            log(f"  Skipping near-miss sweep for {field}: bucket '{bucket}' has "
+                f"never converted ({_perf[bucket]['near_misses']} near-misses, 0 passes)")
+            continue
+
         fitness = float(row.get('fitness', 0) or 0)
 
         if fitness < 1.00:
@@ -405,6 +915,12 @@ def build_tuning_batch(passes: list, near_misses: list) -> Path | None:
         else:
             normalized.append(e)
     entries = normalized
+
+    # Safety net: drop any entry that still uses a banned operator
+    before = len(entries)
+    entries = [e for e in entries if not any(op in e[1] for op in BANNED_OPS)]
+    if len(entries) < before:
+        log(f"  Dropped {before - len(entries)} tuning entries using banned ops {BANNED_OPS}")
 
     # Deduplicate tuning entries
     seen_tune = set()
@@ -474,61 +990,400 @@ def build_tuning_batch(passes: list, near_misses: list) -> Path | None:
 # ─── Shared WQ session — authenticate ONCE, reuse across all batches ─────────
 _wq_session = None
 
-def _get_session():
-    """Get or create the shared WQSession. Only authenticates on first call."""
+def _get_session(force_reauth: bool = False):
+    """Get or create the shared WQSession. Re-authenticates if session expired."""
     global _wq_session
-    if _wq_session is None:
+    expired = _wq_session is not None and getattr(_wq_session, 'login_expired', False)
+    if _wq_session is None or force_reauth or expired:
+        if expired:
+            log("⚠ WQ session expired — sending notification and re-authenticating...")
+            try:
+                from notify import notify
+                notify('WQ session expired — biometric auth required again',
+                       title='WQ Brain — Re-auth Needed', urgent=True)
+            except Exception:
+                pass
         sys.path.insert(0, str(BASE_DIR))
         from main import WQSession
         _wq_session = WQSession()
     return _wq_session
 
 
+def _run_attempts(session, data: list, total: int, label: str = '') -> list:
+    """Run up to 2 simulation attempts, logging progress. Returns remaining (failed) data."""
+    MAX_ATTEMPTS = 2
+    prefix = f'[{label}] ' if label else ''
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        done = total - len(data)
+        log(f"  {prefix}Attempt #{attempt}/{MAX_ATTEMPTS} | {done}/{total} done | {len(data)} queued")
+        data = session.simulate(data)
+        if not data:
+            break
+        if attempt < MAX_ATTEMPTS:
+            log(f"  ↩ {len(data)} timed-out — retrying in 30s...")
+            time.sleep(30)
+        else:
+            log(f"  ⚠ {len(data)} expressions still failed after {MAX_ATTEMPTS} attempts — skipping.")
+    return data
+
+
 def run_simulation(params_file: Path) -> Path | None:
     """Load params file and run simulation using shared session.
     Returns path to results CSV."""
     log(f"Running: {params_file.name}")
+    start_time = time.time()
 
     # Load DATA from the parameters file
     import importlib.util
     spec = importlib.util.spec_from_file_location('params', params_file)
     params_mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(params_mod)
-    data = params_mod.DATA
+    original_data = list(params_mod.DATA)
 
-    if not data:
+    if not original_data:
         log(f"  No expressions in {params_file.name}, skipping...")
         return None
 
-    session = _get_session()
+    # Tell main.py which batch name to use for the CSV filename — avoids
+    # stale cached module name from a previous manual run (parameters.py)
+    os.environ['WQ_BATCH_NAME'] = getattr(params_mod, 'BATCH_NAME', 'agent')
 
-    # Run simulation with retries (same as main.py __main__)
-    total = len(data)
-    MAX_ATTEMPTS = 2
-    for attempt in range(1, MAX_ATTEMPTS + 1):
-        remaining = len(data)
-        done = total - remaining
-        log(f"  Attempt #{attempt}/{MAX_ATTEMPTS} | {done}/{total} done | {remaining} queued")
-        data = session.simulate(data)
-        if not data:
-            break
-        if attempt < MAX_ATTEMPTS:
-            log(f"  ↩ {len(data)} timed-out — retrying in 30s...")
-            import time as _time
-            _time.sleep(30)
-        else:
-            log(f"  ⚠ {len(data)} expressions still failed after {MAX_ATTEMPTS} attempts — skipping.")
+    session = _get_session()
+    total = len(original_data)
+    data = _run_attempts(session, list(original_data), total)
+
+    # If session expired during this batch, re-authenticate and retry the whole batch
+    if session.login_expired:
+        log("  ↩ Session expired mid-batch — re-authenticating and retrying...")
+        session = _get_session()   # sends LINE notification + biometric polling
+        data = _run_attempts(session, list(original_data), total, label='post-reauth')
+
     log(f"  ✅ Done! {total - len(data)}/{total} simulations completed.")
 
-    # Find the CSV that was just created
-    all_csvs = sorted(glob.glob(str(BASE_DIR / 'data' / '*.csv')),
-                     key=os.path.getmtime)
-    return Path(all_csvs[-1]) if all_csvs else None
+    # Collect ALL CSVs created during this run (main batch + any retry files).
+    # _run_attempts calls simulate() twice when there are timeouts, each call
+    # creates a separate CSV. We must merge them so near-misses in the main
+    # batch aren't lost when the orchestrator only sees the tiny retry CSV.
+    new_csvs = sorted(
+        [p for p in glob.glob(str(BASE_DIR / 'data' / '*.csv'))
+         if os.path.getmtime(p) >= start_time],
+        key=os.path.getmtime
+    )
+    if not new_csvs:
+        log("  ⚠ No new results CSV produced by this run — skipping analysis.")
+        return None
+
+    main_csv = Path(new_csvs[0])
+    for extra in new_csvs[1:]:
+        # Append retry rows into the main CSV
+        with open(extra, newline='', encoding='utf-8') as src:
+            reader = csv.DictReader(src)
+            rows = list(reader)
+        if rows:
+            with open(main_csv, 'a', newline='', encoding='utf-8') as dst:
+                writer = csv.DictWriter(dst, fieldnames=rows[0].keys())
+                writer.writerows(rows)
+        os.remove(extra)
+        log(f"  Merged retry CSV {Path(extra).name} → {main_csv.name}")
+
+    return main_csv
+
+
+# ─── Pass validation: self-correlation + sweep robustness ────────────────────
+
+_CORR_POLL_INTERVAL = 15   # seconds between polls
+_CORR_MAX_POLLS     = 24   # 24 × 15s = 6 minutes max per alpha
+
+
+def check_pass_correlations(passes: list) -> dict:
+    """Fetch SELF_CORRELATION for each pass from the platform check endpoint.
+    SELF_CORRELATION is computed asynchronously — result starts as 'PENDING'
+    with no value, then resolves to PASS/FAIL with a numeric value.
+    Polls up to 6 minutes per alpha before giving up.
+    Returns field → abs(corr) or None if still pending / unavailable."""
+    corrs = {}
+    try:
+        session = _get_session()
+    except Exception as e:
+        log(f"  ⚠ Corr check skipped (no session): {e}")
+        return corrs
+    for field, info in passes:
+        link = str(info.get('row', {}).get('link', ''))
+        m = re.search(r'worldquantbrain\.com/alpha/(\w+)', link)
+        if not m:
+            corrs[field] = None
+            continue
+        alpha_id = m.group(1)
+        corr = None
+        for attempt in range(_CORR_MAX_POLLS):
+            try:
+                r = session.get(
+                    f'https://api.worldquantbrain.com/alphas/{alpha_id}/check')
+                if r.status_code == 429:
+                    wait = int(r.headers.get('Retry-After', _CORR_POLL_INTERVAL))
+                    time.sleep(wait)
+                    continue
+                if r.status_code == 200:
+                    for chk in r.json().get('is', {}).get('checks', []):
+                        if chk.get('name') != 'SELF_CORRELATION':
+                            continue
+                        if chk.get('result') == 'PENDING':
+                            break  # not ready — sleep and retry
+                        # Result is definitive (PASS or FAIL)
+                        val = chk.get('value')
+                        corr = abs(float(val)) if val is not None else 0.0
+                        break
+            except Exception:
+                pass
+            if corr is not None:
+                break
+            elapsed_min = (attempt + 1) * _CORR_POLL_INTERVAL // 60
+            log(f"    self-corr {field}: PENDING "
+                f"({(attempt+1)*_CORR_POLL_INTERVAL}s elapsed) — retrying...")
+            time.sleep(_CORR_POLL_INTERVAL)
+
+        corrs[field] = corr
+        if corr is None:
+            log(f"    self-corr {field}: still PENDING after "
+                f"{_CORR_MAX_POLLS * _CORR_POLL_INTERVAL // 60}min "
+                f"— check manually: {link}")
+        else:
+            verdict = f"✗ TOO HIGH (≥{CORR_MAX})" if corr >= CORR_MAX else "✓ OK"
+            log(f"    self-corr {field}: {corr:.2f} {verdict}")
+    return corrs
+
+
+def check_alpha_grades(passes: list) -> dict:
+    """Fetch the WQ-assigned grade string for each pass ('INFERIOR'/'GOOD'/'EXCELLENT').
+    Available pre-submission from GET /alphas/{id}.
+    Returns field → grade string or None."""
+    grades = {}
+    try:
+        session = _get_session()
+    except Exception:
+        return grades
+    for field, info in passes:
+        link = str(info.get('row', {}).get('link', ''))
+        m = re.search(r'worldquantbrain\.com/alpha/(\w+)', link)
+        if not m:
+            grades[field] = None
+            continue
+        alpha_id = m.group(1)
+        try:
+            r = session.get(f'https://api.worldquantbrain.com/alphas/{alpha_id}')
+            if r.status_code == 200:
+                grades[field] = r.json().get('grade')  # e.g. "INFERIOR", "GOOD", "EXCELLENT"
+            else:
+                grades[field] = None
+        except Exception:
+            grades[field] = None
+    return grades
+
+
+def sweep_robustness(results_csv: Path, passes: list) -> dict:
+    """For each passing field, count sibling variants in the same batch with
+    |sharpe| >= ROBUST_SHARPE. A pass whose neighbors are all noise is likely
+    a multiple-comparisons fluke. Returns field → (n_support, n_siblings)."""
+    from alpha_utils import extract_field
+    siblings = {}
+    try:
+        with open(results_csv) as f:
+            for row in csv.DictReader(f):
+                fld = extract_field(row.get('code', ''))
+                if not fld:
+                    continue
+                if not re.search(r'worldquantbrain\.com/alpha/\w+',
+                                 str(row.get('link', ''))):
+                    continue
+                try:
+                    siblings.setdefault(fld, []).append(
+                        abs(float(row.get('sharpe', 0) or 0)))
+                except (ValueError, TypeError):
+                    pass
+    except Exception:
+        return {}
+    out = {}
+    for field, _info in passes:
+        sh = sorted(siblings.get(field, []), reverse=True)
+        # exclude the best row (the pass itself) — count supporting neighbors
+        support = sum(1 for s in sh[1:] if s >= ROBUST_SHARPE)
+        out[field] = (support, max(len(sh) - 1, 0))
+    return out
+
+
+def _load_corr_fails() -> dict:
+    if CORR_FAILS_FILE.exists():
+        with open(CORR_FAILS_FILE) as f:
+            return json.load(f)
+    return {}
+
+
+def _save_corr_fails(data: dict):
+    with open(CORR_FAILS_FILE, 'w') as f:
+        json.dump(data, f, indent=2, sort_keys=True)
+
+
+def record_corr_failed_field(field: str, corr: float, code: str, link: str):
+    """Persist a field that failed self-correlation so it appears in the auto KB."""
+    data = _load_corr_fails()
+    entry = data.get(field, {'corr_values': [], 'expressions': [], 'link': link})
+    if corr not in entry['corr_values']:
+        entry['corr_values'].append(round(corr, 2))
+    expr_short = code[:80]
+    if expr_short not in entry['expressions']:
+        entry['expressions'].append(expr_short)
+    entry['date'] = datetime.now().strftime('%Y-%m-%d')
+    data[field] = entry
+    _save_corr_fails(data)
+
+
+def update_auto_knowledge_base():
+    """Regenerate knowledge bases/auto_findings.md from live project data.
+    Called after each batch so Gemini always has up-to-date context."""
+    from template_rl import load_performance, BANNED_TEMPLATES
+
+    lines = [
+        '# WQ-Brain Auto-Generated Research Findings',
+        f'_Auto-updated after each batch. Last update: {datetime.now().strftime("%Y-%m-%d %H:%M")}_',
+        '_Do not edit — regenerated automatically by orchestrator.py._',
+        '',
+    ]
+
+    # ── Banned operators ──────────────────────────────────────────────────────
+    lines += [
+        '## Banned Operators / Patterns',
+        'NEVER use these in any expression — they are dropped before simulation:',
+        '',
+        '- `ts_decay_linear(field, N)` — correlated with submitted Alpha 10;'
+        ' Performance Comparison score always negative regardless of IS metrics.',
+        '- `ts_delta(close, N)` / `rank(ts_delta(close, N))` — correlated with'
+        ' Alpha 9 (price momentum). Self-corr 0.75–0.84 on every combination tested.',
+        '',
+    ]
+
+    # ── Submitted alphas (avoid replicating) ─────────────────────────────────
+    submitted = []
+    try:
+        with open(TRACKER_CSV, newline='', encoding='utf-8') as f:
+            for row in csv.DictReader(f):
+                if '✅' in row.get('status', ''):
+                    submitted.append((row.get('field', '').strip(), row.get('category', '')))
+    except Exception:
+        pass
+    if submitted:
+        lines += [
+            '## Submitted Alphas Already In Book',
+            'These fields are already submitted — generating expressions using them risks high self-correlation:',
+            '',
+        ]
+        for field, cat in submitted:
+            lines.append(f'- `{field}` ({cat})')
+        lines.append('')
+
+    # ── Corr-failed fields ────────────────────────────────────────────────────
+    corr_fails = _load_corr_fails()
+    if corr_fails:
+        lines += [
+            '## Fields Confirmed Too Correlated With Book (Self-Corr ≥ 0.70)',
+            'These produced IS passes but CANNOT be submitted. Avoid as primary signal:',
+            '',
+        ]
+        for field, info in sorted(corr_fails.items()):
+            corrs = info.get('corr_values', [])
+            corr_str = f"{min(corrs):.2f}–{max(corrs):.2f}" if len(corrs) > 1 else f"{corrs[0]:.2f}" if corrs else '?'
+            n = len(info.get('expressions', []))
+            lines.append(f'- `{field}`: self-corr {corr_str} ({n} expression(s) tested, all rejected)')
+        lines.append('')
+
+    # ── Template performance ──────────────────────────────────────────────────
+    perf = load_performance()
+    lines += ['## Template Performance Summary', '']
+    for freq in ['QUARTERLY', 'WEEKLY', 'DAILY', 'SLOW']:
+        relevant = {
+            k: v for k, v in perf.items()
+            if k.endswith(f'_{freq}') and v.get('runs', 0) >= 10
+            and k[:-(len(freq)+1)] not in BANNED_TEMPLATES
+        }
+        if not relevant:
+            continue
+        lines.append(f'### {freq}')
+        ranked = sorted(relevant.items(),
+                        key=lambda x: (x[1].get('passes', 0) / max(x[1]['runs'], 1),
+                                       x[1].get('avg_sharpe', 0)), reverse=True)
+        for key, v in ranked:
+            tmpl = key.replace(f'_{freq}', '')
+            runs = v['runs']
+            pr = v['passes'] / runs * 100
+            lines.append(f'- `{tmpl}`: pass_rate={pr:.1f}% ({v["passes"]}/{runs} runs)'
+                         f', avg_sharpe={v.get("avg_sharpe", 0):.2f}')
+        if ranked:
+            best = ranked[0][0].replace(f'_{freq}', '')
+            lines.append(f'→ **Best for {freq}: `{best}`**')
+        lines.append('')
+
+    # ── Category yield ────────────────────────────────────────────────────────
+    try:
+        stats = category_scores()
+        lines += ['## Category Yield (Historical)', '']
+        for cat in sorted(stats, key=lambda c: stats[c].get('score', 0), reverse=True):
+            v = stats[cat]
+            if v['tested'] == 0:
+                continue
+            pr = v['passes'] / v['tested'] * 100 if v['tested'] else 0
+            lines.append(f'- **{cat}**: {v["passes"]} passes / {v["tested"]} tested'
+                         f' ({pr:.1f}%) | {v["untested"]} fields remaining')
+        lines.append('')
+    except Exception:
+        pass
+
+    content = '\n'.join(lines)
+    try:
+        AUTO_KB_FILE.parent.mkdir(exist_ok=True)
+        AUTO_KB_FILE.write_text(content, encoding='utf-8')
+        log(f'  [kb] Auto knowledge base updated → {AUTO_KB_FILE.name}')
+    except Exception as e:
+        log(f'  [kb] Could not write auto KB: {e}')
+
+
+def handle_passes(passes: list, results_csv: Path) -> list:
+    """Corr-check, grade, and robustness-annotate passes. Notifies only submittable
+    ones; corr-fails are logged and fed back into RL stats. Returns clean passes."""
+    if not passes:
+        return []
+    corrs  = check_pass_correlations(passes)
+    grades = check_alpha_grades(passes)
+    robust = sweep_robustness(results_csv, passes)
+    clean, failed = [], []
+    for f, v in passes:
+        c = corrs.get(f)
+        if c is not None and c >= CORR_MAX:
+            failed.append((f, v, c))
+        else:
+            clean.append((f, v))
+    for f, v, c in failed:
+        grade = grades.get(f, 'unknown')
+        row   = v.get('row', {})
+        log(f"  ✗ CORR-FAIL {f[:60]}: self-corr {c:.2f} ≥ {CORR_MAX} | "
+            f"grade={grade} | sharpe={v['sharpe']:.2f} | {row.get('link','')}")
+        log(f"    expr: {row.get('code','')[:80]}")
+        log(f"    → not submittable, penalizing template bucket")
+        try:
+            from template_rl import record_corr_fail
+            record_corr_fail(row.get('code', ''))
+        except Exception as e:
+            log(f"    [rl] could not record corr fail: {e}")
+        # Persist field-level corr failure so it appears in auto KB
+        display = v.get('_display_field', f)
+        record_corr_failed_field(display, c, row.get('code', ''), row.get('link', ''))
+    if clean:
+        notify_passes(clean, results_csv, corrs=corrs, robustness=robust, grades=grades)
+    return clean
 
 
 # ─── Pass notification ────────────────────────────────────────────────────────
 
-def notify_passes(passes: list, results_csv: Path):
+def notify_passes(passes: list, results_csv: Path, corrs: dict = None,
+                  robustness: dict = None, grades: dict = None):
     """Print a clear notification and write to passes_to_review.txt."""
     separator('★')
     log(f"  🎉 {len(passes)} PASSING ALPHA(S) FOUND — MANUAL REVIEW NEEDED")
@@ -556,16 +1411,39 @@ def notify_passes(passes: list, results_csv: Path):
         link    = row.get('link', '')
         code    = row.get('code', '')
         univ    = row.get('universe', '')
+        # For combination alphas, _display_field holds the human-readable field name
+        display_field = info.get('_display_field', field)
+
+        corr = (corrs or {}).get(field)
+        if corr is None:
+            corr_str = 'still pending — check manually'
+        elif corr >= CORR_MAX:
+            corr_str = f"{corr:.2f} ✗ TOO HIGH"
+        else:
+            corr_str = f"{corr:.2f} ✓ OK"
+
+        support, total = (robustness or {}).get(field, (None, None))
+        if support is None:
+            robust_str = 'n/a'
+        else:
+            robust_str = f"{support}/{total} siblings ≥ {ROBUST_SHARPE}"
+            if support == 0 and total and total > 0:
+                robust_str += "  ⚠ FRAGILE — likely sweep overfit, be skeptical"
+
+        grade = (grades or {}).get(field)
+        grade_str = grade if grade else 'unknown'
 
         msg = (
-            f"\n  Field   : {field}\n"
+            f"\n  Field   : {display_field}\n"
             f"  Expr    : {code}\n"
             f"  Universe: {univ}\n"
             f"  Sharpe  : {sharpe:.2f} | Fitness: {fitness:.2f} | Checks: {passed}/7 | TO: {TO}%\n"
+            f"  SelfCorr: {corr_str}\n"
+            f"  Grade   : {grade_str} | Robustness: {robust_str}\n"
             f"  Link    : {link}\n"
-            f"  → Open link, check Performance Comparison panel\n"
-            f"  → If score > 0 and corr < 0.70 → SUBMIT\n"
-            f"  → If score < 0 or corr > 0.70  → REJECT\n"
+            f"  → Open link → Performance Comparison panel\n"
+            f"  → If Performance score > 0 and SelfCorr < {CORR_MAX} → SUBMIT\n"
+            f"  → If Performance score < 0 or SelfCorr ≥ {CORR_MAX}  → REJECT\n"
         )
         log(msg)
         lines.append(f"[{datetime.now().strftime('%Y-%m-%d %H:%M')}] {msg}")
@@ -616,33 +1494,41 @@ def wait_for_user_confirmation(auto_continue_minutes: int = 30):
 # ─── Main orchestration loop ─────────────────────────────────────────────────
 
 def run_orchestrator(api_key: str, start_category: str = None, dry_run: bool = False,
-                     groq_key: str = None):
+                     groq_key: str = None, triage: bool = True):
     separator()
     log("  WQ Brain Orchestrator — Automated Research Loop")
     log(f"  Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     log(f"  Dry run: {dry_run}")
     separator()
 
-    # If start_category given, rotate the list so it starts there — don't remove anything
+    # If start_category given, force it as the first batch only — after that,
+    # selection is yield-based.
+    forced_first = None
     if start_category and start_category in CATEGORY_PRIORITY:
-        idx = CATEGORY_PRIORITY.index(start_category)
-        CATEGORY_PRIORITY[:] = CATEGORY_PRIORITY[idx:] + CATEGORY_PRIORITY[:idx]
-        log(f"  Resuming from: {start_category} (skipped categories moved to end)")
+        forced_first = start_category
+        log(f"  First batch forced to: {start_category} (yield-based after that)")
 
-    # Print category queue
-    log("  Category queue:")
-    for i, cat in enumerate(CATEGORY_PRIORITY, 1):
-        n = count_untested(cat)
-        if n > 0:
-            log(f"    {i}. {cat} ({n} untested)")
+    # Print category queue ranked by historical yield
+    stats = category_scores()
+    ranked = sorted(((v['score'], cat, v) for cat, v in stats.items()
+                     if v['untested'] > 0), reverse=True)
+    log("  Category queue (ranked by yield score = smoothed pass rate):")
+    for i, (score, cat, v) in enumerate(ranked, 1):
+        log(f"    {i}. {cat} (score={score:.3f} | "
+            f"{v['passes']}p/{v['near']}n/{v['tested']}t | {v['untested']} untested)")
 
     log("")
     skipping = False  # rotation handles start_category, no longer need to skip
 
     try:
         batch_num = 0
+        consecutive_gen_failures = 0
+        MAX_CONSECUTIVE_GEN_FAILURES = 3
         while True:
-            cat = get_next_category()
+            if forced_first:
+                cat, forced_first = forced_first, None
+            else:
+                cat = get_next_category()
             if cat is None:
                 log("✅ All categories exhausted. Research complete!")
                 break
@@ -655,18 +1541,52 @@ def run_orchestrator(api_key: str, start_category: str = None, dry_run: bool = F
             separator('─')
 
             if dry_run:
-                log(f"  [DRY RUN] Would generate {FIELDS_PER_BATCH} fields from '{cat}'")
-                log(f"  [DRY RUN] Would run ~{FIELDS_PER_BATCH*4*1.5:.0f} min simulation")
-                # Simulate moving through categories for planning
-                if n_untested <= FIELDS_PER_BATCH:
-                    CATEGORY_PRIORITY.remove(cat)
+                log(f"  [DRY RUN] Would triage {TRIAGE_FIELDS} fields from '{cat}', "
+                    f"then LLM-batch promising ones")
+                # Remove so the dry-run plan lists each category once
+                CATEGORY_PRIORITY.remove(cat)
                 continue
 
-            # ── Step 1: Generate batch ────────────────────────────────────
-            params_file = generate_batch(api_key, cat, FIELDS_PER_BATCH, groq_key=groq_key)
+            # ── Step 1a: Triage — cheap 2-template scan of untested fields ─
+            promising = None
+            if triage:
+                triage_file, triage_fields = build_triage_batch(cat, TRIAGE_FIELDS)
+                if triage_file:
+                    triage_csv = run_simulation(triage_file)
+                    if triage_csv:
+                        update_tracker_from_csv(triage_csv)
+                        try:
+                            from template_rl import update_from_results
+                            update_from_results(triage_csv, TRACKER_CSV)
+                        except Exception as e:
+                            log(f'  [rl] Could not update template performance: {e}')
+                        promising = triage_promising(triage_csv, triage_fields)
+                        log(f"  Triage: {len(promising)}/{len(triage_fields)} fields "
+                            f"promising (|sharpe| ≥ {TRIAGE_SHARPE})")
+                        if not promising:
+                            log("  No promising fields in this batch — moving on.")
+                            continue
+                        promising = promising[:FIELDS_PER_BATCH]
+
+            # ── Step 1b: Generate LLM batch (full templates) ──────────────
+            params_file = generate_batch(api_key, cat, FIELDS_PER_BATCH,
+                                         groq_key=groq_key, fields=promising)
             if not params_file:
-                log(f"Batch generation failed for {cat}, skipping...")
+                consecutive_gen_failures += 1
+                log(f"Batch generation failed for {cat} ({consecutive_gen_failures}/{MAX_CONSECUTIVE_GEN_FAILURES}).")
+                if consecutive_gen_failures >= MAX_CONSECUTIVE_GEN_FAILURES:
+                    msg = (f"LLM generation failed {MAX_CONSECUTIVE_GEN_FAILURES} batches in a row. "
+                           f"Likely Gemini quota exhausted (20 req/day limit). "
+                           f"Stopping — restart tomorrow when quota resets.")
+                    log(msg)
+                    try:
+                        from notify import notify
+                        notify(msg, title='WQ Brain — Quota Exhausted', urgent=True)
+                    except Exception:
+                        pass
+                    break
                 continue
+            consecutive_gen_failures = 0
 
             # ── Step 2: Run simulation ────────────────────────────────────
             results_csv = run_simulation(params_file)
@@ -677,12 +1597,30 @@ def run_orchestrator(api_key: str, start_category: str = None, dry_run: bool = F
 
             # ── Step 3: Parse + update tracker + RL performance ──────────
             field_best = update_tracker_from_csv(results_csv)
-            passes, near_misses = parse_passes_and_near_misses(field_best)
             try:
                 from template_rl import update_from_results
                 update_from_results(results_csv, TRACKER_CSV)
             except Exception as e:
                 log(f'  [rl] Could not update template performance: {e}')
+
+            # Sign-flip: re-simulate negative-sharpe expressions as rank(...)
+            flip_file = build_sign_flip_batch(results_csv)
+            if flip_file:
+                flip_csv = run_simulation(flip_file)
+                if flip_csv:
+                    flip_best = update_tracker_from_csv(flip_csv)
+                    try:
+                        from template_rl import update_from_results
+                        update_from_results(flip_csv, TRACKER_CSV)
+                    except Exception:
+                        pass
+                    rank_map = {'dead':0,'tested':1,'near_miss':2,'pass':3}
+                    for fld, info in flip_best.items():
+                        existing = field_best.get(fld)
+                        if existing is None or rank_map.get(info['status'],0) > rank_map.get(existing['status'],0):
+                            field_best[fld] = info
+
+            passes, near_misses = parse_passes_and_near_misses(field_best)
 
             # Summary
             status_counts = Counter(v['status'] for v in field_best.values())
@@ -691,9 +1629,18 @@ def run_orchestrator(api_key: str, start_category: str = None, dry_run: bool = F
                 f"{status_counts.get('tested',0)} tested | "
                 f"{status_counts.get('dead',0)} dead")
 
-            # ── Step 4: Handle passes ─────────────────────────────────────
+            # Log which metric blocks each near-miss (feeds near_miss_log.csv)
+            log_near_miss_failures(near_misses, cat)
+
+            # Update auto knowledge base with latest findings
+            try:
+                update_auto_knowledge_base()
+            except Exception as e:
+                log(f'  [kb] KB update failed: {e}')
+
+            # ── Step 4: Handle passes (corr-check + robustness first) ─────
             if passes:
-                notify_passes(passes, results_csv)
+                clean = handle_passes(passes, results_csv)
 
                 # Build tuning batch
                 tune_file = build_tuning_batch(passes, near_misses)
@@ -710,10 +1657,11 @@ def run_orchestrator(api_key: str, start_category: str = None, dry_run: bool = F
                         tune_passes, _ = parse_passes_and_near_misses(tune_best)
                         if tune_passes:
                             log(f"  Tuning found {len(tune_passes)} additional passes!")
-                            notify_passes(tune_passes, tune_csv)
+                            clean += handle_passes(tune_passes, tune_csv)
 
-                # Pause for manual review
-                wait_for_user_confirmation()
+                # Pause for manual review only if something is actually submittable
+                if clean:
+                    wait_for_user_confirmation()
 
             elif near_misses:
                 log(f"  {len(near_misses)} near-misses — building quick tuning sweep...")
@@ -723,8 +1671,7 @@ def run_orchestrator(api_key: str, start_category: str = None, dry_run: bool = F
                     if tune_csv:
                         tune_best = update_tracker_from_csv(tune_csv)
                         tune_passes, _ = parse_passes_and_near_misses(tune_best)
-                        if tune_passes:
-                            notify_passes(tune_passes, tune_csv)
+                        if handle_passes(tune_passes, tune_csv):
                             wait_for_user_confirmation()
 
             log("")
@@ -761,8 +1708,8 @@ def scan_historical_near_misses() -> list[tuple[str, dict]]:
                     if not re.search(r'worldquantbrain\.com/alpha/\w+', link):
                         continue
                     # Near-miss: sharpe >= 0.90 but didn't pass all three thresholds
-                    is_pass = sharpe >= SHARPE_PASS and fitness >= FITNESS_PASS and passed >= CHECKS_PASS
-                    is_near = sharpe >= SHARPE_NEAR and fitness >= FITNESS_NEAR and passed >= CHECKS_NEAR
+                    is_pass = abs(sharpe) >= SHARPE_PASS and abs(fitness) >= FITNESS_PASS and passed >= CHECKS_PASS
+                    is_near = abs(sharpe) >= SHARPE_NEAR and abs(fitness) >= FITNESS_NEAR and passed >= CHECKS_NEAR
                     if is_near and not is_pass:
                         field = extract_field(row.get('code', ''))
                         if not field:
@@ -793,12 +1740,12 @@ def run_retune():
 
     # Categorize by blocker type
     fitness_blocked = [(f, v) for f, v in near_misses
-                       if float(v['row'].get('fitness', 0) or 0) < FITNESS_PASS]
+                       if abs(float(v['row'].get('fitness', 0) or 0)) < FITNESS_PASS]
     checks_blocked  = [(f, v) for f, v in near_misses
-                       if float(v['row'].get('fitness', 0) or 0) >= FITNESS_PASS
+                       if abs(float(v['row'].get('fitness', 0) or 0)) >= FITNESS_PASS
                        and int(v['row'].get('passed', 0) or 0) < CHECKS_PASS]
     sharpe_blocked  = [(f, v) for f, v in near_misses
-                       if float(v['row'].get('fitness', 0) or 0) >= FITNESS_PASS
+                       if abs(float(v['row'].get('fitness', 0) or 0)) >= FITNESS_PASS
                        and int(v['row'].get('passed', 0) or 0) >= CHECKS_PASS]
 
     log(f"  Found {len(near_misses)} historical near-misses:")
@@ -938,7 +1885,35 @@ Examples:
                         help='Generate mutations of passing alphas')
     parser.add_argument('--mutate-count', type=int, default=40,
                         help='Number of mutations to generate (default: 40)')
+    parser.add_argument('--no-triage', action='store_true',
+                        help='Skip the cheap triage pass — send every field straight to full LLM batches')
+    parser.add_argument('--exploit', action='store_true',
+                        help='Exploit mode: deep-test untested fields in datasets that already produced winners')
+    parser.add_argument('--exploit-batches', type=int, default=10,
+                        help='Max batches in exploit mode (default: 10)')
+    parser.add_argument('--combine', action='store_true',
+                        help='Combination mode: generate ensemble alphas from passing expressions')
+    parser.add_argument('--check-passes', metavar='CSV',
+                        help='Run corr + grade check on all passes in an existing results CSV (no re-simulation)')
     args = parser.parse_args()
+
+    if args.check_passes:
+        csv_path = Path(args.check_passes)
+        if not csv_path.exists():
+            # try relative to data/
+            csv_path = BASE_DIR / 'data' / args.check_passes
+        if not csv_path.exists():
+            print(f"ERROR: CSV not found: {args.check_passes}")
+            sys.exit(1)
+        passes = parse_all_passes_from_csv(csv_path)
+        if not passes:
+            log(f"No passes found in {csv_path.name} (thresholds: sharpe≥{SHARPE_PASS}, fitness≥{FITNESS_PASS}, checks≥{CHECKS_PASS})")
+        else:
+            log(f"Found {len(passes)} pass(es) in {csv_path.name} — checking corr + grade...")
+            clean = handle_passes(passes, csv_path)
+            if clean:
+                wait_for_user_confirmation()
+        return
 
     if args.retune:
         run_retune()
@@ -952,13 +1927,66 @@ Examples:
         run_mutate(args.mutate_count)
         return
 
+    if args.combine:
+        from combine_alphas import build_combination_batch
+        params_file = build_combination_batch()
+        if params_file and not args.dry_run:
+            results_csv = run_simulation(params_file)
+            if results_csv:
+                log(f"Combo results → {results_csv.name}")
+                field_best = update_tracker_from_csv(results_csv)
+                try:
+                    from template_rl import update_from_results
+                    update_from_results(results_csv, TRACKER_CSV)
+                except Exception as e:
+                    log(f'  [rl] Could not update template performance: {e}')
+
+                # Sign-flip: re-simulate negative-sharpe expressions as rank(...)
+                # Use parse_all_passes_from_csv (code-keyed) so each unique
+                # combination expression gets its own corr check — not collapsed
+                # by shared primary field like update_tracker_from_csv does.
+                flip_file = build_sign_flip_batch(results_csv)
+                if flip_file:
+                    flip_csv = run_simulation(flip_file)
+                    if flip_csv:
+                        flip_passes = parse_all_passes_from_csv(flip_csv)
+                        if flip_passes:
+                            log(f"  [flip] {len(flip_passes)} pass(es) — checking corr + grade individually")
+                            clean = handle_passes(flip_passes, flip_csv)
+                            if clean:
+                                wait_for_user_confirmation()
+
+                # Original combine passes (non-flipped) — also code-keyed
+                combo_passes = parse_all_passes_from_csv(results_csv)
+                near_misses_field, _ = parse_passes_and_near_misses(field_best)  # for near-miss log
+                log_near_miss_failures(
+                    [(f, v) for f, v in field_best.items() if v['status'] == 'near_miss'],
+                    'Combine'
+                )
+                if combo_passes:
+                    clean = handle_passes(combo_passes, results_csv)
+                    if clean:
+                        wait_for_user_confirmation()
+
+                try:
+                    update_auto_knowledge_base()
+                except Exception as e:
+                    log(f'  [kb] KB update failed: {e}')
+        return
+
     api_key = args.api_key or os.environ.get('GEMINI_API_KEY')
     if not api_key and not args.dry_run:
         print("ERROR: No API key. Pass --api-key or set GEMINI_API_KEY env var.")
         sys.exit(1)
 
     groq_key = args.groq_key or os.environ.get('GROQ_API_KEY')
-    run_orchestrator(api_key, args.start_category, args.dry_run, groq_key=groq_key)
+
+    if args.exploit:
+        run_exploit(api_key, groq_key=groq_key, max_batches=args.exploit_batches)
+        return
+
+    run_orchestrator(api_key, args.start_category, args.dry_run, groq_key=groq_key,
+                     triage=not args.no_triage)
 
 
 if __name__ == '__main__':

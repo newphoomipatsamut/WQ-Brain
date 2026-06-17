@@ -1,24 +1,31 @@
 {
-  "group_rank_QUARTERLY": {
-    "avg_sharpe": 0.028,
+  "group_neutralize_QUARTERLY": {
+    "avg_sharpe": 0.205,
     "near_misses": 0,
     "passes": 0,
-    "runs": 87,
-    "sharpe_sum": 2.4600000000000004
+    "runs": 2,
+    "sharpe_sum": 0.41000000000000003
+  },
+  "group_rank_QUARTERLY": {
+    "avg_sharpe": 0.026,
+    "near_misses": 0,
+    "passes": 0,
+    "runs": 138,
+    "sharpe_sum": 3.5500000000000007
   },
   "group_zscore_QUARTERLY": {
-    "avg_sharpe": 0.086,
+    "avg_sharpe": 0.106,
     "near_misses": 1,
     "passes": 0,
-    "runs": 73,
-    "sharpe_sum": 6.309999999999999
+    "runs": 108,
+    "sharpe_sum": 11.419999999999995
   },
   "hump_ts_rank_QUARTERLY": {
-    "avg_sharpe": 0.131,
+    "avg_sharpe": 0.043,
     "near_misses": 2,
     "passes": 1,
-    "runs": 199,
-    "sharpe_sum": 26.119999999999997
+    "runs": 578,
+    "sharpe_sum": 25.10000000000001
   },
   "other_QUARTERLY": {
     "avg_sharpe": -0.22,
@@ -27,12 +34,19 @@
     "runs": 23,
     "sharpe_sum": -5.050000000000001
   },
+  "revision_rate_QUARTERLY": {
+    "avg_sharpe": 0.055,
+    "near_misses": 1,
+    "passes": 0,
+    "runs": 322,
+    "sharpe_sum": 17.669999999999984
+  },
   "ts_corr_QUARTERLY": {
-    "avg_sharpe": 0.052,
+    "avg_sharpe": 0.059,
     "near_misses": 0,
     "passes": 0,
-    "runs": 48,
-    "sharpe_sum": 2.52
+    "runs": 50,
+    "sharpe_sum": 2.94
   },
   "ts_decay_linear_QUARTERLY": {
     "avg_sharpe": 0.377,
@@ -63,11 +77,12 @@
     "sharpe_sum": 0.0
   },
   "ts_rank_QUARTERLY": {
-    "avg_sharpe": 0.039,
-    "near_misses": 8,
+    "avg_sharpe": 0.044,
+    "corr_fails": 5,
+    "near_misses": 9,
     "passes": 3,
-    "runs": 456,
-    "sharpe_sum": 17.90000000000001
+    "runs": 522,
+    "sharpe_sum": 22.99000000000002
   },
   "ts_rank_SLOW": {
     "avg_sharpe": -0.39,
@@ -77,32 +92,39 @@
     "sharpe_sum": -9.75
   },
   "ts_rank_WEEKLY": {
-    "avg_sharpe": 0.454,
-    "near_misses": 4,
+    "avg_sharpe": 0.224,
+    "near_misses": 7,
     "passes": 3,
-    "runs": 62,
-    "sharpe_sum": 28.13000000000001
+    "runs": 110,
+    "sharpe_sum": 24.690000000000005
+  },
+  "ts_rank_confirm_QUARTERLY": {
+    "avg_sharpe": 1.217,
+    "near_misses": 13,
+    "passes": 0,
+    "runs": 40,
+    "sharpe_sum": 48.680000000000014
   },
   "ts_regression_QUARTERLY": {
-    "avg_sharpe": 0.032,
+    "avg_sharpe": 0.021,
     "near_misses": 0,
     "passes": 0,
-    "runs": 150,
-    "sharpe_sum": 4.73
+    "runs": 206,
+    "sharpe_sum": 4.319999999999999
   },
   "ts_std_dev_QUARTERLY": {
-    "avg_sharpe": 0.018,
-    "near_misses": 0,
+    "avg_sharpe": -0.019,
+    "near_misses": 1,
     "passes": 0,
-    "runs": 72,
-    "sharpe_sum": 1.3000000000000007
+    "runs": 96,
+    "sharpe_sum": -1.849999999999999
   },
   "ts_zscore_QUARTERLY": {
-    "avg_sharpe": 0.042,
+    "avg_sharpe": 0.045,
     "near_misses": 3,
     "passes": 0,
-    "runs": 197,
-    "sharpe_sum": 8.209999999999999
+    "runs": 209,
+    "sharpe_sum": 9.359999999999998
   },
   "ts_zscore_SLOW": {
     "avg_sharpe": -0.225,
@@ -112,10 +134,10 @@
     "sharpe_sum": -2.4800000000000004
   },
   "ts_zscore_WEEKLY": {
-    "avg_sharpe": 0.291,
+    "avg_sharpe": 0.091,
     "near_misses": 0,
     "passes": 0,
-    "runs": 15,
-    "sharpe_sum": 4.36
+    "runs": 60,
+    "sharpe_sum": 5.460000000000003
   }
 }

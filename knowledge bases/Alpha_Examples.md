@@ -62,6 +62,7 @@
 * **Volatility of a Field as a Signal**
     * **Concept:** The variability of a fundamental signal (e.g. earnings) is itself informative — low volatility = quality/consistency.
     * **Implementation:** `-rank(ts_std_dev(FIELD, 63))` or `-rank(ts_rank(ts_std_dev(FIELD, 22), 252))`
+    * **⚠ Empirical warning (96 runs, 0 passes, avg_sharpe = -0.02 for QUARTERLY fields):** ts_std_dev has near-zero yield for quarterly-updated fundamental data. When it produces signal, TO is typically < 2% → structural fitness ceiling at ~0.88. Use only as a last resort for fundamentals; prioritize ts_rank/ts_regression instead.
 
 * **Correlation Between Field and Price**
     * **Concept:** How closely a fundamental moves with price reveals whether it's already "priced in". High correlation = crowded, low = undiscovered.
@@ -85,13 +86,15 @@
 * **Multi-Stage Composition**
     * **Concept:** Wrap one transform inside another to create second-order signals.
     * **Implementation:** `-rank(ts_rank(ts_delta(FIELD, 21), 63))` — rate-of-change ranked over time
-    * **Implementation:** `-rank(ts_decay_linear(ts_zscore(FIELD, 63), 10) * rank(ts_delta(close, 5)))` — smoothed zscore × momentum
+    * **⚠ BANNED patterns — DO NOT USE:** `ts_decay_linear(...)` and `rank(ts_delta(close, N))` are both banned. They correlate with existing submitted alphas and always fail self-correlation or Performance Comparison. These have been removed from all active templates.
 
 ---
 
 ## 5. Key Takeaways for Alpha Engineering
 1.  **Level Up Your Math:** Raw field → ts_zscore/ts_rank → group_rank → ts_regression slope → multi-stage composition.
 2.  **Combine Signals (Multi-Factor):** Multiply value signal × momentum signal to amplify.
-3.  **Control Execution:** Use `trade_when` and `ts_decay_linear` to force longer holds — reduces TO and improves Fitness.
+3.  **Control Execution:** Use `trade_when` to force longer holds — reduces TO and improves Fitness. (`ts_decay_linear` is banned — use `hump()` for fitness fixes instead.)
 4.  **Preprocess first:** `ts_backfill(FIELD, 120)` for sparse data, `winsorize(FIELD, std=4)` for outlier-heavy financials.
 5.  **Use group operators for diversification:** `group_rank` and `group_zscore` give structurally lower self-corr than plain `rank`.
+6.  **Prioritize WEEKLY fields over QUARTERLY:** WEEKLY ts_rank has a 4.3% pass rate vs QUARTERLY's 0.6% — nearly 7x more fertile. SLOW frequency fields (credit risk, slow model scores) have negative average Sharpe — avoid them.
+7.  **QUARTERLY ts_std_dev is a trap:** 0 passes from 96 runs. The signal occasionally exists but always hits a fitness ceiling from ultra-low TO. Use ts_rank or ts_regression slope instead for quarterly data.

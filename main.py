@@ -1,5 +1,6 @@
 import csv
 import logging
+import os
 import requests
 import json
 import sys
@@ -8,10 +9,15 @@ from parameters import DATA
 from concurrent.futures import ThreadPoolExecutor
 from threading import current_thread, Lock
 
+# Concurrent simulation slots. Regular accounts get ~3; consultants get 8-10.
+# Your 429 pattern (2 running, rest bouncing) suggests 3 is right for your tier.
+# Override without editing code:  export WQ_CONCURRENCY=8
+MAX_WORKERS = int(os.environ.get('WQ_CONCURRENCY', 3))
+
 class WQSession(requests.Session):
     def __init__(self, json_fn='credentials.json'):
         super().__init__()
-        for handler in logging.root.handlers:
+        for handler in list(logging.root.handlers):
             logging.root.removeHandler(handler)
         logging.basicConfig(encoding='utf-8', level=logging.INFO, format='%(asctime)s: %(message)s')
         self.json_fn = json_fn
@@ -40,29 +46,87 @@ class WQSession(requests.Session):
         self.login_expired = False
         self.rows_processed = []
 
-    def login(self):
+    def _load_creds(self) -> tuple[str, str]:
+        """Return (email, password). Env vars take priority over credentials.json."""
+        email = os.environ.get('WQ_EMAIL')
+        password = os.environ.get('WQ_PASSWORD')
+        if email and password:
+            return email, password
         with open(self.json_fn, 'r') as f:
             creds = json.loads(f.read())
-            email, password = creds['email'], creds['password']
-            self.auth = (email, password)
+        return creds['email'], creds['password']
+
+    def login(self):
+        email, password = self._load_creds()
+        self.auth = (email, password)
+
+        while True:  # outer loop: re-requests a fresh link if previous one expires
             r = self.post('https://api.worldquantbrain.com/authentication')
-        if 'user' not in r.json():
-            if 'inquiry' in r.json():
-                auth_url = f"{r.url}/persona?inquiry={r.json()['inquiry']}"
+            resp = r.json()
+
+            if 'user' in resp:
+                break  # already authenticated
+
+            if 'inquiry' not in resp:
+                print(f'WARNING! {resp}')
+                input('Press enter to quit...')
+                break
+
+            auth_url = f"{r.url}/persona?inquiry={resp['inquiry']}"
+            try:
+                from notify import notify
+                notify(f'Biometric auth required — tap link (expires ~5 min):\n{auth_url}',
+                       title='WQ Brain — Action Needed', urgent=True)
+            except Exception:
+                pass
+            print(f"\n{'='*60}")
+            print(f"  Biometric auth required. Link sent to LINE.")
+            print(f"  URL: {auth_url}")
+            print(f"  Checking every 10s — auto-refreshes link before it expires.")
+            print(f"{'='*60}\n")
+
+            # Poll every 10s for up to 4 min, then re-request a fresh link.
+            # WQ auth links expire in ~5 min; refresh at 4 min to stay ahead.
+            deadline = time.time() + 240
+            authed = False
+            while time.time() < deadline:
+                time.sleep(10)
                 try:
-                    from notify import notify
-                    notify(f'Biometric auth required:\n{auth_url}',
-                           title='WQ Brain — Action Needed', urgent=True)
+                    result = self.post(f"{r.url}/persona", json=resp)
+                    if 'user' in result.json():
+                        logging.info('Biometric auth confirmed — continuing automatically.')
+                        authed = True
+                        break
                 except Exception:
                     pass
-                input(f"Please complete biometric authentication at {auth_url} before continuing...")
-                self.post(f"{r.url}/persona", json=r.json())
-            else:
-                print(f'WARNING! {r.json()}')
-                input('Press enter to quit...')
+                remaining = int(deadline - time.time())
+                logging.info(f'Waiting for biometric auth... ({remaining}s before link refresh)')
+
+            if authed:
+                break
+
+            # 4 min elapsed — link likely expired; loop back to request a fresh one
+            logging.info('Auth link may have expired — requesting a fresh link...')
+            try:
+                from notify import notify
+                notify('Auth link expired — new link incoming now...',
+                       title='WQ Brain — Refreshing Auth', urgent=False)
+            except Exception:
+                pass
+
         logging.info('Logged in to WQBrain!')
 
+    # Operators/patterns banned from simulation entirely:
+    # ts_decay_linear: correlated with Alpha 10 (score change always negative)
+    # ts_delta(close: rank(ts_delta(close,N)) momentum leg correlated with Alpha 9
+    BANNED_OPS = ('ts_decay_linear', 'ts_delta(close')
+
     def simulate(self, data):
+        banned = [d for d in data
+                  if any(op in d.get('code', '') for op in self.BANNED_OPS)]
+        if banned:
+            print(f'⚠ Dropping {len(banned)} expression(s) using banned ops {self.BANNED_OPS}')
+            data = [d for d in data if d not in banned]
         self.rows_processed = []
         self._timed_out = []
         self._lock = Lock()
@@ -78,12 +142,14 @@ class WQSession(requests.Session):
 
         def process_simulation(writer, f, simulation):
             if self.login_expired: return
-            # Stagger submissions — avoid rate-limiting when all 8 threads fire at once
+            # Stagger only the INITIAL burst — after the first wave, workers are
+            # naturally desynchronized by simulation runtimes. (Old code slept
+            # position*0.8s for EVERY task: expression #150 waited 2 min for nothing.)
             with _submit_lock:
-                stagger = _submit_count[0] * 0.8  # 0.8s between each submission start
+                idx = _submit_count[0]
                 _submit_count[0] += 1
-            if stagger > 0:
-                time.sleep(stagger)
+            if idx < MAX_WORKERS:
+                time.sleep(idx * 0.8)
 
             alpha = simulation['code'].strip()
             delay = simulation.get('delay', 1)
@@ -98,7 +164,10 @@ class WQSession(requests.Session):
             label = f"[{universe} d{delay}] {short_code(alpha)}"
             logging.info(f"▶ Simulating: {label}")
 
+            submit_retries = 0
+            MAX_SUBMIT_RETRIES = 10
             while True:
+                r = None
                 try:
                     r = self.post('https://api.worldquantbrain.com/simulations', json={
                         'regular': alpha,
@@ -121,13 +190,33 @@ class WQSession(requests.Session):
                     nxt = r.headers['Location']
                     break
                 except (requests.exceptions.RequestException, KeyError) as e:
+                    # Figure out WHY the platform rejected the POST
+                    status = getattr(r, 'status_code', None)
                     try:
-                        if 'credentials' in r.json()['detail']:
-                            self.login_expired = True
-                            return
+                        body = r.json()
                     except Exception:
-                        logging.info(f'  ⚠ Gateway error, skipping: {label} ({e})')
+                        body = {}
+                    if 'credentials' in str(body.get('detail', '')):
+                        self.login_expired = True
                         return
+                    # Rate-limit / concurrency cap → wait and retry, don't skip
+                    if status == 429 or 'LIMIT' in str(body).upper():
+                        submit_retries += 1
+                        if submit_retries > MAX_SUBMIT_RETRIES:
+                            logging.info(f'  ⚠ Rate-limited {MAX_SUBMIT_RETRIES}x, giving up: {label}')
+                            return
+                        try:
+                            wait = float(r.headers.get('Retry-After', 0)) or 15.0
+                        except Exception:
+                            wait = 15.0
+                        wait = min(wait * submit_retries, 120)
+                        logging.info(f'  ⏳ Rate-limited (429), retry {submit_retries}/{MAX_SUBMIT_RETRIES} in {wait:.0f}s: {label}')
+                        time.sleep(wait)
+                        continue
+                    # Anything else: log status + body so the reason is visible
+                    reason = body or repr(e)
+                    logging.info(f'  ⚠ Simulation rejected (HTTP {status}), skipping: {label} | {reason}')
+                    return
 
             ok = True
             MAX_WAIT = 10 * 60
@@ -169,7 +258,7 @@ class WQSession(requests.Session):
                         subsharpe = check['value']
                 sharpe = r['is']['sharpe']
                 fitness = r['is']['fitness']
-                status = '✅ PASS' if passed >= 6 and sharpe >= 1.25 and fitness >= 1.0 else f'passed={passed}'
+                status = '✅ PASS' if passed >= 6 and abs(sharpe) >= 1.25 and abs(fitness) >= 1.0 else f'passed={passed}'
                 link = f'https://platform.worldquantbrain.com/alpha/{alpha_link}'
                 logging.info(f"  ✔ {status} | sharpe={sharpe} fit={fitness} sub={subsharpe} | {link}")
                 row = [
@@ -189,10 +278,13 @@ class WQSession(requests.Session):
             for handler in logging.root.handlers:
                 logging.root.removeHandler(handler)
             from datetime import datetime
-            try:
-                from parameters import BATCH_NAME as _bn
-            except ImportError:
-                _bn = 'agent'
+            # Orchestrator sets WQ_BATCH_NAME before each run to avoid stale module cache
+            _bn = os.environ.get('WQ_BATCH_NAME', '')
+            if not _bn:
+                try:
+                    from parameters import BATCH_NAME as _bn
+                except ImportError:
+                    _bn = 'agent'
             ts = datetime.now().strftime('%Y%m%d_%H%M%S')
             csv_file = f"data/{_bn}_{ts}.csv"
             log_file = f"data/{_bn}_{ts}.log"
@@ -210,7 +302,7 @@ class WQSession(requests.Session):
                 writer = csv.writer(f)
                 writer.writerow(['passed', 'sharpe', 'fitness', 'turnover',
                                  'weight', 'subsharpe', 'universe', 'delay', 'link', 'code'])
-                with ThreadPoolExecutor(max_workers=8) as executor:  # WQ Brain consultant limit
+                with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
                     executor.map(lambda sim: process_simulation(writer, f, sim), data)
         except Exception as e:
             print(f'Issue occurred! {type(e).__name__}: {e}')

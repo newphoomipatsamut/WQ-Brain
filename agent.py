@@ -504,7 +504,7 @@ def process_csv(csv_path, session, state):
     log(f'  {len(df)} total rows, {(df["alpha_id"].notna()).sum()} valid alphas')
 
     promising = filter_promising(df)
-    log(f'  {len(promising)} promising (sharpe≥{SHARPE_PROMISING} OR fitness≥{FITNESS_PROMISING} OR passed≥{PASSED_PROMISING})')
+    log(f'  {len(promising)} promising (sharpe≥{SHARPE_PROMISING} AND fitness≥{FITNESS_PROMISING} AND passed≥{PASSED_PROMISING})')
 
     if promising.empty:
         log('  Nothing promising — moving on.')

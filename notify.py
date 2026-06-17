@@ -24,6 +24,7 @@ Usage (from other scripts):
 """
 
 import json
+import os
 import subprocess
 from pathlib import Path
 
@@ -32,7 +33,11 @@ CREDS_FILE = BASE_DIR / 'credentials.json'
 
 
 def _load_line_creds() -> tuple[str | None, str | None]:
-    """Return (channel_token, user_id) from credentials.json."""
+    """Return (channel_token, user_id). Env vars take priority over credentials.json."""
+    token = os.environ.get('LINE_CHANNEL_TOKEN')
+    user_id = os.environ.get('LINE_USER_ID')
+    if token and user_id:
+        return token, user_id
     try:
         with open(CREDS_FILE) as f:
             creds = json.load(f)

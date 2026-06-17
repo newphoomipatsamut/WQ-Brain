@@ -27,12 +27,16 @@ from main import WQSession
 # ── CONFIG ────────────────────────────────────────────────────────────────────
 DATASET_ID       = sys.argv[1] if len(sys.argv) > 1 else 'model77'
 START_OFFSET     = int(sys.argv[2]) if len(sys.argv) > 2 else 0  # resume from offset
-REGION           = 'USA'
-UNIVERSE         = 'TOP3000'
+# Region/universe/delay configurable via env vars for multi-region expansion:
+#   WQ_REGION=EUR WQ_UNIVERSE=TOP2500 WQ_TRACKER=fields_tracker_EUR.csv \
+#     python3 scrape_fields.py model77
+# Check the platform's data explorer for valid universe names per region.
+REGION           = os.environ.get('WQ_REGION', 'USA')
+UNIVERSE         = os.environ.get('WQ_UNIVERSE', 'TOP3000')
 INSTRUMENT_TYPE  = 'EQUITY'
-DELAY            = 1
+DELAY            = int(os.environ.get('WQ_DELAY', 1))
 PAGE_SIZE        = 20            # max per request (API limit)
-FIELDS_TRACKER   = 'fields_tracker.csv'
+FIELDS_TRACKER   = os.environ.get('WQ_TRACKER', 'fields_tracker.csv')
 DATA_DIR         = 'data'
 SLEEP_BETWEEN    = 3.0           # seconds between paginated requests (rate limit safe)
 

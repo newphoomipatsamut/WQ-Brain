@@ -20,6 +20,14 @@ If your correlation is high, your core idea is sound, but you are repeating your
 High turnover kills Fitness and destroys real-world profitability due to transaction costs.
 * **Event-Driven Execution:** `trade_when(Event_Condition, Alpha_Signal, -1)`. Only trades when a specific event triggers; holds position (`-1`) on all other days.
 * **Increase Decay:** Higher decay values smooth the signal linearly, forcing the algorithm to hold positions longer.
+* **hump():** Wrapping the expression in `hump()` suppresses small daily weight changes below 1% — most effective for annual/quarterly signals. Never use `ts_decay_linear()` — it is banned.
+
+### C2. Ultra-Low Turnover (Fitness Ceiling)
+The flip side of C: when TO < ~2%, Fitness hits a structural ceiling around 0.88 regardless of Sharpe.
+* **Root cause:** `Fitness = Sharpe * sqrt(Returns / Turnover)`. At TO=1.61% and Sharpe=1.32, the formula caps fitness at ~0.88 — structurally unable to reach 1.00.
+* **Fix attempt:** Use shorter lookbacks (63, 126 instead of 252) to raise TO. This only works if the signal exists at short timescales. If the field only has signal at annual timescales (e.g. yearly financial statement volatility), no lookback shortening will help.
+* **Decision rule:** If the signal disappears at 63-day and 126-day lookbacks, mark the field as `❌ Abandoned (fitness_ceiling)`. Do not waste more simulation budget.
+* **Affected data types:** Annual fundamental fields, quarterly compensation data (`fn_comp_*`), and any field where the underlying data updates < 4x/year.
 
 ### D. Erratic PnL Jumps (High Drawdowns)
 * **The `NaN` Problem:** If data flickers between values and `NaN`, weights flip to 0. Bridge gaps with `ts_backfill()`.
@@ -35,6 +43,24 @@ Overfitting occurs when you "curve-fit" your math to perfectly predict historica
 2. **The Rank Test:** Change your raw signal to `rank(signal)`. If the Alpha breaks, it relied too heavily on random extreme outliers.
 3. **The Sub-Universe Test:** Test your `TOP3000` Alpha on `TOP1000`. If it fails, it is falsely relying on illiquid micro-caps.
 4. **The "Second Best" Rule:** When optimizing parameters, don't blindly pick the absolute highest Sharpe. Pick a stable middle value.
+
+### Conditions (Ternary) Overfitting
+Each additional `? :` condition adds a degree of freedom that the expression can use to fit historical noise. A single condition is usually fine. **Many chained conditions on the same expression is a red flag for overfitting** — if you need 4+ branches to make an alpha pass, the logic is curve-fit and OS Sharpe will disappoint.
+
+Rule of thumb: if the alpha only passes because of a specific conditional branch, remove the condition and test the base signal alone. If the base signal fails, the condition is compensating for a weak idea, not adding real alpha.
+
+### Decay Overfitting — The Coarse vs. Fine Distinction
+Changing `Decay` by a large step is exploration; tweaking it by ±1 to chase a slightly higher Sharpe is overfitting:
+* **Okay:** Decay 1 → 5 (exploring a meaningfully different smoothing regime)
+* **Overfitting:** Decay 5 → 6 (cherry-picking between nearly identical values)
+
+**Sensitivity analysis:** Run the alpha at Decay-4, Decay-6, and Decay-8. If performance is stable across all three, Decay-6 is trustworthy. If the alpha only works at one specific value, that value was curve-fit to historical noise.
+
+### When to Stop Improving the Same Alpha
+WorldQuant explicitly weights **originality** of idea equally with technical execution. Overly improving a single alpha idea risks overfitting AND fails the originality test — you end up with a polished version of an already-submitted idea that gets rejected for high correlation. **Move on to a new alpha idea rather than tweaking the same one past reasonable parameter exploration.**
+
+### When an Alpha Can't Be Explained
+It is preferable to understand *why* an alpha works. But if an alpha performs well in both IS and OS, it is still valuable even if the mechanism isn't fully clear. The signal is real — just unexplained. The longer the OS tracking period with good performance, the more confidence you can have in it. Do not discard an alpha just because you can't narrate the economic story behind it.
 
 ---
 

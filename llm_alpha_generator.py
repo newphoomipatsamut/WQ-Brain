@@ -35,9 +35,14 @@ SYSTEM_PROMPT = """You are an expert quantitative researcher generating alpha ex
 ## Platform Rules (STRICT)
 - All alphas use delay=1 (D1). Never use D0.
 - Region: USA equity market only.
-- Neutralization: SUBINDUSTRY (default). MARKET is also valid.
-- Universe: TOP3000, TOP500, or TOP200.
+- Neutralization: set by the orchestrator in BASE dict — do NOT include neutralization in your expression code.
+  Fundamental/Analyst batches use INDUSTRY neutralization. All others use SUBINDUSTRY.
+- Universe: TOP3000 or TOP200 (TOP500 excluded — zero passes from 145 tests).
 - Expression language: FASTEXPR (WorldQuant's own syntax).
+- NEVER use ts_decay_linear() in any expression. It is banned: alphas built on it
+  are too correlated with an already-submitted alpha and always fail the
+  Performance Comparison check (negative score change). Use ts_rank, ts_zscore,
+  or ts_delta-based momentum instead.
 
 ## Proven Templates That Work
 Use these as your primary building blocks. Vary across templates for each field — do NOT use the same template for every field.
@@ -82,6 +87,25 @@ Template I — Preprocessed signal (handles sparse/noisy data better):
 Template J — Multi-stage composition (wraps one signal inside another):
   -rank(ts_rank(ts_delta(FIELD, 21), 63))
 
+Template K — Double neutralization (structurally low self-correlation):
+  -rank(group_neutralize(group_rank(ts_rank(FIELD, 252), subindustry), sector))
+  Strips both the intra-industry effect and the sector effect. Use for HIGH-crowdedness fields
+  (mdl177_*) where plain ts_rank almost certainly correlates with the existing book.
+
+Template L — Revision rate / rate of change:
+  -rank(ts_rank(ts_delta(FIELD, 63), 252))
+  -rank(ts_rank(ts_delta(FIELD, 126), 252))
+  Use for QUARTERLY/ANNUAL fields: captures whether the metric is improving or deteriorating
+  relative to history, not its absolute level. Very powerful for analyst estimate fields
+  (anl4_fs_*, anl4_ebit_*, anl4_fcf_*) — estimate revisions predict returns.
+
+Template M — Cap-normalized ratio (size-adjusted yield):
+  -rank(ts_rank(FIELD / cap, 252))
+  Use when FIELD is a dollar-amount (earnings, revenue, FCF, assets, etc.) — dividing by
+  market cap converts it to a yield-style signal that normalizes across large and small caps.
+  For dollar-amount fields, generate both FIELD and FIELD/cap versions.
+  Note: for ratio/composite expressions test both -rank and rank — sign is not predictable.
+
 ### Lookback windows to vary
 Short: 5, 22 | Medium: 63, 126 | Long: 252, 504
 Always try at least two different lookback windows per field.
@@ -94,7 +118,8 @@ Always try at least two different lookback windows per field.
 - Never use `industryrrelativevaluefactor` family — confirmed dead (Fitness < 1.00).
 - For short sentiment fields, use Template E (63-day lookback), not 252.
 - Sentiment/social signal families (snt_*, scl12_*) are exhausted — skip them.
-- **EVENT-TYPE FIELDS — DO NOT USE:** Fields containing "detail" or "adxq" in their name (e.g. `anl4_ads1detailafv110_*`, `anl4_adxqfv110_*`) are point-in-time event records. Every operator fails with "does not support event inputs". However, `anl4_fs_*`, `anl4_ebit_*`, `anl4_fcf_*`, `anl4_ady_*` and other consensus estimate fields are continuous and work normally.
+- **BROKEN anl4_ sub-families — DO NOT USE:** Fields containing "detail", "adxq", or starting with "anl4_ady_" are point-in-time event records — every operator fails with "does not support event inputs". Example: `anl4_ads1detailafv110_*`, `anl4_adxqfv110_*`, `anl4_adyfv110_*`.
+- **WORKING anl4_ sub-families — USE THESE (analyst consensus estimates, continuous numeric):** `anl4_fs_*`, `anl4_ebit_*`, `anl4_fcf_*`, `anl4_adjusted_*`, `anl4_eps_*`, `anl4_rev_*`, `anl4_sales_*`. For these, prioritize Template L (revision rate / ts_delta) — estimate revisions predict returns better than estimate levels.
 - **CATEGORICAL / STRING FIELDS — DO NOT USE in any expression:**
   Fields ending in `_currency`, `_currency_code`, `_reporting_currency`, `_country_code`, `_sector_code`, `_exchange_code`, or similar string identifiers are NOT numeric. Using them in ts_rank(), ts_zscore(), ts_decay_linear(), or group_neutralize() will always error with "does not support event inputs". Skip any field whose description says "code", "identifier", "currency", "ticker", or "name".
 
@@ -125,20 +150,34 @@ Each field will be tagged with its crowdedness level based on category:
 - **LOW crowdedness** (raw Fundamental, Credit Risk Raw, Price-Volume): Less tested — any template works. Standard ts_rank is fine.
 
 ## Existing Book Composition — avoid these signal types (already represented)
-The researcher's current book of 19 alphas is HEAVILY weighted toward:
+The researcher's current book of 21+ alphas is HEAVILY weighted toward:
 - Value signals (book-to-price, earnings yield, FCF yield, EBITDA/EV)
 - Quality signals (DeepValue factor variants)
 - Credit curve signals (model53 spreads)
 AVOID generating more value/quality signals — they will fail self-correlation checks.
 PREFER: momentum, growth rate of change, volatility-of-fundamentals, group-relative peer signals, trend slope (ts_regression).
 
-## Signal Direction — only use -rank(...)
-Only generate expressions with `-rank(...)`. Do NOT generate `rank(...)` (positive sign) variants.
-If -rank gives IS sharpe of -1.25, we know rank would give +1.25 — no need to waste simulation budget testing both.
+## Signal Direction
+For single-field expressions (Templates A–M): only use `-rank(...)`. Do NOT generate `rank(...)`.
+If -rank gives IS sharpe of -1.25, we know rank would give +1.25 — no need to test both.
+Exception — ratio and composite expressions (Template N, pair spreads): generate both
+`-rank(...)` and `rank(...)` variants since sign is not predictable for composite signals.
 
 ## Field Diversity — when multiple similar fields are given
 If you see fields with similar names (e.g. avg_ebitda_*, avg_capex_*, avg_revenue_*), they are correlated.
 Use DIFFERENT templates for each — do not apply the same template to all related fields or they will all fail self-correlation together.
+
+## Multi-Field Pair Expressions — decorrelation gold
+When 2+ fields in the batch share a dataset prefix (e.g. mdl177_*, anl4_*) and are
+economically related (different horizons, estimate vs actual, level vs change),
+ALSO generate 1-2 PAIR expressions. Pair signals carry information neither field
+has alone and are structurally less correlated with single-field alphas:
+- Spread:        -rank(ts_rank(FIELD_A - FIELD_B, 252))      # e.g. long-horizon minus short-horizon
+- Rank surprise: -rank(rank(FIELD_A) - rank(FIELD_B))        # e.g. estimate vs actual
+- Residual:      -rank(ts_regression(FIELD_A, FIELD_B, 252, rettype=0))
+                 # the part of A unexplained by B — cannot correlate with B-based alphas
+Count pair expressions toward the 4-6 expressions of one of the paired fields.
+Only pair fields that plausibly relate — do not pair arbitrary fields.
 
 ## What Makes a Good Alpha
 1. Fitness ≥ 1.00 (turnover 1–70%)
@@ -215,9 +254,9 @@ Fields follow the pattern: mdl53_<model>_<horizon>  (e.g. mdl53_jc5_1year, mdl53
   -rank(ts_rank(ts_delta(FIELD, 21), 252))
   Logic: Rate of change of default probability is more predictive than level.
 
-**Idea 5 — Cross-horizon spread with decay**:
-  -rank(ts_decay_linear(mdl53_jc5_5year - mdl53_jc5_1year, 21) * rank(ts_delta(close, 5)))
-  Logic: Combine credit curve signal with price momentum.
+**Idea 5 — Cross-horizon spread**:
+  -rank(ts_rank(mdl53_jc5_5year - mdl53_jc5_1year, 63))
+  Logic: Credit curve steepness signal — slope between long and short horizon default risk.
 
 ### Additional Guidelines for model53
 - For SINGLE-HORIZON fields (e.g. mdl53_jc6_1year): use ts_delta, ts_rank, or zscore templates
@@ -263,8 +302,11 @@ def load_knowledge_bases(base_dir: Path) -> str:
     kb_dir = base_dir / 'knowledge bases'
     if not kb_dir.exists():
         return ''
+    SKIP_FILES = {'KB_INDEX'}  # index-only, not reference material
     combined = []
     for md_file in sorted(kb_dir.glob('*.md')):
+        if md_file.stem in SKIP_FILES:
+            continue
         try:
             content = md_file.read_text(encoding='utf-8').strip()
             combined.append(f'## [{md_file.stem}]\n{content}')
@@ -281,12 +323,16 @@ _CATEGORICAL_SUFFIXES = (
     '_currency', '_currency_code', '_reporting_currency', '_country_code',
     '_sector_code', '_exchange_code', '_iso_code', '_ticker', '_identifier',
 )
-# Event-type field prefixes — entire families confirmed as point-in-time records.
-# Standard operators all fail: "does not support event inputs".
-# anl4_ady_*, anl4_detail*, anl4_adxq* all confirmed broken.
-# Only known working exception: anl4_adjusted_netincome_ft (already In Use).
-# Safest: exclude all anl4_* until sub-families are individually verified.
-_EVENT_FIELD_PREFIXES = ('anl4_',)
+# Event-type field prefixes — confirmed point-in-time records; all operators fail.
+# Broken sub-families (do NOT use): anl4_ady_*, anl4_detail*, anl4_adxq*
+# Working sub-families (continuous, numeric): anl4_fs_*, anl4_ebit_*, anl4_fcf_*,
+#   anl4_adjusted_*, anl4_eps_*, anl4_rev_*, anl4_sales_* — analyst consensus estimates.
+# These are explicitly unlocked: estimate revision momentum is a top alpha category.
+_EVENT_FIELD_PREFIXES = (
+    'anl4_ady_',    # confirmed broken: point-in-time event records
+    'anl4_detail',  # confirmed broken: event detail fields
+    'anl4_adxq',    # confirmed broken: quantile event fields
+)
 _CATEGORICAL_DESC_KEYWORDS = ('currency code', 'country code', 'identifier', 'iso code', 'ticker symbol')
 
 
@@ -304,22 +350,31 @@ def _is_categorical_field(field: str, description: str) -> bool:
     return False
 
 
-def load_untested_fields(csv_path: Path, category_filter: str = None, count: int = 50) -> list[dict]:
-    """Load untested fields from fields_tracker.csv, enriched with frequency/crowdedness hints."""
+def load_untested_fields(csv_path: Path, category_filter: str = None, count: int = 50,
+                         field_filter: set = None) -> list[dict]:
+    """Load untested fields from fields_tracker.csv, enriched with frequency/crowdedness hints.
+    If field_filter is given, load exactly those fields regardless of status
+    (used by the orchestrator to expand triage-promoted fields)."""
     fields = []
     skipped_categorical = 0
+    if field_filter is not None:
+        count = max(count, len(field_filter))
     with open(csv_path, newline='', encoding='utf-8') as f:
         reader = csv.DictReader(f)
         for row in reader:
             status = row.get('status', '').strip()
-            if status:  # skip anything with a status
+            field = row.get('field', '').strip()
+            if field_filter is not None:
+                if field not in field_filter:
+                    continue
+            elif status:  # skip anything with a status
                 continue
             category = row.get('category', '').strip()
-            field = row.get('field', '').strip()
             description = row.get('description', '').strip()
             if not field:
                 continue
-            if category_filter and category_filter.lower() not in category.lower():
+            if field_filter is None and category_filter and \
+                    category_filter.lower() not in category.lower():
                 continue
             # Skip categorical/string fields — they error in all numeric expressions
             if _is_categorical_field(field, description):
@@ -463,8 +518,8 @@ def _build_groq_system_prompt() -> str:
 
 ## Platform Rules
 - All alphas use delay=1 (D1), region USA, language FASTEXPR.
-- Neutralization: SUBINDUSTRY (default) or MARKET.
-- Universe: TOP3000, TOP500, or TOP200.
+- Neutralization: set by orchestrator (Fundamental/Analyst = INDUSTRY, others = SUBINDUSTRY). Do not include in code.
+- Universe: TOP3000 or TOP200 (never TOP500 — zero passes from 145 tests).
 
 ## Templates (use different ones per field — vary across fields)
 A: -rank(ts_rank(FIELD, 252))
@@ -478,13 +533,17 @@ H: -rank(group_rank(ts_zscore(FIELD, 252), sector))
 I: -rank(group_zscore(ts_rank(FIELD, 63), industry))
 J: -rank(ts_rank(ts_backfill(FIELD, 120), 252))
 K: -rank(ts_rank(ts_delta(FIELD, 21), 63))
+L: -rank(group_neutralize(group_rank(ts_rank(FIELD, 252), subindustry), sector))  ← double-neutral
+M: -rank(ts_rank(ts_delta(FIELD, 63), 252))               ← revision rate (use for QUARTERLY fields)
+N: -rank(ts_rank(FIELD / cap, 252))                       ← cap-normalized yield (use for $ amount fields)
 
 Lookback: DAILY fields→5-63, WEEKLY→22-126, QUARTERLY→126-504, SLOW→252-504.
 
 ## Rules
-- Only use -rank(...) sign. Do NOT generate rank(...) (positive sign) variants — if the negative gives sharpe -1.25, we know the positive passes.
+- For single-field expressions: only use -rank(...). For ratio/composite (N, pair spreads): test both rank and -rank.
 - Use DIFFERENT templates for similar fields to avoid self-correlation.
 - Include at least one group_rank or group_zscore per field.
+- Prioritize Template M (revision rate) for analyst estimate fields (anl4_fs_*, anl4_ebit_*, etc.).
 - Prefer momentum/growth/trend over value signals.
 
 ## Response Format
@@ -588,7 +647,19 @@ def call_gemini(api_key: str, fields: list[dict], dataset: str = None,
         system_prompt += f'\n\n## Past Results Feedback for This Category\n{past_feedback}'
     kb_text = load_knowledge_bases(Path(__file__).parent)
     if kb_text:
-        system_prompt += f'\n\n## WorldQuant BRAIN Reference Documentation\nUse the following official WQ documentation to inform your alpha ideas:\n\n{kb_text}'
+        system_prompt += (
+            '\n\n## WorldQuant BRAIN Reference Documentation\n'
+            'The files below are your authoritative reference. Apply them as follows:\n'
+            '- WQ_Error_Messages.md: avoid any expression pattern that triggers these errors\n'
+            '- WQ_Neutralization_Strategy.md: confirm neutralization matches the data category\n'
+            '- WQ_Operators_Guide.md + WQ_Operators_Deep_Reference.md: verify operator syntax before using\n'
+            '- WQ_Fundamental_Data_Reference.md / WQ_Price_Volume_Data_Reference.md / WQ_Vector_Data_And_Datasets.md: use the correct vec_ conversion for vector fields; never apply ts_rank directly to a vector field\n'
+            '- Alpha_Examples.md: cross-check templates — if a template is listed as BANNED or empirically dead (e.g. ts_std_dev for QUARTERLY), do not use it\n'
+            '- WQ_Improving_Fitness.md + WQ_Improving_Turnover.md: prefer expressions with TO 5–30%; avoid lookbacks that cause ultra-low TO on quarterly/annual data\n'
+            '- auto_findings.md: treat every field and template listed there as empirically tested — do not repeat failed combinations\n'
+            '\nFull documentation:\n\n'
+            + kb_text
+        )
     if dataset and dataset.lower() in DATASET_PROMPTS:
         system_prompt += DATASET_PROMPTS[dataset.lower()]
         print(f"  Using dataset-specific prompt for: {dataset}")
@@ -687,11 +758,14 @@ def call_gemini(api_key: str, fields: list[dict], dataset: str = None,
 
 # ─── Parameter file writer ────────────────────────────────────────────────────
 
-def write_parameters_file(results: list[dict], batch_name: str, output_path: Path) -> Path:
+def write_parameters_file(results: list[dict], batch_name: str, output_path: Path,
+                          category: str = None) -> Path:
     """Write a ready-to-run parameters_llm_<batch>.py file."""
     filename = f'parameters_llm_{batch_name}.py'
     filepath = output_path / filename
     ts = datetime.now().strftime('%Y%m%d_%H%M%S')
+    # Fundamental and Analyst compare within industry — use INDUSTRY neutralization.
+    neut = 'INDUSTRY' if category in ('Fundamental', 'Analyst') else 'SUBINDUSTRY'
 
     # Load known fields for validation
     try:
@@ -759,7 +833,7 @@ def write_parameters_file(results: list[dict], batch_name: str, output_path: Pat
         'from commands import *',
         f"BATCH_NAME = 'llm_{batch_name}'",
         '',
-        "BASE = {'neutralization': 'SUBINDUSTRY', 'decay': 6, 'truncation': 0.08, 'delay': 1, 'region': 'USA', 'universe': 'TOP3000'}",
+        f"BASE = {{'neutralization': '{neut}', 'decay': 6, 'truncation': 0.08, 'delay': 1, 'region': 'USA', 'universe': 'TOP3000'}}",
         "B500 = {**BASE, 'universe': 'TOP500'}",
         "B200 = {**BASE, 'universe': 'TOP200'}",
         "UNIV = {'TOP3000': BASE, 'TOP500': B500, 'TOP200': B200}",
@@ -830,6 +904,9 @@ Get a free API key at: https://aistudio.google.com/apikey
                         help='List available categories and untested field counts, then exit')
     parser.add_argument('--list-datasets', action='store_true',
                         help='List datasets that have specialized prompts built in, then exit')
+    parser.add_argument('--fields', type=str, default=None,
+                        help='Comma-separated field names — generate ONLY for these, '
+                             'bypassing the untested-status filter (triage promotion)')
     parser.add_argument('--tracker', type=str, default='fields_tracker.csv',
                         help='Path to fields_tracker.csv (default: fields_tracker.csv)')
     args = parser.parse_args()
@@ -875,7 +952,11 @@ Get a free API key at: https://aistudio.google.com/apikey
     print(f"  WQ Brain LLM Alpha Generator — gemini-3.5-flash")
     print(f"{'='*60}")
 
-    fields = load_untested_fields(tracker_path, args.category, args.count)
+    field_filter = None
+    if args.fields:
+        field_filter = {f.strip() for f in args.fields.split(',') if f.strip()}
+    fields = load_untested_fields(tracker_path, args.category, args.count,
+                                  field_filter=field_filter)
     if not fields:
         print(f"ERROR: No untested fields found for category='{args.category}'")
         print("Use --list-categories to see available options.")
@@ -907,7 +988,7 @@ Get a free API key at: https://aistudio.google.com/apikey
         ds_slug = (f'_{args.dataset}' if args.dataset else '')
         batch_name = f'{cat_slug}{ds_slug}_{ts}'
 
-    filepath = write_parameters_file(results, batch_name, base_dir)
+    filepath = write_parameters_file(results, batch_name, base_dir, category=args.category)
     total_data = sum(len(r.get('expressions', [])) for r in results)
 
     print(f"\n  ✅ Written: {filepath.name}")

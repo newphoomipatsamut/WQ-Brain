@@ -4,6 +4,7 @@ __pycache__/
 
 # ─── Credentials (NEVER commit) ─────────────────────────────
 credentials.json
+.env
 *chromedriver*
 
 # ─── Active batch (user-specific, changes constantly) ───────
@@ -13,6 +14,9 @@ parameters.py
 parameters_llm_*.py
 parameters_gen_*.py
 parameters_auto_tune_*.py
+parameters_triage_*.py
+parameters_tune_*.py
+parameters_flip_*.py
 
 # ─── Simulation data ────────────────────────────────────────
 data/*.csv
@@ -30,6 +34,9 @@ agent_log.txt
 agent_state.json
 orchestrator_log.txt
 passes_to_review.txt
+near_miss_log.csv
+_archive/
+*.docx
 
 # ─── OS / editor junk ───────────────────────────────────────
 .DS_Store

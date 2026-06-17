@@ -71,6 +71,15 @@ After passing baseline IS tests (Fitness > 1.00, Sharpe > 1.25, Turnover 1-70%),
 * **Pyramid Alphas:** Uses fields from max 2 dataset categories.
 * **Power Pool Alphas:** Elite tier. Sharpe $\ge 1.0$, $\le 8$ operators, $\le 3$ data fields, and extremely low self-correlation ($< 0.5$).
 
+### C. SuperAlpha (Signal Combination)
+BRAIN includes a **SuperAlpha** feature for combining multiple alpha signals into a single composite. This is the recommended way to mix signals — not by adding conditions or averaging inside a single alpha expression.
+
+**Why:** Combining signals at the expression level (e.g., `0.5*signal_A + 0.5*signal_B`) tends to over-fit because you're choosing the weights manually. SuperAlpha uses a principled combination method that accounts for correlation between the component alphas.
+
+**When to use:** After you have 2+ individually-passing alphas with the same region/universe/delay settings that target different signals. Do not use SuperAlpha to "rescue" two weak alphas — both components should be individually viable.
+
+**Note for our pipeline:** Our orchestrator submits individual alphas. SuperAlpha is a manual BRAIN UI feature, not something we automate.
+
 ### B. Regional Robustness
 * **GLB (Global) Alphas:** Must maintain Sharpe $> 1.0$ across AMER, APAC, and EMEA individually.
 * **ASI (Asia) Alphas:** Must pass the **Japan Robustness Test** (Sharpe $\ge 1.0$ in Japan). Since Japan is the most liquid market in Asia, Alphas that fail here are deemed un-tradeable.

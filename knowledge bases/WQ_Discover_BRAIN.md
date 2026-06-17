@@ -21,6 +21,8 @@ A proprietary, pseudo-code language used to write Alphas. It lacks classes, loop
   * **CRITICAL:** The very last line of the expression must **NOT** have a semicolon. This final line is the Alpha output vector.
   * Use `/* comments */` for documentation.
 
+**Python / R / MATLAB — NOT available.** Alpha logic must be written entirely in Fast Expression syntax. You cannot import external libraries, define functions, or run loops. Programmatic access (via the BRAIN API) is available to consultants only and is limited to submitting expressions and receiving JSON results — you still write the expression in Fast Expression.
+
 ---
 
 ## 3. The "Big Three" IS (In-Sample) Metrics
@@ -59,4 +61,5 @@ BRAIN does not just grade on Returns; it grades on risk-adjusted consistency and
 | **Low Sharpe / Sub-Universe Sharpe** | High volatility or too few stocks. | Expand Universe to `TOP3000` or apply `rank()` cross-sectionally. |
 | **Max weight > 10%** | Alpha concentrated capital in 1-2 stocks. | Add `Truncation = 0.08` to settings and wrap final output in `rank()`. |
 | **Too few instruments assigned weight** | Too many `NaN`s (missing data) in the dataset. | Use `ts_backfill()` or `group_backfill()` to fill missing days. |
-| **High Turnover (Fitness Block)** | Signal flips from Long to Short too often. | Use `ts_decay_linear()` in the code, or increase the `Decay` setting (e.g., 6). |
+| **High Turnover (Fitness Block)** | Signal flips from Long to Short too often. | Use `hump()` to cap daily weight changes, or increase the `Decay` setting (e.g., 6). Never use `ts_decay_linear()` — it is banned (correlates with a submitted alpha). |
+| **Ultra-low Turnover (Fitness Ceiling)** | TO < ~2% → fitness ceiling ~0.88 even with high Sharpe. Caused by annual/quarterly signals that barely move day-to-day. | Switch to shorter lookbacks (63/126 instead of 252). If signal only exists at long lookbacks, the field is structurally unpassable — mark it abandoned (fitness_ceiling). |
