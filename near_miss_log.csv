@@ -1,0 +1,2 @@
+timestamp,category,field,sharpe,fitness,checks,turnover,fail_reasons,code
+2026-06-13 22:03,Combine,acquired_intangible_avg_useful_life,1.05,1.06,5,9.96,sharpe 1.05<1.25; checks 5<6,"-rank(ts_rank(acquired_intangible_avg_useful_life, 252) * ts_rank(mdl177_2_deepvaluefactor_ttmocfp, 252))"

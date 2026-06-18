@@ -10,8 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 from threading import current_thread, Lock
 
 # Concurrent simulation slots. Regular accounts get ~3; consultants get 8-10.
-# Your 429 pattern (2 running, rest bouncing) suggests 3 is right for your tier.
-# Override without editing code:  export WQ_CONCURRENCY=8
+# Override without editing code:  export WQ_CONCURRENCY=N
 MAX_WORKERS = int(os.environ.get('WQ_CONCURRENCY', 3))
 
 class WQSession(requests.Session):

@@ -6,12 +6,26 @@
     "runs": 2,
     "sharpe_sum": 0.41000000000000003
   },
+  "group_neutralize_WEEKLY": {
+    "avg_sharpe": -0.13,
+    "near_misses": 0,
+    "passes": 0,
+    "runs": 26,
+    "sharpe_sum": -3.39
+  },
   "group_rank_QUARTERLY": {
     "avg_sharpe": 0.026,
     "near_misses": 0,
     "passes": 0,
     "runs": 138,
     "sharpe_sum": 3.5500000000000007
+  },
+  "group_rank_WEEKLY": {
+    "avg_sharpe": -0.028,
+    "near_misses": 0,
+    "passes": 0,
+    "runs": 26,
+    "sharpe_sum": -0.7199999999999999
   },
   "group_zscore_QUARTERLY": {
     "avg_sharpe": 0.106,
@@ -20,12 +34,26 @@
     "runs": 108,
     "sharpe_sum": 11.419999999999995
   },
+  "group_zscore_WEEKLY": {
+    "avg_sharpe": 0.172,
+    "near_misses": 0,
+    "passes": 0,
+    "runs": 5,
+    "sharpe_sum": 0.8600000000000001
+  },
   "hump_ts_rank_QUARTERLY": {
     "avg_sharpe": 0.043,
     "near_misses": 2,
     "passes": 1,
     "runs": 578,
     "sharpe_sum": 25.10000000000001
+  },
+  "hump_ts_rank_WEEKLY": {
+    "avg_sharpe": -0.194,
+    "near_misses": 0,
+    "passes": 0,
+    "runs": 16,
+    "sharpe_sum": -3.1100000000000003
   },
   "other_QUARTERLY": {
     "avg_sharpe": -0.22,
@@ -41,12 +69,26 @@
     "runs": 322,
     "sharpe_sum": 17.669999999999984
   },
+  "revision_rate_WEEKLY": {
+    "avg_sharpe": -0.189,
+    "near_misses": 0,
+    "passes": 0,
+    "runs": 26,
+    "sharpe_sum": -4.92
+  },
   "ts_corr_QUARTERLY": {
     "avg_sharpe": 0.059,
     "near_misses": 0,
     "passes": 0,
     "runs": 50,
     "sharpe_sum": 2.94
+  },
+  "ts_corr_WEEKLY": {
+    "avg_sharpe": -0.03,
+    "near_misses": 0,
+    "passes": 0,
+    "runs": 4,
+    "sharpe_sum": -0.11999999999999998
   },
   "ts_decay_linear_QUARTERLY": {
     "avg_sharpe": 0.377,
@@ -92,11 +134,11 @@
     "sharpe_sum": -9.75
   },
   "ts_rank_WEEKLY": {
-    "avg_sharpe": 0.224,
+    "avg_sharpe": 0.238,
     "near_misses": 7,
     "passes": 3,
-    "runs": 110,
-    "sharpe_sum": 24.690000000000005
+    "runs": 114,
+    "sharpe_sum": 27.140000000000004
   },
   "ts_rank_confirm_QUARTERLY": {
     "avg_sharpe": 1.217,
@@ -111,6 +153,13 @@
     "passes": 0,
     "runs": 206,
     "sharpe_sum": 4.319999999999999
+  },
+  "ts_regression_WEEKLY": {
+    "avg_sharpe": -0.136,
+    "near_misses": 0,
+    "passes": 0,
+    "runs": 22,
+    "sharpe_sum": -3.0000000000000004
   },
   "ts_std_dev_QUARTERLY": {
     "avg_sharpe": -0.019,

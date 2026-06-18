@@ -96,5 +96,5 @@
 3.  **Control Execution:** Use `trade_when` to force longer holds — reduces TO and improves Fitness. (`ts_decay_linear` is banned — use `hump()` for fitness fixes instead.)
 4.  **Preprocess first:** `ts_backfill(FIELD, 120)` for sparse data, `winsorize(FIELD, std=4)` for outlier-heavy financials.
 5.  **Use group operators for diversification:** `group_rank` and `group_zscore` give structurally lower self-corr than plain `rank`.
-6.  **Prioritize WEEKLY fields over QUARTERLY:** WEEKLY ts_rank has a 4.3% pass rate vs QUARTERLY's 0.6% — nearly 7x more fertile. SLOW frequency fields (credit risk, slow model scores) have negative average Sharpe — avoid them.
+6.  **Prioritize WEEKLY fields over QUARTERLY:** WEEKLY ts_rank has a 2.6% pass rate vs QUARTERLY's 0.6% — over 4x more fertile. SLOW frequency fields (credit risk, slow model scores) have negative average Sharpe — avoid them.
 7.  **QUARTERLY ts_std_dev is a trap:** 0 passes from 96 runs. The signal occasionally exists but always hits a fitness ceiling from ultra-low TO. Use ts_rank or ts_regression slope instead for quarterly data.

@@ -1,5 +1,5 @@
 # WQ-Brain Auto-Generated Research Findings
-_Auto-updated after each batch. Last update: 2026-06-17 21:40_
+_Auto-updated after each batch. Last update: 2026-06-18 02:44_
 _Do not edit — regenerated automatically by orchestrator.py._
 
 ## Banned Operators / Patterns
@@ -52,8 +52,13 @@ These fields are already submitted — generating expressions using them risks h
 → **Best for QUARTERLY: `ts_rank`**
 
 ### WEEKLY
-- `ts_rank`: pass_rate=4.3% (3/70 runs), avg_sharpe=0.43
-- `ts_zscore`: pass_rate=0.0% (0/20 runs), avg_sharpe=0.30
+- `ts_rank`: pass_rate=2.6% (3/114 runs), avg_sharpe=0.24
+- `ts_zscore`: pass_rate=0.0% (0/60 runs), avg_sharpe=0.09
+- `group_rank`: pass_rate=0.0% (0/26 runs), avg_sharpe=-0.03
+- `group_neutralize`: pass_rate=0.0% (0/26 runs), avg_sharpe=-0.13
+- `ts_regression`: pass_rate=0.0% (0/22 runs), avg_sharpe=-0.14
+- `revision_rate`: pass_rate=0.0% (0/26 runs), avg_sharpe=-0.19
+- `hump_ts_rank`: pass_rate=0.0% (0/16 runs), avg_sharpe=-0.19
 → **Best for WEEKLY: `ts_rank`**
 
 ### SLOW
@@ -63,8 +68,8 @@ These fields are already submitted — generating expressions using them risks h
 
 ## Category Yield (Historical)
 
-- **Model**: 2 passes / 24 tested (8.3%) | 2696 fields remaining
 - **Fundamental**: 7 passes / 277 tested (2.5%) | 1381 fields remaining
+- **Model**: 2 passes / 64 tested (3.1%) | 2656 fields remaining
 - **Model - Analyst**: 10 passes / 261 tested (3.8%) | 340 fields remaining
 - **Sentiment / Analyst**: 0 passes / 1 tested (0.0%) | 16 fields remaining
 - **Analyst**: 0 passes / 1324 tested (0.0%) | 0 fields remaining

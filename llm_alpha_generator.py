@@ -350,11 +350,30 @@ def _is_categorical_field(field: str, description: str) -> bool:
     return False
 
 
+def _discovery_score(f: dict) -> float:
+    """Prioritize fields for simulation: proven-signal+low-crowd > untested > tried-and-dead.
+
+    - ac > 0: signal confirmed globally → score 2 + ac/uc bonus (less crowded = higher)
+    - ac = 0, uc = 0: genuinely untested → score 1.0 (medium; unknown upside)
+    - ac = 0, uc > 0: many tried, none submitted → score < 1 (probably dead)
+    """
+    try:
+        ac = int(f.get('alpha_count') or 0)
+        uc = int(f.get('user_count') or 0)
+    except (ValueError, TypeError):
+        return 1.0
+    if ac > 0:
+        return 2.0 + ac / max(uc, 1)
+    return 1.0 if uc == 0 else 1.0 / (uc + 1)
+
+
 def load_untested_fields(csv_path: Path, category_filter: str = None, count: int = 50,
                          field_filter: set = None) -> list[dict]:
     """Load untested fields from fields_tracker.csv, enriched with frequency/crowdedness hints.
     If field_filter is given, load exactly those fields regardless of status
-    (used by the orchestrator to expand triage-promoted fields)."""
+    (used by the orchestrator to expand triage-promoted fields).
+    Otherwise, fields are sorted by discovery score before truncation to `count`:
+    proven-signal+low-crowd first, untested next, tried-but-dead last."""
     fields = []
     skipped_categorical = 0
     if field_filter is not None:
@@ -382,17 +401,22 @@ def load_untested_fields(csv_path: Path, category_filter: str = None, count: int
                 continue
             freq, crowd = CATEGORY_HINTS.get(category, DEFAULT_HINT)
             fields.append({
-                'category': category,
-                'field': field,
+                'category':    category,
+                'field':       field,
                 'description': description,
-                'frequency': freq,
+                'frequency':   freq,
                 'crowdedness': crowd,
+                'alpha_count': row.get('alpha_count', ''),
+                'user_count':  row.get('user_count', ''),
             })
-            if len(fields) >= count:
+            # field_filter path: stop as soon as we have all requested fields
+            if field_filter is not None and len(fields) >= count:
                 break
     if skipped_categorical:
         print(f"  Skipped {skipped_categorical} categorical/string fields (not numeric)")
-    return fields
+    if field_filter is None:
+        fields.sort(key=_discovery_score, reverse=True)
+    return fields[:count]
 
 
 def list_categories(csv_path: Path) -> dict:

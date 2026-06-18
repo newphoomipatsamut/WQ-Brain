@@ -178,8 +178,8 @@ Neutralization is a **risk control mechanism** — it reduces standard deviation
 | Category | TOP3000 | TOP200 |
 |----------|---------|--------|
 | Price Volume | MARKET or NONE | MARKET or NONE |
-| Fundamental | INDUSTRY | SUBINDUSTRY |
-| Analyst | INDUSTRY | SUBINDUSTRY |
+| Fundamental | INDUSTRY | INDUSTRY |
+| Analyst | INDUSTRY | INDUSTRY |
 | Model | SECTOR | INDUSTRY |
 | Sentiment | SUBINDUSTRY | INDUSTRY |
 | Options | MARKET | MARKET |
