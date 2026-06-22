@@ -60,7 +60,7 @@ CATEGORY_PRIORITY = [
     # Skip: News (uncertain, low priority)
 ]
 
-FIELDS_PER_BATCH = 20
+FIELDS_PER_BATCH = 15
 MAX_TUNE_EXPRESSIONS = 50  # Cap tuning batch — fitness tuning generates more variants
 TRACKER_CSV       = BASE_DIR / 'fields_tracker.csv'
 PASSES_LOG        = BASE_DIR / 'passes_to_review.txt'
@@ -325,10 +325,12 @@ def log_near_miss_failures(near_misses: list, category: str):
 # ─── Triage pass ─────────────────────────────────────────────────────────────
 # Cheap first-pass: 2 best-template expressions per untested field. Only fields
 # that show signal (|sharpe| >= TRIAGE_SHARPE) get the expensive full LLM batch.
-# 40 fields × 2 sims = 80 sims, vs 20 fields × 10 sims = 200 sims previously.
+# 100 fields × 2 sims = 200 sims per triage batch (~3.5 hrs, was 200→400 which stalled).
+# TRIAGE_SHARPE=0.75: fields at 0.50-0.74 in triage consistently produce fitness<0.35
+# in LLM batch (fundamental returns too slow to overcome 12.5% TO floor in fitness).
 
-TRIAGE_FIELDS = 40
-TRIAGE_SHARPE = 0.50
+TRIAGE_FIELDS = 100
+TRIAGE_SHARPE = 0.75
 
 # ts_decay_linear is BANNED from generation: too correlated with submitted
 # Alpha 10, Performance Comparison score change consistently negative.
@@ -476,11 +478,17 @@ def build_triage_batch(category: str, n_fields: int = TRIAGE_FIELDS
     return filename, field_names
 
 
-def triage_promising(results_csv: Path, field_names: list[str]) -> list[str]:
-    """Fields whose best triage expression shows |sharpe| >= TRIAGE_SHARPE."""
+def triage_promising(results_csv: Path, field_names: list[str],
+                     ) -> tuple[list[str], dict[str, dict]]:
+    """Fields whose best triage expression shows |sharpe| >= TRIAGE_SHARPE.
+
+    Returns (promising_fields, best_meta) where best_meta[field] =
+    {'sharpe', 'code', 'turnover', 'template'} for ALL fields that had valid results.
+    """
     from alpha_utils import extract_field
+    from template_rl import extract_template_type
     wanted = set(field_names)
-    best = {}
+    best: dict[str, dict] = {}
     with open(results_csv) as f:
         for row in csv.DictReader(f):
             field = extract_field(row.get('code', ''))
@@ -489,12 +497,124 @@ def triage_promising(results_csv: Path, field_names: list[str]) -> list[str]:
             if not re.search(r'worldquantbrain\.com/alpha/\w+', str(row.get('link', ''))):
                 continue
             try:
-                sharpe = abs(float(row.get('sharpe', 0) or 0))
+                sharpe   = abs(float(row.get('sharpe', 0) or 0))
+                turnover = float(row.get('turnover', 99) or 99)
             except (ValueError, TypeError):
                 continue
-            best[field] = max(best.get(field, 0.0), sharpe)
-    return sorted((f for f, s in best.items() if s >= TRIAGE_SHARPE),
-                  key=lambda f: -best[f])
+            if field not in best or sharpe > best[field]['sharpe']:
+                code = row.get('code', '')
+                best[field] = {
+                    'sharpe':   sharpe,
+                    'code':     code,
+                    'turnover': turnover,
+                    'template': extract_template_type(code),
+                }
+    promising = sorted((f for f, m in best.items() if m['sharpe'] >= TRIAGE_SHARPE),
+                       key=lambda f: -best[f]['sharpe'])
+    return promising, best
+
+
+# Fitness floor: WQ fitness = sharpe × sqrt(|returns| / max(TO/100, 0.125)).
+# If TO < 12.5%, denominator is capped at 0.125 — only returns lever remains.
+# Fundamental fields with hump template typically have TO < 1%, so fitness is
+# structurally bounded regardless of sharpe. No LLM batch can fix this.
+CEILING_TEMPLATE = 'hump_ts_rank'
+CEILING_TO_THRESHOLD = 1.0  # TO% below which the 12.5% floor dominates
+
+
+def _mark_fitness_ceiling(field: str, sharpe: float, turnover: float):
+    """Mark a fitness-ceiling field as Tested:Baseline-Failed with abandon notes.
+
+    Uses rank-1 status deliberately so winner_clusters() won't treat this field's
+    dataset as a cluster attractor — it's a structural dead end, not a near-miss.
+    """
+    with open(TRACKER_CSV, newline='', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        fieldnames = reader.fieldnames
+        rows = list(reader)
+    changed = False
+    for r in rows:
+        if r.get('field', '').strip() != field:
+            continue
+        r['status'] = '🟡 Tested: Baseline Failed'
+        r['signal_strength'] = f"{sharpe:.3f}"
+        r['notes'] = (f"best: sharpe={sharpe:.2f} TO={turnover:.2f}% (hump triage) "
+                      f"— fitness ceiling detected")
+        r['abandon_reason'] = (
+            f"fitness ceiling: hump+TO={turnover:.1f}%<1% hits max(TO/100,0.125) "
+            f"floor; denominator locked at 0.125; only returns lever remains; "
+            f"fundamental returns too slow to reach fitness>=1.0"
+        )
+        changed = True
+        break
+    if changed:
+        with open(TRACKER_CSV, 'w', newline='', encoding='utf-8') as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(rows)
+
+
+def _inject_triage_seeds(params_file: Path, seed_exprs: dict[str, dict]):
+    """Prepend triage-winning expressions to an LLM batch params file.
+
+    Seeds are inserted first in DATA[] so they run even if the batch is cut
+    short by token limits. Each seed is tested in both TOP3000 and TOP200.
+    """
+    seed_lines: list[str] = []
+    for field, meta in seed_exprs.items():
+        code = meta['code']
+        if any(op in code for op in BANNED_OPS):
+            continue
+        sharpe   = meta.get('sharpe', 0)
+        turnover = meta.get('turnover', 0)
+        seed_lines.append(
+            f"    # triage seed: {field} (sharpe={sharpe:.2f}, TO={turnover:.1f}%)"
+        )
+        seed_lines.append(f"    {{**UNIV['TOP3000'], 'code': {repr(code)}}},")
+        seed_lines.append(f"    {{**UNIV['TOP200'],  'code': {repr(code)}}},")
+    if not seed_lines:
+        return
+    content = params_file.read_text(encoding='utf-8')
+    marker = 'DATA = [\n'
+    idx = content.find(marker)
+    if idx == -1:
+        log(f"  [seeds] DATA = [ not found in {params_file.name} — skipping seed injection")
+        return
+    insert_at = idx + len(marker)
+    header = '    # ── Triage seeds (run first; guaranteed even on truncated batch) ──\n'
+    injected = (content[:insert_at] + header
+                + '\n'.join(seed_lines) + '\n'
+                + content[insert_at:])
+    params_file.write_text(injected, encoding='utf-8')
+    log(f"  [seeds] Injected {len(seed_exprs)} triage-winning expression(s) into {params_file.name}")
+
+
+def _recover_on_startup():
+    """At startup, apply any results CSVs created in the last 24 h to the tracker.
+
+    If the orchestrator crashed mid-simulation, main.py's incremental flush
+    (f.flush() after each row) ensures partial CSVs exist on disk.  This call
+    makes those results durable before starting a fresh run.
+
+    Only update_tracker_from_csv is called (idempotent — never downgrades statuses).
+    update_from_results is intentionally skipped: it is NOT idempotent and would
+    double-count RL statistics for CSVs that were already processed last session.
+    """
+    cutoff = time.time() - 24 * 3600
+    recent = sorted(
+        [p for p in glob.glob(str(BASE_DIR / 'data' / '*.csv'))
+         if os.path.getmtime(p) >= cutoff],
+        key=os.path.getmtime,
+    )
+    if not recent:
+        return
+    log(f"  [startup] Scanning {len(recent)} recent CSV(s) for unprocessed results...")
+    for csv_path in recent:
+        try:
+            update_tracker_from_csv(Path(csv_path))
+        except Exception as e:
+            log(f"  [startup] Could not recover {Path(csv_path).name}: {e}")
+    log("  [startup] Recovery scan complete.")
 
 
 # ─── Exploit mode: mine clusters that already produced winners ───────────────
@@ -734,44 +854,67 @@ def _tune_expression(code: str, univ: str, field: str) -> list[tuple[str, str, s
     return entries
 
 
-def _fitness_tune(code: str, univ: str, field: str, fitness: float) -> list[tuple[str, str, str]]:
+def _fitness_tune(code: str, univ: str, field: str, fitness: float,
+                  turnover: float = 99.0) -> list[tuple[str, str, str]]:
     """
-    Generate tuning variants specifically aimed at fixing fitness < 1.00 (turnover too high).
-    Strategies: increase decay, add hump wrapper, switch to TOP200, replace ts_decay_linear
-    with ts_rank (lower turnover by design).
+    Generate tuning variants aimed at raising fitness >= 1.0.
+
+    Diagnosis first — different root causes need different fixes:
+    - High TO (> 12%): hump(), TOP200, higher decay reduce churn
+    - Low TO (≤ 12%): turnover is NOT the issue; instead vary lookback,
+      decay, truncation, or neutralization to improve year-consistency
     """
     entries = []
+    high_to = turnover > 12.0
 
-    # Strategy 1: Always try TOP200 — smaller universe = lower turnover
+    # Strategy 1: Always try TOP200 — larger caps tend to have cleaner fundamentals
     if univ != 'TOP200':
         entries.append(('TOP200', code, f'# Fitness fix TOP200: {field}'))
 
-    # Strategy 2: Add hump() wrapper — smooths signal, reduces turnover
-    if 'hump' not in code and code.startswith('-rank('):
+    # Strategy 2: hump() wrapper — ONLY when TO is high (it smooths churn)
+    # When TO is already low, hump() just destroys the signal without helping fitness
+    if high_to and 'hump' not in code and code.startswith('-rank('):
         entries.append((univ, f'-rank(hump({code[6:]})', f'# Fitness fix hump: {field}'))
         if univ != 'TOP200':
             entries.append(('TOP200', f'-rank(hump({code[6:]})', f'# Fitness fix hump+TOP200: {field}'))
 
-    # Strategy 3 (longer ts_decay_linear periods) removed — family is BANNED.
+    # Strategy 3: Lookback variation — a different window may be more year-consistent
+    # Applies to ts_rank, ts_zscore, ts_std_dev, ts_mean embedded at any level
+    for op in ['ts_rank', 'ts_zscore', 'ts_std_dev', 'ts_mean']:
+        m = re.search(rf'{op}\((\w+),\s*(\d+)\)', code)
+        if m:
+            fname, lb = m.group(1), int(m.group(2))
+            for new_lb in [126, 252, 504]:
+                if new_lb != lb:
+                    new_code = re.sub(rf'{op}\({re.escape(fname)},\s*{lb}\)',
+                                      f'{op}({fname}, {new_lb})', code)
+                    entries.append((univ, new_code, f'# Fitness fix lb={new_lb}: {fname}'))
+            break
 
-    # Strategy 4: If using ts_decay_linear template, try pure ts_rank instead
-    # ts_rank has structurally lower turnover than ts_decay_linear * momentum
+    # Strategy 4: Decay variation — higher decay = less frequent rebalancing = better year-consistency
+    # Previously only triggered at fitness >= 0.90, but useful at any fitness level
+    entries.append((univ, code, f'# Fitness fix decay=10: {field}', {'decay': 10}))
+    entries.append((univ, code, f'# Fitness fix decay=15: {field}', {'decay': 15}))
+
+    # Strategy 5: Truncation variation — tighter cap reduces outlier impact on fitness
+    entries.append((univ, code, f'# Fitness fix trunc=0.05: {field}', {'truncation': 0.05}))
+
+    # Strategy 6: double_neutral — adds sector neutralization for tighter risk control
+    # Applies when expression uses group_rank/group_zscore with an industry group
+    m_grp = re.search(r'(group_(?:rank|zscore)\(.*?(?:industry|subindustry|sector)\))', code)
+    if m_grp and 'group_neutralize' not in code and code.startswith('-rank('):
+        inner = code[6:]  # strip leading -rank(
+        dn_code = f'-rank(group_neutralize({inner}, sector))'
+        entries.append((univ, dn_code, f'# Fitness fix double_neutral: {field}'))
+
+    # Strategy 7 (legacy): ts_decay_linear → ts_rank conversion (banned family)
     if 'ts_decay_linear' in code and '* rank(ts_delta' in code:
-        # Extract inner field from ts_decay_linear(FIELD, N) * rank(ts_delta(close, M))
         inner_m = re.search(r'ts_decay_linear\((\w+),', code)
         if inner_m:
             fname = inner_m.group(1)
             for lb in [126, 252, 504]:
                 entries.append((univ, f'-rank(ts_rank({fname}, {lb}))',
                                f'# Fitness fix ts_rank lb={lb}: {fname}'))
-                if univ != 'TOP200':
-                    entries.append(('TOP200', f'-rank(ts_rank({fname}, {lb}))',
-                                   f'# Fitness fix ts_rank+TOP200 lb={lb}: {fname}'))
-
-    # Strategy 5: If fitness is very close (>= 0.90), try increasing decay in settings
-    # The base settings use decay=6. Try decay=10 for reduced turnover.
-    if fitness >= 0.90:
-        entries.append((univ, code, f'# Fitness fix decay=10: {field}', {'decay': 10}))
 
     return entries
 
@@ -895,11 +1038,12 @@ def build_tuning_batch(passes: list, near_misses: list) -> Path | None:
                 f"never converted ({_perf[bucket]['near_misses']} near-misses, 0 passes)")
             continue
 
-        fitness = float(row.get('fitness', 0) or 0)
+        fitness  = float(row.get('fitness',  0) or 0)
+        turnover = float(row.get('turnover', 99) or 99)
 
         if fitness < 1.00:
             # Fitness-blocked: use targeted fitness tuning
-            entries.extend(_fitness_tune(code, univ, field, fitness))
+            entries.extend(_fitness_tune(code, univ, field, fitness, turnover))
         else:
             # Sharpe/checks-blocked: use standard tuning (lookback, universe)
             entries.append(('TOP200', code, f'# Near-miss TOP200: {field}'))
@@ -1052,11 +1196,14 @@ def run_simulation(params_file: Path) -> Path | None:
     total = len(original_data)
     data = _run_attempts(session, list(original_data), total)
 
-    # If session expired during this batch, re-authenticate and retry the whole batch
-    if session.login_expired:
-        log("  ↩ Session expired mid-batch — re-authenticating and retrying...")
+    # If session expired mid-batch, re-authenticate and retry only the remaining failures.
+    # Completed expressions are already in the CSV (main.py flushes each row), so
+    # re-running original_data in full would waste quota re-submitting 60-70 done ones.
+    if data and session.login_expired:
+        log(f"  ↩ Session expired with {len(data)} expression(s) remaining "
+            f"— re-authenticating and retrying failed subset...")
         session = _get_session()   # sends LINE notification + biometric polling
-        data = _run_attempts(session, list(original_data), total, label='post-reauth')
+        data = _run_attempts(session, data, total, label='post-reauth')
 
     log(f"  ✅ Done! {total - len(data)}/{total} simulations completed.")
 
@@ -1518,6 +1665,11 @@ def run_orchestrator(api_key: str, start_category: str = None, dry_run: bool = F
             f"{v['passes']}p/{v['near']}n/{v['tested']}t | {v['untested']} untested)")
 
     log("")
+    _recover_on_startup()
+    try:
+        update_auto_knowledge_base()
+    except Exception as e:
+        log(f'  [kb] KB update after startup recovery failed: {e}')
     skipping = False  # rotation handles start_category, no longer need to skip
 
     try:
@@ -1549,6 +1701,7 @@ def run_orchestrator(api_key: str, start_category: str = None, dry_run: bool = F
 
             # ── Step 1a: Triage — cheap 2-template scan of untested fields ─
             promising = None
+            triage_seeds: dict[str, dict] = {}
             if triage:
                 triage_file, triage_fields = build_triage_batch(cat, TRIAGE_FIELDS)
                 if triage_file:
@@ -1560,17 +1713,52 @@ def run_orchestrator(api_key: str, start_category: str = None, dry_run: bool = F
                             update_from_results(triage_csv, TRACKER_CSV)
                         except Exception as e:
                             log(f'  [rl] Could not update template performance: {e}')
-                        promising = triage_promising(triage_csv, triage_fields)
+                        promising, triage_meta = triage_promising(triage_csv, triage_fields)
                         log(f"  Triage: {len(promising)}/{len(triage_fields)} fields "
                             f"promising (|sharpe| ≥ {TRIAGE_SHARPE})")
                         if not promising:
-                            log("  No promising fields in this batch — moving on.")
+                            log("  No promising fields in this triage batch — moving on.")
                             continue
+
+                        # Fitness-ceiling filter: hump+TO<1% → max(TO/100,0.125) floor
+                        # locks denominator; fundamentals can't reach fitness=1.0
+                        ceiling = [
+                            f for f in promising
+                            if (triage_meta.get(f, {}).get('template') == CEILING_TEMPLATE
+                                and triage_meta.get(f, {}).get('turnover', 99) < CEILING_TO_THRESHOLD)
+                        ]
+                        if ceiling:
+                            log(f"  [ceiling] {len(ceiling)} field(s) show "
+                                f"hump+TO<{CEILING_TO_THRESHOLD}% fitness ceiling "
+                                f"— marking tested, skipping LLM:")
+                            for f in ceiling:
+                                m = triage_meta[f]
+                                log(f"    {f}: sharpe={m['sharpe']:.2f} TO={m['turnover']:.2f}%")
+                                _mark_fitness_ceiling(f, m['sharpe'], m['turnover'])
+                            ceiling_set = set(ceiling)
+                            promising = [f for f in promising if f not in ceiling_set]
+
+                        if not promising:
+                            log("  All triage-promising fields show fitness ceiling — moving on.")
+                            continue
+
+                        # Slice first, then build seeds from exactly the LLM-batched fields
                         promising = promising[:FIELDS_PER_BATCH]
+                        triage_seeds = {f: triage_meta[f] for f in promising}
+
+                        # Persist KB now — captures any triage near-misses before
+                        # the LLM batch starts, so a crash between steps doesn't
+                        # leave auto_findings.md stale.
+                        try:
+                            update_auto_knowledge_base()
+                        except Exception as e:
+                            log(f'  [kb] KB update after triage failed: {e}')
 
             # ── Step 1b: Generate LLM batch (full templates) ──────────────
             params_file = generate_batch(api_key, cat, FIELDS_PER_BATCH,
                                          groq_key=groq_key, fields=promising)
+            if params_file and triage_seeds:
+                _inject_triage_seeds(params_file, triage_seeds)
             if not params_file:
                 consecutive_gen_failures += 1
                 log(f"Batch generation failed for {cat} ({consecutive_gen_failures}/{MAX_CONSECUTIVE_GEN_FAILURES}).")

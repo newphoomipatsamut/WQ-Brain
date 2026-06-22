@@ -1,24 +1,31 @@
 {
   "group_neutralize_QUARTERLY": {
-    "avg_sharpe": 0.205,
+    "avg_sharpe": -0.313,
     "near_misses": 0,
     "passes": 0,
-    "runs": 2,
-    "sharpe_sum": 0.41000000000000003
+    "runs": 15,
+    "sharpe_sum": -4.7
+  },
+  "group_neutralize_SLOW": {
+    "avg_sharpe": -0.117,
+    "near_misses": 0,
+    "passes": 0,
+    "runs": 9,
+    "sharpe_sum": -1.05
   },
   "group_neutralize_WEEKLY": {
-    "avg_sharpe": -0.13,
+    "avg_sharpe": -0.065,
     "near_misses": 0,
     "passes": 0,
-    "runs": 26,
-    "sharpe_sum": -3.39
+    "runs": 48,
+    "sharpe_sum": -3.139999999999999
   },
   "group_rank_QUARTERLY": {
-    "avg_sharpe": 0.026,
-    "near_misses": 0,
+    "avg_sharpe": 0.017,
+    "near_misses": 1,
     "passes": 0,
-    "runs": 138,
-    "sharpe_sum": 3.5500000000000007
+    "runs": 176,
+    "sharpe_sum": 2.930000000000001
   },
   "group_rank_WEEKLY": {
     "avg_sharpe": -0.028,
@@ -28,11 +35,11 @@
     "sharpe_sum": -0.7199999999999999
   },
   "group_zscore_QUARTERLY": {
-    "avg_sharpe": 0.106,
+    "avg_sharpe": 0.078,
     "near_misses": 1,
     "passes": 0,
-    "runs": 108,
-    "sharpe_sum": 11.419999999999995
+    "runs": 144,
+    "sharpe_sum": 11.19
   },
   "group_zscore_WEEKLY": {
     "avg_sharpe": 0.172,
@@ -42,11 +49,11 @@
     "sharpe_sum": 0.8600000000000001
   },
   "hump_ts_rank_QUARTERLY": {
-    "avg_sharpe": 0.043,
+    "avg_sharpe": 0.005,
     "near_misses": 2,
     "passes": 1,
-    "runs": 578,
-    "sharpe_sum": 25.10000000000001
+    "runs": 942,
+    "sharpe_sum": 4.5300000000000225
   },
   "hump_ts_rank_WEEKLY": {
     "avg_sharpe": -0.194,
@@ -63,11 +70,11 @@
     "sharpe_sum": -5.050000000000001
   },
   "revision_rate_QUARTERLY": {
-    "avg_sharpe": 0.055,
+    "avg_sharpe": 0.003,
     "near_misses": 1,
     "passes": 0,
-    "runs": 322,
-    "sharpe_sum": 17.669999999999984
+    "runs": 697,
+    "sharpe_sum": 2.0699999999999776
   },
   "revision_rate_WEEKLY": {
     "avg_sharpe": -0.189,
@@ -77,11 +84,11 @@
     "sharpe_sum": -4.92
   },
   "ts_corr_QUARTERLY": {
-    "avg_sharpe": 0.059,
+    "avg_sharpe": 0.04,
     "near_misses": 0,
     "passes": 0,
-    "runs": 50,
-    "sharpe_sum": 2.94
+    "runs": 54,
+    "sharpe_sum": 2.1500000000000004
   },
   "ts_corr_WEEKLY": {
     "avg_sharpe": -0.03,
@@ -119,26 +126,26 @@
     "sharpe_sum": 0.0
   },
   "ts_rank_QUARTERLY": {
-    "avg_sharpe": 0.044,
+    "avg_sharpe": 0.021,
     "corr_fails": 5,
     "near_misses": 9,
     "passes": 3,
-    "runs": 522,
-    "sharpe_sum": 22.99000000000002
+    "runs": 603,
+    "sharpe_sum": 12.930000000000009
   },
   "ts_rank_SLOW": {
-    "avg_sharpe": -0.39,
+    "avg_sharpe": -0.316,
     "near_misses": 0,
     "passes": 0,
-    "runs": 25,
-    "sharpe_sum": -9.75
+    "runs": 34,
+    "sharpe_sum": -10.740000000000002
   },
   "ts_rank_WEEKLY": {
-    "avg_sharpe": 0.238,
+    "avg_sharpe": 0.204,
     "near_misses": 7,
     "passes": 3,
-    "runs": 114,
-    "sharpe_sum": 27.140000000000004
+    "runs": 136,
+    "sharpe_sum": 27.770000000000003
   },
   "ts_rank_confirm_QUARTERLY": {
     "avg_sharpe": 1.217,
@@ -148,11 +155,11 @@
     "sharpe_sum": 48.680000000000014
   },
   "ts_regression_QUARTERLY": {
-    "avg_sharpe": 0.021,
+    "avg_sharpe": 0.041,
     "near_misses": 0,
     "passes": 0,
-    "runs": 206,
-    "sharpe_sum": 4.319999999999999
+    "runs": 246,
+    "sharpe_sum": 10.18
   },
   "ts_regression_WEEKLY": {
     "avg_sharpe": -0.136,
@@ -162,18 +169,18 @@
     "sharpe_sum": -3.0000000000000004
   },
   "ts_std_dev_QUARTERLY": {
-    "avg_sharpe": -0.019,
+    "avg_sharpe": -0.026,
     "near_misses": 1,
     "passes": 0,
-    "runs": 96,
-    "sharpe_sum": -1.849999999999999
+    "runs": 98,
+    "sharpe_sum": -2.539999999999999
   },
   "ts_zscore_QUARTERLY": {
-    "avg_sharpe": 0.045,
+    "avg_sharpe": 0.022,
     "near_misses": 3,
     "passes": 0,
-    "runs": 209,
-    "sharpe_sum": 9.359999999999998
+    "runs": 221,
+    "sharpe_sum": 4.819999999999997
   },
   "ts_zscore_SLOW": {
     "avg_sharpe": -0.225,

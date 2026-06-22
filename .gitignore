@@ -24,5 +24,12 @@ orchestrator_log.txt
 # Auto-generated tracker backups
 fields_tracker_backup_*.csv
 
+# Auto-generated batch parameter files (regenerated each run)
+parameters_triage_*.py
+parameters_llm_*.py
+parameters_auto_tune_*.py
+parameters_retune_*.py
+parameters_flip_*.py
+
 # macOS metadata
 .DS_Store

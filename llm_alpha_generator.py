@@ -105,6 +105,10 @@ Template M — Cap-normalized ratio (size-adjusted yield):
   market cap converts it to a yield-style signal that normalizes across large and small caps.
   For dollar-amount fields, generate both FIELD and FIELD/cap versions.
   Note: for ratio/composite expressions test both -rank and rank — sign is not predictable.
+  CAUTION on cap-normalization: NEVER apply /cap to fields that are already ratios, rates,
+  percentages, or index values (e.g. tax rates, pension funding ratios, yield spreads,
+  plan returns). Dividing a ratio by cap produces a nonsense unit and destroys the signal.
+  Test the raw field first; only add /cap when the field is a dollar-denominated quantity.
 
 ### Lookback windows to vary
 Short: 5, 22 | Medium: 63, 126 | Long: 252, 504
@@ -160,7 +164,7 @@ PREFER: momentum, growth rate of change, volatility-of-fundamentals, group-relat
 ## Signal Direction
 For single-field expressions (Templates A–M): only use `-rank(...)`. Do NOT generate `rank(...)`.
 If -rank gives IS sharpe of -1.25, we know rank would give +1.25 — no need to test both.
-Exception — ratio and composite expressions (Template N, pair spreads): generate both
+Exception — ratio and composite expressions (Template M cap-normalized, pair spreads): generate both
 `-rank(...)` and `rank(...)` variants since sign is not predictable for composite signals.
 
 ## Field Diversity — when multiple similar fields are given
@@ -556,18 +560,17 @@ G: -rank(ts_regression(FIELD, ts_step(1), 252, rettype=2))
 H: -rank(group_rank(ts_zscore(FIELD, 252), sector))
 I: -rank(group_zscore(ts_rank(FIELD, 63), industry))
 J: -rank(ts_rank(ts_backfill(FIELD, 120), 252))
-K: -rank(ts_rank(ts_delta(FIELD, 21), 63))
-L: -rank(group_neutralize(group_rank(ts_rank(FIELD, 252), subindustry), sector))  ← double-neutral
-M: -rank(ts_rank(ts_delta(FIELD, 63), 252))               ← revision rate (use for QUARTERLY fields)
-N: -rank(ts_rank(FIELD / cap, 252))                       ← cap-normalized yield (use for $ amount fields)
+K: -rank(group_neutralize(group_rank(ts_rank(FIELD, 252), subindustry), sector))  ← double-neutral
+L: -rank(ts_rank(ts_delta(FIELD, 63), 252))               ← revision rate (use for QUARTERLY fields)
+M: -rank(ts_rank(FIELD / cap, 252))                       ← cap-normalized yield (use for $ amount fields)
 
 Lookback: DAILY fields→5-63, WEEKLY→22-126, QUARTERLY→126-504, SLOW→252-504.
 
 ## Rules
-- For single-field expressions: only use -rank(...). For ratio/composite (N, pair spreads): test both rank and -rank.
+- For single-field expressions: only use -rank(...). For ratio/composite (M cap-normalized, pair spreads): test both rank and -rank.
 - Use DIFFERENT templates for similar fields to avoid self-correlation.
 - Include at least one group_rank or group_zscore per field.
-- Prioritize Template M (revision rate) for analyst estimate fields (anl4_fs_*, anl4_ebit_*, etc.).
+- Prioritize Template L (revision rate) for analyst estimate fields (anl4_fs_*, anl4_ebit_*, etc.).
 - Prefer momentum/growth/trend over value signals.
 
 ## Response Format

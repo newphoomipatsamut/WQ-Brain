@@ -1,5 +1,5 @@
 # WQ-Brain Auto-Generated Research Findings
-_Auto-updated after each batch. Last update: 2026-06-18 02:44_
+_Auto-updated after each batch. Last update: 2026-06-22 21:58_
 _Do not edit — regenerated automatically by orchestrator.py._
 
 ## Banned Operators / Patterns
@@ -14,48 +14,28 @@ These fields are already submitted — generating expressions using them risks h
 - `acquired_intangible_avg_useful_life` (Fundamental)
 - `current_ratio` (Fundamental)
 - `eps` (Fundamental)
-- `interest_expense` (Fundamental)
-- `ppent` (Fundamental)
-- `revenue` (Fundamental)
-- `sales_ps` (Fundamental)
-- `mdl177_2_sensitivityfactor400_ttmocfev` (Model)
-- `mdl177_garpanalystmodel_qgp_vfpriceratio` (Model)
-- `mdl177_2_relativevaluemodel_ttmfcfp` (Model - Analyst)
-- `mdl177_2_sensitivityfactor400_pbroeresidual` (Model - Analyst)
-- `mdl177_2_valueanalystmodel_qva_chgacc` (Model - Analyst)
-- `mdl177_2_vma2_vma2_va` (Model - Analyst)
-- `mdl177_5shortsentimentfactor_days_to_cover` (Model - Analyst)
-- `mdl177_fangma_vmm_usa_fangma_vmm11` (Model - Analyst)
-- `mdl177_valanalystmodel_qva_chgacc` (Model - Analyst)
-- `mdl177_valanalystmodel_qva_incstmt` (Model - Analyst)
-- `mdl177_valueanalystmodel_qva_chgacc` (Model - Analyst)
-- `mdl177_earningsqualityfactor_uap` (Model - Analyst)
-- `close` (Price-Volume)
-- `high` (Price-Volume)
-- `low` (Price-Volume)
-- `returns` (Price-Volume)
-- `volume` (Price-Volume)
 
 ## Template Performance Summary
 
 ### QUARTERLY
-- `ts_rank`: pass_rate=0.6% (3/522 runs), avg_sharpe=0.04
-- `hump_ts_rank`: pass_rate=0.2% (1/578 runs), avg_sharpe=0.04
-- `group_zscore`: pass_rate=0.0% (0/108 runs), avg_sharpe=0.11
-- `ts_corr`: pass_rate=0.0% (0/50 runs), avg_sharpe=0.06
-- `revision_rate`: pass_rate=0.0% (0/322 runs), avg_sharpe=0.06
-- `ts_zscore`: pass_rate=0.0% (0/209 runs), avg_sharpe=0.04
-- `group_rank`: pass_rate=0.0% (0/138 runs), avg_sharpe=0.03
-- `ts_regression`: pass_rate=0.0% (0/206 runs), avg_sharpe=0.02
-- `ts_std_dev`: pass_rate=0.0% (0/96 runs), avg_sharpe=-0.02
+- `ts_rank`: pass_rate=0.5% (3/603 runs), avg_sharpe=0.02
+- `hump_ts_rank`: pass_rate=0.1% (1/942 runs), avg_sharpe=0.01
+- `group_zscore`: pass_rate=0.0% (0/144 runs), avg_sharpe=0.08
+- `ts_regression`: pass_rate=0.0% (0/246 runs), avg_sharpe=0.04
+- `ts_corr`: pass_rate=0.0% (0/54 runs), avg_sharpe=0.04
+- `ts_zscore`: pass_rate=0.0% (0/221 runs), avg_sharpe=0.02
+- `group_rank`: pass_rate=0.0% (0/176 runs), avg_sharpe=0.02
+- `revision_rate`: pass_rate=0.0% (0/697 runs), avg_sharpe=0.00
+- `ts_std_dev`: pass_rate=0.0% (0/98 runs), avg_sharpe=-0.03
 - `other`: pass_rate=0.0% (0/23 runs), avg_sharpe=-0.22
+- `group_neutralize`: pass_rate=0.0% (0/15 runs), avg_sharpe=-0.31
 → **Best for QUARTERLY: `ts_rank`**
 
 ### WEEKLY
-- `ts_rank`: pass_rate=2.6% (3/114 runs), avg_sharpe=0.24
+- `ts_rank`: pass_rate=2.2% (3/136 runs), avg_sharpe=0.20
 - `ts_zscore`: pass_rate=0.0% (0/60 runs), avg_sharpe=0.09
 - `group_rank`: pass_rate=0.0% (0/26 runs), avg_sharpe=-0.03
-- `group_neutralize`: pass_rate=0.0% (0/26 runs), avg_sharpe=-0.13
+- `group_neutralize`: pass_rate=0.0% (0/48 runs), avg_sharpe=-0.07
 - `ts_regression`: pass_rate=0.0% (0/22 runs), avg_sharpe=-0.14
 - `revision_rate`: pass_rate=0.0% (0/26 runs), avg_sharpe=-0.19
 - `hump_ts_rank`: pass_rate=0.0% (0/16 runs), avg_sharpe=-0.19
@@ -63,13 +43,10 @@ These fields are already submitted — generating expressions using them risks h
 
 ### SLOW
 - `ts_zscore`: pass_rate=0.0% (0/11 runs), avg_sharpe=-0.23
-- `ts_rank`: pass_rate=0.0% (0/25 runs), avg_sharpe=-0.39
+- `ts_rank`: pass_rate=0.0% (0/34 runs), avg_sharpe=-0.32
 → **Best for SLOW: `ts_zscore`**
 
 ## Category Yield (Historical)
 
-- **Fundamental**: 7 passes / 277 tested (2.5%) | 1381 fields remaining
-- **Model**: 2 passes / 64 tested (3.1%) | 2656 fields remaining
-- **Model - Analyst**: 10 passes / 261 tested (3.8%) | 340 fields remaining
-- **Sentiment / Analyst**: 0 passes / 1 tested (0.0%) | 16 fields remaining
+- **Fundamental**: 3 passes / 448 tested (0.7%) | 14 fields remaining
 - **Analyst**: 0 passes / 1324 tested (0.0%) | 0 fields remaining

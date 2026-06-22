@@ -21,13 +21,21 @@ All three must be optimized together — high Sharpe with near-zero Turnover sti
 
 ---
 
-## 2. Structural Fitness Ceiling from Ultra-Low Turnover
+## 2. Structural Fitness Ceiling for Slow Fundamental Signals (TO < 12.5%)
 
-If Turnover < ~2%, even a strong Sharpe (e.g. 1.32) can only reach Fitness ~0.88 — structurally unable to clear 1.00.
+Once Turnover falls below 12.5%, the `max(Turnover, 0.125)` floor locks the denominator at **0.125** — reducing TO further has zero effect on Fitness. The only remaining lever is **Returns**.
 
-**Why:** At TO = 1.61%, `sqrt(Returns / 0.0161)` is small regardless of Returns. The formula is not linear — doubling Returns only improves Fitness by `sqrt(2)` ≈ 41%, which may not be enough.
+**The math:** With TO = 1.78% (floor applies), Sharpe = 1.27, and Fitness = 0.80:
+- `Fitness = 1.27 × sqrt(Returns / 0.125)` → implied Returns ≈ **5.0%**
+- To reach Fitness = 1.0: need Returns ≥ **7.8%** (a 56% increase)
 
-**Fix:** Shorten lookback windows to raise TO. If the signal only exists at annual timescales (252+ days) and shorter lookbacks destroy it, the field has a structural fitness ceiling. Mark it abandoned and move on. See `WQ_Improving_Turnover.md` Section 3C.
+Slow fundamental signals (252–504 day lookbacks) rarely exceed 5–6% Returns — this is a structural ceiling, not a parameter problem.
+
+**Common mistake:** Do NOT use raw TO in the denominator without the floor. `sqrt(Returns / 0.0178)` is NOT the right formula below 12.5% — that calculation overstates the problem by ~8× and leads to wrong fixes (e.g. adding `hump()` to an already-low-TO expression destroys the signal without helping fitness at all).
+
+**Diagnosis:** Sharpe ≥ 1.25 + TO < 12.5% + Fitness < 1.0 → Returns are the bottleneck. Confirmed by `fnd2_a_stkdrgprdvalnewissues`: 19 retune variants (lookback, decay, truncation, double_neutral, group_zscore) all stuck at Fitness ≈ 0.79–0.80 regardless of parameters.
+
+**Fix:** The only paths out are (a) a fundamentally different expression structure (e.g. ratio, regression slope) that generates higher absolute returns, or (b) abandon the field. Adding `hump()`, increasing decay, or tweaking truncation cannot raise Returns — mark the field as near_miss and move on.
 
 ---
 
@@ -119,8 +127,8 @@ Work through these in order — each step is faster than the next:
 1. **Check Turnover first.** If TO > 40%, increase Decay or add `hump()` before touching anything else.
 2. **Check for NaN flicker.** If PnL is choppy with spikes, add `ts_backfill(FIELD, 120)` — fixes both Sharpe and TO simultaneously.
 3. **Check Sharpe.** If Sharpe < 1.0, the signal is weak — change template or field before tuning parameters.
-4. **Check Returns.** If Sharpe ≥ 1.25 but Fitness < 1.00 and TO is healthy (5–40%), Returns are too low. Lower Decay or try a faster data frequency.
-5. **Check for structural TO ceiling.** If TO < 2% and Sharpe is already > 1.25, the field may be unpassable — see Section 2.
+4. **Check Returns.** If Sharpe ≥ 1.25 but Fitness < 1.00 and TO is in the 12.5–40% range, Returns are too low. Lower Decay or try a faster data frequency.
+5. **Check for structural Returns ceiling.** If TO < 12.5% (floor applies) and Sharpe ≥ 1.25 but Fitness is still < 1.00, the bottleneck is Returns — no parameter tweak can fix this. See Section 2. Do NOT add `hump()` or increase Decay (neither raises Returns). Mark the field as near_miss and abandon.
 6. **Try `hump()` + TOP200.** If the above don't help, `hump()` cuts wasteful TO and TOP200 often gives lower self-corr and sometimes better Fitness.
 
 ---
