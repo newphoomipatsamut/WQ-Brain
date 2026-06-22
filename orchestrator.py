@@ -567,6 +567,33 @@ def _mark_fitness_ceiling(field: str, sharpe: float, turnover: float):
         _write_tracker_atomic(rows, fieldnames)
 
 
+def _reset_fields_to_untested(fields: list[str]):
+    """Reset overflow-promising triage fields back to untested status.
+
+    Fields that showed |sharpe| >= TRIAGE_SHARPE in triage but were cut by the
+    FIELDS_PER_BATCH slice limit are marked 'Tested: Baseline Failed' by
+    update_tracker_from_csv. That status permanently excludes them from future
+    triage since load_untested_fields only fetches empty-status fields.
+    Clearing their status here lets the next triage batch pick them up.
+    Only clears if status is exactly the triage-assigned value (rank 1) —
+    never downgrades a near_miss or pass.
+    """
+    if not fields:
+        return
+    with open(TRACKER_CSV, newline='', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        fieldnames = reader.fieldnames
+        rows = list(reader)
+    target = set(fields)
+    changed = 0
+    for r in rows:
+        if r.get('field') in target and r.get('status', '').strip() == '🟡 Tested: Baseline Failed':
+            r['status'] = ''
+            changed += 1
+    if changed:
+        _write_tracker_atomic(rows, fieldnames)
+
+
 def _inject_triage_seeds(params_file: Path, seed_exprs: dict[str, dict]):
     """Prepend triage-winning expressions to an LLM batch params file.
 
@@ -1755,9 +1782,19 @@ def run_orchestrator(api_key: str, start_category: str = None, dry_run: bool = F
                             log("  All triage-promising fields show fitness ceiling — moving on.")
                             continue
 
-                        # Slice first, then build seeds from exactly the LLM-batched fields
+                        # Slice first, then build seeds from exactly the LLM-batched fields.
+                        # Save the overflow before slicing — those fields are currently
+                        # marked 'Tested: Baseline Failed' by update_tracker_from_csv
+                        # but deserve a full LLM batch; reset them to untested so a
+                        # future triage pass can pick them up.
+                        overflow_promising = promising[FIELDS_PER_BATCH:]
                         promising = promising[:FIELDS_PER_BATCH]
                         triage_seeds = {f: triage_meta[f] for f in promising}
+                        if overflow_promising:
+                            log(f"  [overflow] {len(overflow_promising)} promising field(s) "
+                                f"cut by FIELDS_PER_BATCH={FIELDS_PER_BATCH} limit "
+                                f"— resetting to untested for future batches")
+                            _reset_fields_to_untested(overflow_promising)
 
                         # Persist KB now — captures any triage near-misses before
                         # the LLM batch starts, so a crash between steps doesn't
