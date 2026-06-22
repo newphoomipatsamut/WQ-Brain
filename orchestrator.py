@@ -24,6 +24,7 @@ Press Ctrl+C at any time to stop gracefully after the current batch finishes.
 """
 
 import argparse
+import contextlib
 import csv
 import glob
 import json
@@ -150,6 +151,25 @@ def get_next_category() -> str | None:
     return max(candidates)[1]
 
 
+def _write_tracker_atomic(rows: list, fieldnames):
+    """Write tracker rows to a temp file then atomically replace the tracker.
+    If the process is killed mid-write the original file is never touched."""
+    import tempfile
+    tmp_fd, tmp_path = tempfile.mkstemp(
+        suffix='.tmp', prefix='tracker_', dir=TRACKER_CSV.parent
+    )
+    try:
+        with os.fdopen(tmp_fd, 'w', newline='', encoding='utf-8') as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(rows)
+        os.replace(tmp_path, TRACKER_CSV)
+    except Exception:
+        with contextlib.suppress(FileNotFoundError):
+            os.unlink(tmp_path)
+        raise
+
+
 def update_tracker_from_csv(results_csv: Path):
     """Parse a results CSV and update fields_tracker.csv."""
     from alpha_utils import extract_field
@@ -224,11 +244,7 @@ def update_tracker_from_csv(results_csv: Path):
                 r['signal_strength'] = f"{result['sharpe']:.3f}"
             updated += 1
 
-    with open(TRACKER_CSV, 'w', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(rows)
-
+    _write_tracker_atomic(rows, fieldnames)
     return field_best
 
 
@@ -548,10 +564,7 @@ def _mark_fitness_ceiling(field: str, sharpe: float, turnover: float):
         changed = True
         break
     if changed:
-        with open(TRACKER_CSV, 'w', newline='', encoding='utf-8') as f:
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(rows)
+        _write_tracker_atomic(rows, fieldnames)
 
 
 def _inject_triage_seeds(params_file: Path, seed_exprs: dict[str, dict]):
